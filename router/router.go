@@ -25,6 +25,7 @@ func InitRouter() *gin.Engine {
 		baseRouter.GET("users", apis.GetUserList)
 		baseRouter.DELETE("user/:uuid", apis.DeleteUser)
 		baseRouter.PATCH("user/:uuid", apis.UpdateUser)
+		baseRouter.PATCH("user/:uuid/:status", apis.EnableOrDisableUser)
 
 		baseRouter.POST("role", apis.CreateRole)
 

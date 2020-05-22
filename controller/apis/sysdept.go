@@ -2,9 +2,9 @@ package apis
 
 import (
 	"github.com/gin-gonic/gin"
-	uuid "github.com/satori/go.uuid"
 	"go-admin/models"
 	"go-admin/models/page"
+	"go-admin/utils"
 	"net/http"
 )
 
@@ -39,7 +39,7 @@ func GetAll(c *gin.Context) {
 func GetByUUID(c *gin.Context) {
 	var D models.SysDept
 	uid := c.Param("uuid")
-	D.UUID, _ = uuid.FromString(uid)
+	D.DeptID = utils.StringConUint(uid)
 	if D, err := D.GetByUUID(); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "data": err.Error()})
 	} else {

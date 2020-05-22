@@ -10,7 +10,7 @@ import (
 
 type SysDept struct {
 	BaseModel
-	DeptId   uint64    `gorm:"column:dept_id" json:"deptID"`
+	DeptID   uint64    `gorm:"column:dept_id" json:"deptID"`
 	ParentId uint64    `gorm:"column:parent_id" json:"parent_id"`
 	DeptName string    `gorm:"column:dept_name" json:"deptName"`
 	DeptPath string    `gorm:"column:dept_path" json:"deptPath"`
@@ -18,7 +18,7 @@ type SysDept struct {
 	Leader   int       `gorm:"column:leader" json:"leader"`
 	Status   string    `gorm:"column:status" json:"status"`
 	Children []SysDept `json:"children"`
-	Users    []SysUser `gorm:"foreignkey:DeptRefer;association_foreignkey:DeptRefer"`
+	Users    []SysUser `gorm:"foreignkey:DeptID;association_foreignkey:DeptID"`
 }
 
 func (SysDept) TableName() string {
@@ -39,11 +39,11 @@ func (d *SysDept) Create() (*SysDept, error) {
 		err := errors.New("部门已存在")
 		return d, err
 	} else {
-		d.DeptId, _ = initID.GetID()
+		d.DeptID, _ = initID.GetID()
 		//err := orm.DB.Create(&d).Error
 		//return d, nil
 	}
-	if d.DeptId != 0 {
+	if d.DeptID != 0 {
 		var ParDept SysDept
 		orm.DB.Where("dept_id = ?", d.ParentId).First(&ParDept)
 		d.DeptPath = ParDept.DeptPath + d.DeptPath
@@ -75,7 +75,7 @@ func (d *SysDept) GetList(info page.InfoPage) (err error, list interface{}, tota
 }
 
 func (d *SysDept) GetByUUID() (D SysDept, err error) {
-	err = orm.DB.Where("dept_id = ?", d.DeptId).First(&D).Error
+	err = orm.DB.Where("dept_id = ?", d.DeptID).First(&D).Error
 	if err != nil {
 		return D, errors.New("未找到该部门")
 	}
@@ -104,7 +104,7 @@ func DeptOrder(deptList *[]SysDept, menu SysDept) SysDept {
 	list := *deptList
 	min := make([]SysDept, 0)
 	for i := 0; i < len(list); i++ {
-		if menu.DeptId != list[i].ParentId {
+		if menu.DeptID != list[i].ParentId {
 			continue
 		}
 		mi := SysDept{}

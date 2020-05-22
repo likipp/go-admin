@@ -7,26 +7,25 @@ import (
 	globalID "go-admin/init/globalID"
 	"go-admin/models/page"
 	"go-admin/utils"
-	"log"
 )
 
 type SysUser struct {
 	//UUID      uuid.UUID `json:"uuid"`
 	BaseModel
-	UUID      uint64    `json:"uuid"`
-	Username  string    `json:"username"`
-	Password  string    `json:"-"`
-	NickName  string    `json:"nickname" gorm:"default:'匿名用户'"`
-	Avatar    string    `json:"avatar" gorm:"default:'/favicon.ico'"`
-	Roles     []SysRole `json:"roles" gorm:"many2many:user_role;"`
-	DeptID    int       `json:"deptID"`
-	PostID    int       `json:"postID"`
-	SysDept   SysDept   `json:"dept"`
-	SysDeptId string    `json:"deptID"`
-	Sex       string    `json:"sex"`
-	LeaderId  string
-	Remark    string `json:"remark"`
-	Status    string `json:"status" gorm:"type:int(1)"`
+	UUID     uint64    `json:"uuid"`
+	Username string    `json:"username"`
+	Password string    `json:"-"`
+	NickName string    `json:"nickname" gorm:"default:'匿名用户'"`
+	Avatar   string    `json:"avatar" gorm:"default:'/favicon.ico'"`
+	Roles    []SysRole `json:"roles" gorm:"many2many:user_role;"`
+	DeptID   uint64    `json:"deptID"`
+	PostID   int       `json:"postID"`
+	//SysDept   SysDept   `json:"dept"`
+	//SysDeptId string    `json:"deptID"`
+	Sex      string `json:"sex"`
+	LeaderId string
+	Remark   string `json:"remark"`
+	Status   *int   `json:"status" gorm:"type:int(1);default:1"`
 }
 
 func (SysUser) TableName() string {
@@ -41,7 +40,6 @@ func (u *SysUser) CreateUser() (err error, userInter *SysUser) {
 		return errors.New("用户名已经注册"), nil
 	} else {
 		u.Roles = u.GetRoleList()
-		//u.UUID = uuid.NewV4()
 		u.UUID, err = globalID.GetID()
 		if err != nil {
 			return
@@ -49,8 +47,8 @@ func (u *SysUser) CreateUser() (err error, userInter *SysUser) {
 		u.Password = utils.MD5V([]byte(u.Password))
 		err = orm.DB.Create(u).Error
 	}
-	orm.DB.Model(&u).Related(&u.SysDept)
-	//mysql.DB.Model(&u).Association("Roles").Find(&u.Roles)
+	//orm.DB.Model(&u).Related(&u.SysDept)
+	//orm.DB.Model(&u).Association("Roles").Find(&u.Roles)
 	return err, u
 }
 
@@ -60,18 +58,16 @@ func (u *SysUser) GetRoleList() []SysRole {
 	for index, _ := range u.Roles {
 		var role SysRole
 		orm.DB.Where(&u.Roles[index]).First(&role)
-		//mysql.DB.Where(&role, &u.Roles[index].ID)
 		roles = append(roles, role)
 	}
-	log.Println(roles, "roles")
 	return roles
 }
 
 func (u *SysUser) GetUserByUUID() (user SysUser, err error) {
-	if err := orm.DB.Where("uuid = ?", u.UUID).Select("id, uuid, username").Find(&user).Error; err != nil {
+	if err := orm.DB.Where("uuid = ?", u.UUID).Select("id, uuid, username, nick_name, dept_id, status").Find(&user).Error; err != nil {
 		return user, errors.New("找不到该用户")
 	}
-	orm.DB.Model(&user).Related(&user.SysDept)
+	//orm.DB.Model(&user).Related(&user.SysDept)
 	orm.DB.Model(&user).Association("Roles").Find(&user.Roles)
 	return user, nil
 }
@@ -97,7 +93,7 @@ func (u *SysUser) UpdateUser(user SysUser) (err error) {
 
 func (u *SysUser) DeleteUser() (err error) {
 	var user SysUser
-	if err := orm.DB.Where("uuid = ?", u.UUID).First(&user).Error; err == nil {
+	if err = orm.DB.Where("uuid = ?", u.UUID).First(&user).Error; err == nil {
 		if err = orm.DB.Unscoped().Delete(&user).Error; err != nil {
 			return errors.New("删除用户失败")
 		}
@@ -105,4 +101,14 @@ func (u *SysUser) DeleteUser() (err error) {
 	} else {
 		return errors.New("未找到要删除的用户")
 	}
+}
+
+func (u *SysUser) EnableOrDisableUser(status int) (err error) {
+	var user SysUser
+	if err = orm.DB.Where("uuid = ?", u.UUID).First(&user).Error; err != nil {
+		return errors.New("未找到此用户")
+	}
+	// 根据前端传递的status值, 更新用户的状态信息
+	err = orm.DB.Model(&u).Update("status", status).Error
+	return err
 }

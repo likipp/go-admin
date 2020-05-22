@@ -6,6 +6,7 @@ import (
 	"go-admin/models/page"
 	"go-admin/utils"
 	"net/http"
+	"strconv"
 )
 
 //type RegisterStruct struct {
@@ -95,15 +96,35 @@ func UpdateUser(c *gin.Context) {
 
 func DeleteUser(c *gin.Context) {
 	var U models.SysUser
-	//id, _ := strconv.ParseUint(c.Param("id"), 10, 32)
 	uid := c.Param("uuid")
-	//U.UUID, _ = uuid.FromString(uid)
 	U.UUID = utils.StringConUint(uid)
-	//_ = c.BindJSON(&U)
 	err := U.DeleteUser()
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "删除失败", "data": err.Error()})
 	} else {
 		c.JSON(http.StatusOK, gin.H{"code": 200, "msg": "删除成功"})
+	}
+}
+
+func EnableOrDisableUser(c *gin.Context) {
+	var U models.SysUser
+	uid := c.Param("uuid")
+	status, _ := strconv.Atoi(c.Param("status"))
+	U.UUID = utils.StringConUint(uid)
+	err := U.EnableOrDisableUser(status)
+	if status == 0 {
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "禁用失败", "data": err.Error()})
+		} else {
+			c.JSON(http.StatusOK, gin.H{"code": 200, "msg": "禁用成功"})
+		}
+	} else if status == 1 {
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "启用失败", "data": err.Error()})
+		} else {
+			c.JSON(http.StatusOK, gin.H{"code": 200, "msg": "启用成功"})
+		}
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "状态错误"})
 	}
 }
