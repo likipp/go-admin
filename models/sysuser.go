@@ -79,7 +79,7 @@ func (u *SysUser) GetList(info page.InfoPage) (err error, list interface{}, tota
 	} else {
 		var userList []SysUser
 		// 获取用户关联的部门与角色
-		err = db.Preload("Roles").Preload("SysDept").Find(&userList).Error
+		err = db.Preload("Roles").Find(&userList).Error
 		return err, userList, total
 	}
 }
