@@ -4,7 +4,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"go-admin/models"
 	"go-admin/models/page"
-	"go-admin/utils"
 	"net/http"
 )
 
@@ -28,7 +27,7 @@ func GetAll(c *gin.Context) {
 	} else {
 		c.JSON(http.StatusOK, gin.H{
 			"code":     200,
-			"depList":  list,
+			"data":     list,
 			"total":    total,
 			"page":     pageInfo.Page,
 			"pageSize": pageInfo.PageSize,
@@ -39,7 +38,7 @@ func GetAll(c *gin.Context) {
 func GetByUUID(c *gin.Context) {
 	var D models.SysDept
 	uid := c.Param("uuid")
-	D.DeptID = utils.StringConUint(uid)
+	D.DeptID = uid
 	if D, err := D.GetByUUID(); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "data": err.Error()})
 	} else {

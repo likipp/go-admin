@@ -10,8 +10,8 @@ import (
 
 type SysDept struct {
 	BaseModel
-	DeptID   uint64    `gorm:"column:dept_id" json:"deptID"`
-	ParentId uint64    `gorm:"column:parent_id" json:"parent_id"`
+	DeptID   string    `gorm:"column:dept_id" json:"deptID"`
+	ParentId string    `gorm:"column:parent_id" json:"parent_id"`
 	DeptName string    `gorm:"column:dept_name" json:"deptName"`
 	DeptPath string    `gorm:"column:dept_path" json:"deptPath"`
 	Sort     int       `gorm:"column:sort" json:"sort"`
@@ -43,7 +43,7 @@ func (d *SysDept) Create() (*SysDept, error) {
 		//err := orm.DB.Create(&d).Error
 		//return d, nil
 	}
-	if d.DeptID != 0 {
+	if d.DeptID != "" {
 		var ParDept SysDept
 		orm.DB.Where("dept_id = ?", d.ParentId).First(&ParDept)
 		d.DeptPath = ParDept.DeptPath + d.DeptPath
@@ -89,11 +89,10 @@ func (d *SysDept) SetDept() ([]SysDept, error) {
 	err := orm.DB.Find(&list).Error
 	m := make([]SysDept, 0)
 	for i := 0; i < len(list); i++ {
-		if list[i].ParentId != 0 {
+		if list[i].ParentId != "" {
 			continue
 		}
 		info := DeptOrder(&list, list[i])
-
 		m = append(m, info)
 	}
 	return m, err
@@ -114,11 +113,12 @@ func DeptOrder(deptList *[]SysDept, menu SysDept) SysDept {
 		mi.Sort = list[i].Sort
 		mi.Leader = list[i].Leader
 		mi.Status = list[i].Status
-		mi.CreatedAt = list[i].CreatedAt
-		mi.UpdatedAt = list[i].UpdatedAt
+		mi.DeptID = list[i].DeptID
+		//mi.CreatedAt = list[i].CreatedAt
+		//mi.UpdatedAt = list[i].UpdatedAt
 		mi.Children = []SysDept{}
-		ms := DeptOrder(deptList, mi)
-		min = append(min, ms)
+		//ms := DeptOrder(deptList, list[i])
+		min = append(min, mi)
 	}
 	menu.Children = min
 	return menu

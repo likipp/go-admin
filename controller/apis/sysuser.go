@@ -1,10 +1,11 @@
 package apis
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"go-admin/models"
 	"go-admin/models/page"
-	"go-admin/utils"
+	"go-admin/utils/response"
 	"net/http"
 	"strconv"
 )
@@ -39,15 +40,13 @@ func GetUserByUUID(c *gin.Context) {
 	var U models.SysUser
 	uid := c.Param("uuid")
 	//U.UUID, _ = uuid.FromString(uid)
-	U.UUID = utils.StringConUint(uid)
+	U.UUID = uid
 	user, err := U.GetUserByUUID()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "data": err.Error()})
+		response.FailWithMessage("用户查询失败", c)
+		return
 	} else {
-		c.JSON(http.StatusOK, gin.H{
-			"code": 200,
-			"data": user,
-		})
+		response.OkWithData(user, c)
 	}
 }
 
@@ -63,17 +62,32 @@ func GetUserList(c *gin.Context) {
 
 	// 结构体中需要定义form Tag
 	_ = c.BindQuery(&pageInfo)
+	//_ = c.ShouldBindJSON(&pageInfo)
+	fmt.Println(pageInfo, "pageInfo")
 	err, list, total := new(models.SysUser).GetList(pageInfo)
+	//list["deptName"] = "信息部"
+	//test := list.(map[string]interface{})["deptName"]
+	//data := list.([]models.SysUser)
+	//for _, value := range data {
+	//	fmt.Println(value, "value")
+	//}
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "data": err.Error()})
+		//c.JSON(http.StatusBadRequest, gin.H{"code": 400, "data": err.Error()})
+		response.FailWithMessage(fmt.Sprintf("获取用户数据失败, %v", err), c)
 	} else {
-		c.JSON(http.StatusOK, gin.H{
-			"code":     200,
-			"userList": list,
-			"total":    total,
-			"page":     pageInfo.Page,
-			"pageSize": pageInfo.PageSize,
-		})
+		//c.JSON(http.StatusOK, gin.H{
+		//	"code":     200,
+		//	"data": list,
+		//	"total":    total,
+		//	"page":     pageInfo.Page,
+		//	"pageSize": pageInfo.PageSize,
+		//})
+		response.OkWithData(response.PageResult{
+			Data:     list,
+			Total:    total,
+			Page:     pageInfo.Page,
+			PageSize: pageInfo.PageSize,
+		}, c)
 	}
 }
 
@@ -85,7 +99,7 @@ func UpdateUser(c *gin.Context) {
 	_ = c.ShouldBindJSON(&N)
 	uid := c.Param("uuid")
 	//U.UUID, _ = uuid.FromString(uid)
-	U.UUID = utils.StringConUint(uid)
+	U.UUID = uid
 	err := U.UpdateUser(N)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "更新失败", "data": err.Error()})
@@ -97,7 +111,7 @@ func UpdateUser(c *gin.Context) {
 func DeleteUser(c *gin.Context) {
 	var U models.SysUser
 	uid := c.Param("uuid")
-	U.UUID = utils.StringConUint(uid)
+	U.UUID = uid
 	err := U.DeleteUser()
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "删除失败", "data": err.Error()})
@@ -110,7 +124,7 @@ func EnableOrDisableUser(c *gin.Context) {
 	var U models.SysUser
 	uid := c.Param("uuid")
 	status, _ := strconv.Atoi(c.Param("status"))
-	U.UUID = utils.StringConUint(uid)
+	U.UUID = uid
 	err := U.EnableOrDisableUser(status)
 	if status == 0 {
 		if err != nil {

@@ -12,20 +12,25 @@ import (
 type SysUser struct {
 	//UUID      uuid.UUID `json:"uuid"`
 	BaseModel
-	UUID     uint64    `json:"uuid"`
+	UUID     string    `json:"uuid"`
 	Username string    `json:"username"`
 	Password string    `json:"-"`
 	NickName string    `json:"nickname" gorm:"default:'匿名用户'"`
 	Avatar   string    `json:"avatar" gorm:"default:'/favicon.ico'"`
 	Roles    []SysRole `json:"roles" gorm:"many2many:user_role;"`
-	DeptID   uint64    `json:"deptID"`
+	DeptID   string    `json:"deptID"`
 	PostID   int       `json:"postID"`
 	//SysDept   SysDept   `json:"dept"`
 	//SysDeptId string    `json:"deptID"`
-	Sex      string `json:"sex"`
+	Sex      int `json:"sex"`
 	LeaderId string
 	Remark   string `json:"remark"`
 	Status   *int   `json:"status" gorm:"type:int(1);default:1"`
+}
+
+type UserInfo struct {
+	SysUser
+	DeptName string
 }
 
 func (SysUser) TableName() string {
@@ -79,8 +84,22 @@ func (u *SysUser) GetList(info page.InfoPage) (err error, list interface{}, tota
 	} else {
 		var userList []SysUser
 		// 获取用户关联的部门与角色
+		var userInfoList []UserInfo
+		var userInfo UserInfo
 		err = db.Preload("Roles").Find(&userList).Error
-		return err, userList, total
+		for _, value := range userList {
+			var dept SysDept
+			var _ = orm.DB.Where("dept_id = ?", value.DeptID).First(&dept)
+			//fmt.Println(dept.DeptName, value.DeptID)
+			userInfo = UserInfo{
+				value,
+				dept.DeptName,
+			}
+			//db.Model(&value).Association("DeptID").Find(&dept)
+			userInfoList = append(userInfoList, userInfo)
+		}
+		//fmt.Println(userInfoList)
+		return err, userInfoList, total
 	}
 }
 

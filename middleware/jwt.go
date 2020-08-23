@@ -21,7 +21,7 @@ type JWT struct {
 }
 
 type CustomClaims struct {
-	UUID        uint64
+	UUID        string
 	ID          uint
 	NickName    string
 	AuthorityId string

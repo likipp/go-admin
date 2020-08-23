@@ -19,16 +19,20 @@ func InitRouter() *gin.Engine {
 	baseRouter := r.Group("/api/v1/base")
 	//.Use(middleware.JWTAuth())
 	{
+		// 用户设置router
 		baseRouter.POST("user", apis.CreateUser)
-		baseRouter.GET("user/:uuid", apis.GetUserByUUID)
-		// base/list?page=2&pageSize=3
+		baseRouter.GET("users/:uuid", apis.GetUserByUUID)
+		// 后端需要这样的格式 base/users?page=1&pageSize=3
 		baseRouter.GET("users", apis.GetUserList)
-		baseRouter.DELETE("user/:uuid", apis.DeleteUser)
-		baseRouter.PATCH("user/:uuid", apis.UpdateUser)
-		baseRouter.PATCH("user/:uuid/:status", apis.EnableOrDisableUser)
+		baseRouter.DELETE("users/:uuid", apis.DeleteUser)
+		baseRouter.PATCH("users/:uuid", apis.UpdateUser)
+		// 传递status值， 0代表禁用， 1代表启用
+		baseRouter.PATCH("users/:uuid/:status", apis.EnableOrDisableUser)
 
+		// 角色设置router
 		baseRouter.POST("role", apis.CreateRole)
 
+		// 部门设置router
 		baseRouter.POST("dept", apis.CreateDept)
 		baseRouter.GET("dept", apis.GetAll)
 		baseRouter.GET("dept/:uuid", apis.GetByUUID)

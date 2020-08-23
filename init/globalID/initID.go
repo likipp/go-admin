@@ -3,6 +3,7 @@ package initID
 import (
 	"fmt"
 	"github.com/sony/sonyflake"
+	"strconv"
 )
 
 var (
@@ -22,11 +23,13 @@ func Init(machineID uint16) (err error) {
 	return
 }
 
-func GetID() (id uint64, err error) {
+func GetID() (id string, err error) {
 	if sonyFlake == nil {
 		err = fmt.Errorf("sonyFlake未初始化")
 		return
 	}
-	id, err = sonyFlake.NextID()
+	//var tempID uint64
+	tempID, _ := sonyFlake.NextID()
+	id = strconv.FormatUint(tempID, 10)
 	return
 }
