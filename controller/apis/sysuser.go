@@ -18,21 +18,22 @@ import (
 //	AuthorityId string `json:"authorityId" gorm:"default:888"`
 //}
 
-// @Tags Base
+// @title Register
 // @Summary 用户注册账号
 // @Produce  application/json
-// @Param data body model.SysUser true "用户注册接口"
+// @Param u models.SysUser
 // @Success 200 {string} string "{"code":200,"data":{},"msg":"创建成功"}"
-// @Router /base/user [post]
+// @Router /api/v1/base/user [post]
 func CreateUser(c *gin.Context) {
 	//var R RegisterStruct
 	var U models.SysUser
 	_ = c.ShouldBindJSON(&U)
 	err, user := U.CreateUser()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "创建失败", "data": err.Error()})
+		response.FailWithMessage("用户创建失败", c)
+		return
 	} else {
-		c.JSON(http.StatusOK, gin.H{"code": 200, "msg": "创建成功", "data": user})
+		response.OkWithData(user, c)
 	}
 }
 
@@ -63,7 +64,6 @@ func GetUserList(c *gin.Context) {
 	// 结构体中需要定义form Tag
 	_ = c.BindQuery(&pageInfo)
 	//_ = c.ShouldBindJSON(&pageInfo)
-	fmt.Println(pageInfo, "pageInfo")
 	err, list, total := new(models.SysUser).GetList(pageInfo)
 	//list["deptName"] = "信息部"
 	//test := list.(map[string]interface{})["deptName"]
@@ -128,17 +128,21 @@ func EnableOrDisableUser(c *gin.Context) {
 	err := U.EnableOrDisableUser(status)
 	if status == 0 {
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "禁用失败", "data": err.Error()})
+			//c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "禁用失败", "data": err.Error()})
+			response.FailWithMessage("禁用失败", c)
+			return
 		} else {
-			c.JSON(http.StatusOK, gin.H{"code": 200, "msg": "禁用成功"})
+			//c.JSON(http.StatusOK, gin.H{"code": 200, "msg": "禁用成功"})
+			response.OkWithMessage("禁用成功", c)
 		}
 	} else if status == 1 {
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "启用失败", "data": err.Error()})
+			response.FailWithMessage("启用失败", c)
+			return
 		} else {
-			c.JSON(http.StatusOK, gin.H{"code": 200, "msg": "启用成功"})
+			response.OkWithMessage("启用成功", c)
 		}
 	} else {
-		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "状态错误"})
+		response.FailWithMessage("未知状态", c)
 	}
 }

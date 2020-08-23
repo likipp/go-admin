@@ -73,6 +73,7 @@ func (u *SysUser) GetUserByUUID() (user SysUser, err error) {
 		return user, errors.New("找不到该用户")
 	}
 	//orm.DB.Model(&user).Related(&user.SysDept)
+	// orm.DB.Model(&user).Association("Roles").Count() 获取用户关联的角色组数量
 	orm.DB.Model(&user).Association("Roles").Find(&user.Roles)
 	return user, nil
 }
