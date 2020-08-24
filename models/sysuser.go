@@ -69,7 +69,8 @@ func (u *SysUser) GetRoleList() []SysRole {
 }
 
 func (u *SysUser) GetUserByUUID() (user SysUser, err error) {
-	if err := orm.DB.Where("uuid = ?", u.UUID).Select("id, uuid, username, nick_name, dept_id, status").Find(&user).Error; err != nil {
+	// 查询出部分字段 orm.DB.Where("uuid = ?", u.UUID).Select("id, uuid, username, nick_name, dept_id, status, sex, created_at").Find(&user)
+	if err := orm.DB.Where("uuid = ?", u.UUID).Find(&user).Error; err != nil {
 		return user, errors.New("找不到该用户")
 	}
 	//orm.DB.Model(&user).Related(&user.SysDept)
