@@ -47,6 +47,7 @@ func GetUserByUUID(c *gin.Context) {
 		response.FailWithMessage("用户查询失败", c)
 		return
 	} else {
+		fmt.Println(user, "user")
 		response.OkWithData(user, c)
 	}
 }
@@ -75,19 +76,19 @@ func GetUserList(c *gin.Context) {
 		//c.JSON(http.StatusBadRequest, gin.H{"code": 400, "data": err.Error()})
 		response.FailWithMessage(fmt.Sprintf("获取用户数据失败, %v", err), c)
 	} else {
-		//c.JSON(http.StatusOK, gin.H{
-		//	"code":     200,
-		//	"data": list,
-		//	"total":    total,
-		//	"page":     pageInfo.Page,
-		//	"pageSize": pageInfo.PageSize,
-		//})
-		response.OkWithData(response.PageResult{
-			Data:     list,
-			Total:    total,
-			Page:     pageInfo.Page,
-			PageSize: pageInfo.PageSize,
-		}, c)
+		c.JSON(http.StatusOK, gin.H{
+			"code":     200,
+			"data":     list,
+			"total":    total,
+			"page":     pageInfo.Page,
+			"pageSize": pageInfo.PageSize,
+		})
+		//response.OkWithData(response.PageResult{
+		//	Data:     list,
+		//	Total:    total,
+		//	Page:     pageInfo.Page,
+		//	PageSize: pageInfo.PageSize,
+		//}, c)
 	}
 }
 
