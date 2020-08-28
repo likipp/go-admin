@@ -98,6 +98,7 @@ func UpdateUser(c *gin.Context) {
 	// N代表前端传递过来的用户修改信息
 	var N models.SysUser
 	_ = c.ShouldBindJSON(&N)
+	fmt.Println(N.Roles, "roles", N.NickName)
 	uid := c.Param("uuid")
 	//U.UUID, _ = uuid.FromString(uid)
 	U.UUID = uid
