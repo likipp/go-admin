@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"fmt"
 	"go-admin/controller/server"
 	orm "go-admin/init/database"
 	globalID "go-admin/init/globalID"
@@ -60,7 +61,7 @@ func (u *SysUser) CreateUser() (err error, userInter *SysUser) {
 // 前端传递JSON格式的[]SysRole表时, 遍历获取到具体的SysRole {"roles": [{"id": 1}, {"id": 2}]}
 func (u *SysUser) GetRoleList() []SysRole {
 	var roles []SysRole
-	for index, _ := range u.Roles {
+	for index := range u.Roles {
 		var role SysRole
 		orm.DB.Where(&u.Roles[index]).First(&role)
 		roles = append(roles, role)
@@ -68,15 +69,20 @@ func (u *SysUser) GetRoleList() []SysRole {
 	return roles
 }
 
-func (u *SysUser) GetUserByUUID() (user SysUser, err error) {
+func (u *SysUser) GetUserByUUID() (userInfo UserInfo, err error) {
+	var user SysUser
+	var dept SysDept
 	// 查询出部分字段 orm.DB.Where("uuid = ?", u.UUID).Select("id, uuid, username, nick_name, dept_id, status, sex, created_at").Find(&user)
 	if err := orm.DB.Where("uuid = ?", u.UUID).Find(&user).Error; err != nil {
-		return user, errors.New("找不到该用户")
+		return userInfo, errors.New("找不到该用户")
 	}
+	var _ = orm.DB.Where("dept_id = ?", user.DeptID).First(&dept)
 	//orm.DB.Model(&user).Related(&user.SysDept)
 	// orm.DB.Model(&user).Association("Roles").Count() 获取用户关联的角色组数量
 	orm.DB.Model(&user).Association("Roles").Find(&user.Roles)
-	return user, nil
+	userInfo.SysUser = user
+	userInfo.DeptName = dept.DeptName
+	return userInfo, nil
 }
 
 func (u *SysUser) GetList(info page.InfoPage) (err error, list interface{}, total int) {
@@ -106,7 +112,11 @@ func (u *SysUser) GetList(info page.InfoPage) (err error, list interface{}, tota
 }
 
 func (u *SysUser) UpdateUser(user SysUser) (err error) {
-	if err = orm.DB.Model(&u).Updates(&user).Error; err != nil {
+	//orm.DB.Set("gorm:association_autocreate", false).Save(&user)
+	fmt.Println(&user.Roles == nil, "user")
+	fmt.Println(u.UUID, "U")
+	//err = orm.DB.Model(&u).Updates(&user).Error
+	if err = orm.DB.Where("uuid = ?", u.UUID).Model(u).Updates(&user.Roles).Error; err != nil {
 		return errors.New("修改用户失败")
 	}
 	return nil
@@ -130,6 +140,7 @@ func (u *SysUser) EnableOrDisableUser(status int) (err error) {
 		return errors.New("未找到此用户")
 	}
 	// 根据前端传递的status值, 更新用户的状态信息
-	err = orm.DB.Model(&u).Update("status", status).Error
+	//单个Update时，需要传递id主键值，所以需要传递整个use结构体，或者传递id
+	err = orm.DB.Model(&user).Update("status", status).Error
 	return err
 }
