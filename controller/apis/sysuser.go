@@ -150,13 +150,13 @@ func EnableOrDisableUser(c *gin.Context) {
 }
 
 func Login(c *gin.Context) {
-	var N models.SysUser
-	_ = c.ShouldBindJSON(&N)
-	fmt.Println(&N)
-	if err, user := models.UserLogin(&N); err != nil {
+	var L models.Login
+	_ = c.ShouldBindJSON(&L)
+	fmt.Println(&L)
+	if err, _ := models.UserLogin(&L); err != nil {
 		response.FailWithMessage(fmt.Sprintf("用户名密码错误或%v", err), c)
 	} else {
-		response.OkWithData(user, c)
+		response.OkWithData(L, c)
 	}
 
 }

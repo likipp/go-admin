@@ -51,6 +51,7 @@ func (u *SysUser) CreateUser() (err error, userInter *SysUser) {
 			return
 		}
 		u.Password = utils.MD5V([]byte(u.Password))
+		fmt.Println(u.Password, "u.Password")
 		err = orm.DB.Create(u).Error
 	}
 	//orm.DB.Model(&u).Related(&u.SysDept)
@@ -143,11 +144,4 @@ func (u *SysUser) EnableOrDisableUser(status int) (err error) {
 	//单个Update时，需要传递id主键值，所以需要传递整个use结构体，或者传递id
 	err = orm.DB.Model(&user).Update("status", status).Error
 	return err
-}
-
-func UserLogin(u *SysUser) (err error, userInter *SysUser) {
-	var user SysUser
-	u.Password = utils.MD5V([]byte(u.Password))
-	err = orm.DB.Where("username = ? AND password = ?", u.Username, u.Password).First(&user).Error
-	return err, &user
 }
