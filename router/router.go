@@ -15,11 +15,13 @@ func InitRouter() *gin.Engine {
 	r.StaticFile("/favicon.ico", "./static/images/default.jpg")
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	//r.POST("/login", auth.Authenticator)
-	//.Use(middleware.JWTAuth())
+	//r.Use(middleware.JWTAuth())
 
 	baseRouter := r.Group("/api/v1/base")
 	//.Use(middleware.JWTAuth())
 	{
+		// 用户登录
+		baseRouter.POST("login", apis.Login)
 		// 用户设置router
 		baseRouter.POST("user", apis.CreateUser)
 		baseRouter.GET("users/:uuid", apis.GetUserByUUID)

@@ -144,3 +144,10 @@ func (u *SysUser) EnableOrDisableUser(status int) (err error) {
 	err = orm.DB.Model(&user).Update("status", status).Error
 	return err
 }
+
+func UserLogin(u *SysUser) (err error, userInter *SysUser) {
+	var user SysUser
+	u.Password = utils.MD5V([]byte(u.Password))
+	err = orm.DB.Where("username = ? AND password = ?", u.Username, u.Password).First(&user).Error
+	return err, &user
+}

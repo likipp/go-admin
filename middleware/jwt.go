@@ -25,6 +25,7 @@ type CustomClaims struct {
 	ID          uint
 	NickName    string
 	AuthorityId string
+	Username    string
 	jwt.StandardClaims
 }
 
