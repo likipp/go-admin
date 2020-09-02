@@ -6,3 +6,6 @@ mysqladmin:
   path: "nas.xiaom.work:3306"
   dbname: "qmPlus"
   config: "charset=utf8&parseTime=True&loc=Local"
+
+jwt:
+  JwtKey: eva0209

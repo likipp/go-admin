@@ -28,6 +28,7 @@ func CreateUser(c *gin.Context) {
 	//var R RegisterStruct
 	var U models.SysUser
 	_ = c.ShouldBindJSON(&U)
+	fmt.Println(&U, "前端传递的用户信息")
 	err, user := U.CreateUser()
 	if err != nil {
 		response.FailWithMessage("用户创建失败", c)
@@ -149,14 +150,20 @@ func EnableOrDisableUser(c *gin.Context) {
 	}
 }
 
+// 用户登录
 func Login(c *gin.Context) {
 	var L models.Login
 	_ = c.ShouldBindJSON(&L)
 	fmt.Println(&L)
 	if err, _ := models.UserLogin(&L); err != nil {
-		response.FailWithMessage(fmt.Sprintf("用户名密码错误或%v", err), c)
+		response.FailWithMessage(fmt.Sprintf("%v", err), c)
 	} else {
 		response.OkWithData(L, c)
 	}
 
+}
+
+// 获取当前登录用户信息
+func GetCurrentUser(c *gin.Context) {
+	response.OkWithMessage("获取成功", c)
 }
