@@ -16,3 +16,7 @@ func CreateRole(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"code": 200, "msg": "创建成功", "data": role})
 	}
 }
+
+func GetRoleList(c *gin.Context) {
+
+}
