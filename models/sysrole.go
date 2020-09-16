@@ -1,8 +1,11 @@
 package models
 
 import (
+	"fmt"
 	"github.com/jinzhu/gorm"
+	"go-admin/controller/server"
 	orm "go-admin/init/database"
+	"go-admin/models/page"
 )
 
 type SysRole struct {
@@ -23,4 +26,17 @@ func (SysRole) TableName() string {
 func (r *SysRole) CreateRole() (role *SysRole, err error) {
 	err = orm.DB.Create(r).Error
 	return r, err
+}
+
+func (r *SysRole) GetList(info page.InfoPage) (err error, list interface{}, total int) {
+	fmt.Println(r, "r", info)
+	err, db, total := server.PagingServer(r, info)
+	var roles []SysRole
+	fmt.Println(total)
+	if err != nil {
+		return
+	} else {
+		err := db.Find(&roles).Error
+		return err, roles, total
+	}
 }

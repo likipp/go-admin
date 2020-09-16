@@ -5,7 +5,7 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"github.com/swaggo/gin-swagger/swaggerFiles"
 	"go-admin/controller/apis"
-	_ "go-admin/docs"
+	//_ "go-admin/docs"
 	"net/http"
 )
 
@@ -34,6 +34,7 @@ func InitRouter() *gin.Engine {
 		baseRouter.PATCH("users/:uuid/:status", apis.EnableOrDisableUser)
 
 		// 角色设置router
+		baseRouter.GET("roles", apis.GetRoleList)
 		baseRouter.POST("role", apis.CreateRole)
 
 		// 部门设置router
@@ -41,7 +42,7 @@ func InitRouter() *gin.Engine {
 		baseRouter.GET("dept", apis.GetAll)
 		baseRouter.GET("dept/:uuid", apis.GetByUUID)
 		baseRouter.GET("dept-tree", apis.GetDepTree)
-		baseRouter.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+		//baseRouter.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	}
 
 	return r
