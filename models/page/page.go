@@ -1,7 +1,7 @@
 package page
 
 type InfoPage struct {
-	Page     int `form:"page"`
+	Page     int `form:"current"`
 	PageSize int `form:"pageSize"`
 }
 
