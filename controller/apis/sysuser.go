@@ -3,6 +3,7 @@ package apis
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"go-admin/models"
 	"go-admin/models/page"
 	"go-admin/utils/response"
@@ -27,7 +28,7 @@ import (
 func CreateUser(c *gin.Context) {
 	//var R RegisterStruct
 	var U models.SysUser
-	_ = c.ShouldBindJSON(&U)
+	_ = c.ShouldBindBodyWith(&U, binding.JSON).Error()
 	fmt.Println(&U, "前端传递的用户信息")
 	err, user := U.CreateUser()
 	if err != nil {
