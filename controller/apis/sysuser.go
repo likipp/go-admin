@@ -5,7 +5,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"go-admin/models"
-	"go-admin/models/page"
 	"go-admin/utils/response"
 	"net/http"
 	"strconv"
@@ -55,8 +54,8 @@ func GetUserByUUID(c *gin.Context) {
 }
 
 func GetUserList(c *gin.Context) {
-	var pageInfo page.InfoPage
-
+	//var pageInfo page.InfoPage
+	var userFilter models.UserFilter
 	// 使用Query方法
 	//pageInfo.PageSize, _ = strconv.Atoi(c.Query("pageSize"))
 	//pageInfo.Page, _ = strconv.Atoi(c.Query("page"))
@@ -65,15 +64,10 @@ func GetUserList(c *gin.Context) {
 	//_ = c.BindJSON(&pageInfo)
 
 	// 结构体中需要定义form Tag
-	_ = c.BindQuery(&pageInfo)
+	_ = c.BindQuery(&userFilter)
+	fmt.Println(userFilter, "userFilter")
 	//_ = c.ShouldBindJSON(&pageInfo)
-	err, list, total := new(models.SysUser).GetList(pageInfo)
-	//list["deptName"] = "信息部"
-	//test := list.(map[string]interface{})["deptName"]
-	//data := list.([]models.SysUser)
-	//for _, value := range data {
-	//	fmt.Println(value, "value")
-	//}
+	err, list, total := new(models.SysUser).GetList(userFilter)
 	if err != nil {
 		//c.JSON(http.StatusBadRequest, gin.H{"code": 400, "data": err.Error()})
 		response.FailWithMessage(fmt.Sprintf("获取用户数据失败, %v", err), c)
@@ -82,8 +76,8 @@ func GetUserList(c *gin.Context) {
 			"code":     200,
 			"data":     list,
 			"total":    total,
-			"page":     pageInfo.Page,
-			"pageSize": pageInfo.PageSize,
+			"page":     userFilter.Page,
+			"pageSize": userFilter.PageSize,
 		})
 		//response.OkWithData(response.PageResult{
 		//	Data:     list,

@@ -3,10 +3,9 @@ package models
 import (
 	"errors"
 	"fmt"
-	"go-admin/controller/server"
+	"github.com/jinzhu/gorm"
 	orm "go-admin/init/database"
 	globalID "go-admin/init/globalID"
-	"go-admin/models/page"
 	"go-admin/utils"
 )
 
@@ -34,8 +33,22 @@ type UserInfo struct {
 	DeptName string
 }
 
+type UserFilter struct {
+	Page     int `form:"current"`
+	PageSize int `form:"pageSize"`
+	Status   int `form:"status"`
+}
+
 func (SysUser) TableName() string {
 	return "sys_user"
+}
+
+func PagingTest(filter UserFilter) (err error, db *gorm.DB) {
+	limit := filter.PageSize
+	offset := filter.PageSize * (filter.Page - 1)
+	//err = orm.DB.Model(SysUser).Count(&total).Error
+	db = orm.DB.Limit(limit).Offset(offset).Order("id desc")
+	return err, db
 }
 
 func (u *SysUser) CreateUser() (err error, userInter *SysUser) {
@@ -86,8 +99,8 @@ func (u *SysUser) GetUserByUUID() (userInfo UserInfo, err error) {
 	return userInfo, nil
 }
 
-func (u *SysUser) GetList(info page.InfoPage) (err error, list interface{}, total int) {
-	err, db, total := server.PagingServer(u, info)
+func (u *SysUser) GetList(filters UserFilter) (err error, list interface{}, total int) {
+	err, db := PagingTest(filters)
 	if err != nil {
 		return
 	} else {
@@ -95,11 +108,11 @@ func (u *SysUser) GetList(info page.InfoPage) (err error, list interface{}, tota
 		// 获取用户关联的部门与角色
 		var userInfoList []UserInfo
 		var userInfo UserInfo
-		err = db.Preload("Roles").Find(&userList).Error
+		fmt.Println(filters.Status, "status")
+		err = db.Preload("Roles").Where("status = ?", filters.Status).Find(&userList).Count(&total).Error
 		for _, value := range userList {
 			var dept SysDept
 			var _ = orm.DB.Where("dept_id = ?", value.DeptID).First(&dept)
-			//fmt.Println(dept.DeptName, value.DeptID)
 			userInfo = UserInfo{
 				value,
 				dept.DeptName,
@@ -107,7 +120,6 @@ func (u *SysUser) GetList(info page.InfoPage) (err error, list interface{}, tota
 			//db.Model(&value).Association("DeptID").Find(&dept)
 			userInfoList = append(userInfoList, userInfo)
 		}
-		//fmt.Println(userInfoList)
 		return err, userInfoList, total
 	}
 }
