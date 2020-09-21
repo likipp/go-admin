@@ -58,13 +58,14 @@ func (u *SysUser) CreateUser() (err error, userInter *SysUser) {
 	if !hasUser {
 		return errors.New("用户名已经注册"), nil
 	} else {
+		fmt.Println(u.Roles, "事前")
 		u.Roles = u.GetRoleList()
+		fmt.Println(u.Roles, "Roles事后")
 		u.UUID, err = globalID.GetID()
 		if err != nil {
 			return
 		}
 		u.Password = utils.MD5V([]byte(u.Password))
-		fmt.Println(u.Password, "u.Password")
 		err = orm.DB.Create(u).Error
 	}
 	//orm.DB.Model(&u).Related(&u.SysDept)
@@ -80,6 +81,7 @@ func (u *SysUser) GetRoleList() []SysRole {
 		orm.DB.Where(&u.Roles[index]).First(&role)
 		roles = append(roles, role)
 	}
+	fmt.Println(roles, "roles", "GetRoleList")
 	return roles
 }
 
@@ -109,7 +111,10 @@ func (u *SysUser) GetList(filters UserFilter) (err error, list interface{}, tota
 		var userInfoList []UserInfo
 		var userInfo UserInfo
 		fmt.Println(filters.Status, "status")
-		err = db.Preload("Roles").Where("status = ?", filters.Status).Find(&userList).Count(&total).Error
+		if filters.Status != 3 {
+			err = db.Preload("Roles").Where("status = ?", filters.Status).Find(&userList).Count(&total).Error
+		}
+		err = db.Preload("Roles").Find(&userList).Count(&total).Error
 		for _, value := range userList {
 			var dept SysDept
 			var _ = orm.DB.Where("dept_id = ?", value.DeptID).First(&dept)

@@ -27,6 +27,9 @@ import (
 func CreateUser(c *gin.Context) {
 	//var R RegisterStruct
 	var U models.SysUser
+	fmt.Println("解析前")
+	var _ = c.ShouldBind(&U)
+	fmt.Println(&U, "ShouldBind")
 	_ = c.ShouldBindBodyWith(&U, binding.JSON).Error()
 	fmt.Println(&U, "前端传递的用户信息")
 	err, user := U.CreateUser()
@@ -48,7 +51,6 @@ func GetUserByUUID(c *gin.Context) {
 		response.FailWithMessage("用户查询失败", c)
 		return
 	} else {
-		fmt.Println(user, "user")
 		response.OkWithData(user, c)
 	}
 }
@@ -64,6 +66,11 @@ func GetUserList(c *gin.Context) {
 	//_ = c.BindJSON(&pageInfo)
 
 	// 结构体中需要定义form Tag
+	status := c.PostForm("status")
+	fmt.Println(status == "", "status3333")
+	if status == "" {
+		userFilter.Status = 3
+	}
 	_ = c.BindQuery(&userFilter)
 	fmt.Println(userFilter, "userFilter")
 	//_ = c.ShouldBindJSON(&pageInfo)
