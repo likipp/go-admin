@@ -1,9 +1,9 @@
 mysqladmin:
-  username: "root"
-  password: "Server@1234.com"
-  path: "127.0.0.1:3306"
-#  password: "123456"
-#  path: "nas.xiaom.work:3306"
+  username: "xiaom"
+#  password: "Server@1234.com"
+#  path: "127.0.0.1:3306"
+  password: "123456"
+  path: "nas.xiaom.work:3306"
   dbname: "qmPlus"
   config: "charset=utf8&parseTime=True&loc=Local"
 

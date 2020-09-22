@@ -43,12 +43,18 @@ func (SysUser) TableName() string {
 	return "sys_user"
 }
 
-func PagingTest(filter UserFilter) (err error, db *gorm.DB) {
+func PagingTest(filter UserFilter, model interface{}) (err error, db *gorm.DB, total int) {
 	limit := filter.PageSize
 	offset := filter.PageSize * (filter.Page - 1)
 	//err = orm.DB.Model(SysUser).Count(&total).Error
-	db = orm.DB.Limit(limit).Offset(offset).Order("id desc")
-	return err, db
+	fmt.Println(filter.Status != 3, "filter.Status")
+	if filter.Status != 3 {
+		db = orm.DB.Find(model).Where("status = ?", filter.Status).Count(&total).Limit(limit).Offset(offset).Order("id desc")
+		return err, db, total
+	}
+	db = orm.DB.Find(model).Count(&total).Limit(limit).Offset(offset).Order("id desc")
+	fmt.Println(total, "total")
+	return err, db, total
 }
 
 func (u *SysUser) CreateUser() (err error, userInter *SysUser) {
@@ -102,19 +108,19 @@ func (u *SysUser) GetUserByUUID() (userInfo UserInfo, err error) {
 }
 
 func (u *SysUser) GetList(filters UserFilter) (err error, list interface{}, total int) {
-	err, db := PagingTest(filters)
+	var userList []SysUser
+	// 获取用户关联的部门与角色
+	var userInfoList []UserInfo
+	var userInfo UserInfo
+	err, db, total := PagingTest(filters, &userList)
 	if err != nil {
 		return
 	} else {
-		var userList []SysUser
-		// 获取用户关联的部门与角色
-		var userInfoList []UserInfo
-		var userInfo UserInfo
 		fmt.Println(filters.Status, "status")
 		if filters.Status != 3 {
-			err = db.Preload("Roles").Where("status = ?", filters.Status).Find(&userList).Count(&total).Error
+			err = db.Preload("Roles").Find(&userList).Where("status = ?", filters.Status).Error
 		}
-		err = db.Preload("Roles").Find(&userList).Count(&total).Error
+		err = db.Preload("Roles").Find(&userList).Error
 		for _, value := range userList {
 			var dept SysDept
 			var _ = orm.DB.Where("dept_id = ?", value.DeptID).First(&dept)
