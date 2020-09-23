@@ -34,9 +34,10 @@ type UserInfo struct {
 }
 
 type UserFilter struct {
-	Page     int `form:"current"`
-	PageSize int `form:"pageSize"`
-	Status   int `form:"status"`
+	Page     int                         `form:"current"`
+	PageSize int                         `form:"pageSize"`
+	Status   int                         `form:"status"`
+	Filter   map[interface{}]interface{} `form:"filter"`
 }
 
 func (SysUser) TableName() string {
@@ -47,13 +48,12 @@ func PagingTest(filter UserFilter, model interface{}) (err error, db *gorm.DB, t
 	limit := filter.PageSize
 	offset := filter.PageSize * (filter.Page - 1)
 	//err = orm.DB.Model(SysUser).Count(&total).Error
-	fmt.Println(filter.Status != 3, "filter.Status")
+	fmt.Println(filter)
 	if filter.Status != 3 {
 		db = orm.DB.Find(model).Where("status = ?", filter.Status).Count(&total).Limit(limit).Offset(offset).Order("id desc")
 		return err, db, total
 	}
 	db = orm.DB.Find(model).Count(&total).Limit(limit).Offset(offset).Order("id desc")
-	fmt.Println(total, "total")
 	return err, db, total
 }
 
@@ -64,9 +64,7 @@ func (u *SysUser) CreateUser() (err error, userInter *SysUser) {
 	if !hasUser {
 		return errors.New("用户名已经注册"), nil
 	} else {
-		fmt.Println(u.Roles, "事前")
 		u.Roles = u.GetRoleList()
-		fmt.Println(u.Roles, "Roles事后")
 		u.UUID, err = globalID.GetID()
 		if err != nil {
 			return
@@ -87,7 +85,6 @@ func (u *SysUser) GetRoleList() []SysRole {
 		orm.DB.Where(&u.Roles[index]).First(&role)
 		roles = append(roles, role)
 	}
-	fmt.Println(roles, "roles", "GetRoleList")
 	return roles
 }
 
@@ -116,7 +113,6 @@ func (u *SysUser) GetList(filters UserFilter) (err error, list interface{}, tota
 	if err != nil {
 		return
 	} else {
-		fmt.Println(filters.Status, "status")
 		if filters.Status != 3 {
 			err = db.Preload("Roles").Find(&userList).Where("status = ?", filters.Status).Error
 		}
@@ -137,8 +133,6 @@ func (u *SysUser) GetList(filters UserFilter) (err error, list interface{}, tota
 
 func (u *SysUser) UpdateUser(user SysUser) (err error) {
 	//orm.DB.Set("gorm:association_autocreate", false).Save(&user)
-	fmt.Println(&user.Roles == nil, "user")
-	fmt.Println(u.UUID, "U")
 	//err = orm.DB.Model(&u).Updates(&user).Error
 	if err = orm.DB.Where("uuid = ?", u.UUID).Model(u).Updates(&user.Roles).Error; err != nil {
 		return errors.New("修改用户失败")
