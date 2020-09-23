@@ -67,7 +67,6 @@ func GetUserList(c *gin.Context) {
 
 	// 结构体中需要定义form Tag
 	status := c.PostForm("status")
-	fmt.Println(status == "", "status3333")
 	if status == "" {
 		userFilter.Status = 3
 	}
