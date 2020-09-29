@@ -34,10 +34,11 @@ type UserInfo struct {
 }
 
 type UserFilter struct {
-	Page     int                         `form:"current"`
-	PageSize int                         `form:"pageSize"`
-	Status   int                         `form:"status"`
-	Filter   map[interface{}]interface{} `form:"filter"`
+	Page     int `form:"current"`
+	PageSize int `form:"pageSize"`
+	Status   int `form:"status"`
+	//Filter   map[interface{}]interface{} `form:"filter"`
+	Filter map[string][]interface{} `form:"filter"`
 }
 
 func (SysUser) TableName() string {
@@ -48,7 +49,7 @@ func PagingTest(filter UserFilter, model interface{}) (err error, db *gorm.DB, t
 	limit := filter.PageSize
 	offset := filter.PageSize * (filter.Page - 1)
 	//err = orm.DB.Model(SysUser).Count(&total).Error
-	fmt.Println(filter)
+	fmt.Println(filter.Status, "Status")
 	if filter.Status != 3 {
 		db = orm.DB.Find(model).Where("status = ?", filter.Status).Count(&total).Limit(limit).Offset(offset).Order("id desc")
 		return err, db, total
