@@ -71,7 +71,6 @@ func GetUserList(c *gin.Context) {
 		userFilter.Status = 3
 	}
 	_ = c.BindQuery(&userFilter)
-	fmt.Println(userFilter, "userFilter")
 	//_ = c.ShouldBindJSON(&pageInfo)
 	err, list, total := new(models.SysUser).GetList(userFilter)
 	if err != nil {

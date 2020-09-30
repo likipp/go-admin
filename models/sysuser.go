@@ -2,7 +2,6 @@ package models
 
 import (
 	"errors"
-	"fmt"
 	"github.com/jinzhu/gorm"
 	orm "go-admin/init/database"
 	globalID "go-admin/init/globalID"
@@ -25,7 +24,7 @@ type SysUser struct {
 	Sex      int `json:"sex"`
 	LeaderId string
 	Remark   string `json:"remark"`
-	Status   *int   `json:"status" gorm:"type:int(1);default:1"`
+	Status   int    `json:"status" gorm:"type:int(1);default:1"`
 }
 
 type UserInfo struct {
@@ -34,11 +33,20 @@ type UserInfo struct {
 }
 
 type UserFilter struct {
-	Page     int `form:"current"`
-	PageSize int `form:"pageSize"`
-	Status   int `form:"status"`
-	//Filter   map[interface{}]interface{} `form:"filter"`
-	Filter map[string][]interface{} `form:"filter"`
+	Page     int    `form:"current"`
+	PageSize int    `form:"pageSize"`
+	Status   int    `form:"status"`
+	Username string `form:"username"`
+	NickName string `form:"nickname"`
+	Sex      int    `form:"sex"`
+	//Filter map[string][]interface{} `form:"filter"`
+}
+
+type UserFilterNoPage struct {
+	Status   int    `json:"status"`
+	Username string `json:"username"`
+	NickName string `json:"nickname"`
+	Sex      int    `json:"sex"`
 }
 
 func (SysUser) TableName() string {
@@ -49,9 +57,10 @@ func PagingTest(filter UserFilter, model interface{}) (err error, db *gorm.DB, t
 	limit := filter.PageSize
 	offset := filter.PageSize * (filter.Page - 1)
 	//err = orm.DB.Model(SysUser).Count(&total).Error
-	fmt.Println(filter.Status, "Status")
+	var user = &SysUser{Status: filter.Status, Username: filter.Username, NickName: filter.NickName, Sex: filter.Sex}
+	// 当前端没有传值时(1, 2)就认为是3没有传递状态属性
 	if filter.Status != 3 {
-		db = orm.DB.Find(model).Where("status = ?", filter.Status).Count(&total).Limit(limit).Offset(offset).Order("id desc")
+		db = orm.DB.Where(&user).Find(model).Count(&total).Limit(limit).Offset(offset).Order("id desc")
 		return err, db, total
 	}
 	db = orm.DB.Find(model).Count(&total).Limit(limit).Offset(offset).Order("id desc")
