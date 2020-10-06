@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"fmt"
 	"github.com/jinzhu/gorm"
 	orm "go-admin/init/database"
 	globalID "go-admin/init/globalID"
@@ -56,14 +57,14 @@ func (SysUser) TableName() string {
 func PagingTest(filter UserFilter, model interface{}) (err error, db *gorm.DB, total int) {
 	limit := filter.PageSize
 	offset := filter.PageSize * (filter.Page - 1)
-	//err = orm.DB.Model(SysUser).Count(&total).Error
-	var user = &SysUser{Status: filter.Status, Username: filter.Username, NickName: filter.NickName, Sex: filter.Sex}
 	// 当前端没有传值时(1, 2)就认为是3没有传递状态属性
 	if filter.Status != 3 {
+		var user = &SysUser{Status: filter.Status, Username: filter.Username, NickName: filter.NickName, Sex: filter.Sex}
 		db = orm.DB.Where(&user).Find(model).Count(&total).Limit(limit).Offset(offset).Order("id desc")
 		return err, db, total
 	}
-	db = orm.DB.Find(model).Count(&total).Limit(limit).Offset(offset).Order("id desc")
+	var user = &SysUser{Username: filter.Username, NickName: filter.NickName, Sex: filter.Sex}
+	db = orm.DB.Where(&user).Not("status = ?", 3).Find(model).Count(&total).Limit(limit).Offset(offset).Order("id desc")
 	return err, db, total
 }
 
@@ -119,6 +120,7 @@ func (u *SysUser) GetList(filters UserFilter) (err error, list interface{}, tota
 	// 获取用户关联的部门与角色
 	var userInfoList []UserInfo
 	var userInfo UserInfo
+	fmt.Println(filters, "userFilter")
 	err, db, total := PagingTest(filters, &userList)
 	if err != nil {
 		return
