@@ -80,7 +80,8 @@ func (u *SysUser) CreateUser() (err error, userInter *SysUser) {
 		if err != nil {
 			return
 		}
-		u.Password = utils.MD5V([]byte(u.Password))
+		//u.Password = utils.MD5V([]byte(u.Password))
+		u.Password, _ = utils.PasswordHash(u.Password)
 		err = orm.DB.Create(u).Error
 	}
 	//orm.DB.Model(&u).Related(&u.SysDept)
