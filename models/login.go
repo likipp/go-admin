@@ -37,12 +37,9 @@ func UserLogin(l *Login) (err error, userInter *SysUser) {
 	}
 	fmt.Println(l.Password, "ll", user.Password)
 	//err = bcrypt.CompareHashAndPassword([]byte("d41d8cd98f00b204e9800998ecf8427e"), []byte("d41d8cd98f00b204e9800998ecf8427e"))
-	hash, _ := utils.PasswordHash(l.Password)
-
-	match := utils.PasswordVerify(user.Password, hash)
+	match := utils.PasswordVerify(user.Password, l.Password)
 	fmt.Println("验证:", match)
-	if err != nil {
-		fmt.Println(err, "err")
+	if match != true {
 		return errors.New("密码不正确"), &user
 	}
 	//if user.Password != l.Password {

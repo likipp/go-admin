@@ -27,11 +27,10 @@ import (
 func CreateUser(c *gin.Context) {
 	//var R RegisterStruct
 	var U models.SysUser
-	fmt.Println("解析前")
 	var _ = c.ShouldBind(&U)
 	fmt.Println(&U, "ShouldBind")
 	_ = c.ShouldBindBodyWith(&U, binding.JSON).Error()
-	fmt.Println(&U, "前端传递的用户信息")
+	U.Password = "123456"
 	err, user := U.CreateUser()
 	if err != nil {
 		response.FailWithMessage("用户创建失败", c)
