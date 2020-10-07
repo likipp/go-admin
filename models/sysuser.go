@@ -25,7 +25,7 @@ type SysUser struct {
 	Sex      int `json:"sex"`
 	LeaderId string
 	Remark   string `json:"remark"`
-	Status   *int   `json:"status" gorm:"type:int(1);default:1"`
+	Status   int    `json:"status" gorm:"type:int(1);default:1"`
 }
 
 type UserInfo struct {
@@ -34,11 +34,20 @@ type UserInfo struct {
 }
 
 type UserFilter struct {
-	Page     int `form:"current"`
-	PageSize int `form:"pageSize"`
-	Status   int `form:"status"`
-	//Filter   map[interface{}]interface{} `form:"filter"`
-	Filter map[string][]interface{} `form:"filter"`
+	Page     int    `form:"current"`
+	PageSize int    `form:"pageSize"`
+	Status   int    `form:"status"`
+	Username string `form:"username"`
+	NickName string `form:"nickname"`
+	Sex      int    `form:"sex"`
+	//Filter map[string][]interface{} `form:"filter"`
+}
+
+type UserFilterNoPage struct {
+	Status   int    `json:"status"`
+	Username string `json:"username"`
+	NickName string `json:"nickname"`
+	Sex      int    `json:"sex"`
 }
 
 func (SysUser) TableName() string {
@@ -48,13 +57,14 @@ func (SysUser) TableName() string {
 func PagingTest(filter UserFilter, model interface{}) (err error, db *gorm.DB, total int) {
 	limit := filter.PageSize
 	offset := filter.PageSize * (filter.Page - 1)
-	//err = orm.DB.Model(SysUser).Count(&total).Error
-	fmt.Println(filter.Status, "Status")
+	// 当前端没有传值时(1, 2)就认为是3没有传递状态属性
 	if filter.Status != 3 {
-		db = orm.DB.Find(model).Where("status = ?", filter.Status).Count(&total).Limit(limit).Offset(offset).Order("id desc")
+		var user = &SysUser{Status: filter.Status, Username: filter.Username, NickName: filter.NickName, Sex: filter.Sex}
+		db = orm.DB.Where(&user).Find(model).Count(&total).Limit(limit).Offset(offset).Order("id desc")
 		return err, db, total
 	}
-	db = orm.DB.Find(model).Count(&total).Limit(limit).Offset(offset).Order("id desc")
+	var user = &SysUser{Username: filter.Username, NickName: filter.NickName, Sex: filter.Sex}
+	db = orm.DB.Where(&user).Not("status = ?", 3).Find(model).Count(&total).Limit(limit).Offset(offset).Order("id desc")
 	return err, db, total
 }
 
@@ -70,7 +80,8 @@ func (u *SysUser) CreateUser() (err error, userInter *SysUser) {
 		if err != nil {
 			return
 		}
-		u.Password = utils.MD5V([]byte(u.Password))
+		//u.Password = utils.MD5V([]byte(u.Password))
+		u.Password, _ = utils.PasswordHash(u.Password)
 		err = orm.DB.Create(u).Error
 	}
 	//orm.DB.Model(&u).Related(&u.SysDept)
@@ -110,6 +121,7 @@ func (u *SysUser) GetList(filters UserFilter) (err error, list interface{}, tota
 	// 获取用户关联的部门与角色
 	var userInfoList []UserInfo
 	var userInfo UserInfo
+	fmt.Println(filters, "userFilter")
 	err, db, total := PagingTest(filters, &userList)
 	if err != nil {
 		return
