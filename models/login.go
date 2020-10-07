@@ -2,7 +2,6 @@ package models
 
 import (
 	"errors"
-	"fmt"
 	orm "go-admin/init/database"
 	"go-admin/utils"
 	"log"
@@ -19,13 +18,9 @@ func (l *Login) GetUser() (user SysUser, role SysRole, err error) {
 		log.Println(err)
 		return
 	}
-	if utils.MD5V([]byte(user.Password)) == l.Password {
+	if utils.PasswordVerify(user.Password, l.Password) {
 		return
 	}
-	//_, err = util.CompareHashAndPassword(user.Password, l.Password)
-	//if err != nil {
-	//	return
-	//}
 	return
 }
 
@@ -35,15 +30,8 @@ func UserLogin(l *Login) (err error, userInter *SysUser) {
 	if err != nil {
 		return errors.New("用户不存在"), &user
 	}
-	fmt.Println(l.Password, "ll", user.Password)
-	//err = bcrypt.CompareHashAndPassword([]byte("d41d8cd98f00b204e9800998ecf8427e"), []byte("d41d8cd98f00b204e9800998ecf8427e"))
-	match := utils.PasswordVerify(user.Password, l.Password)
-	fmt.Println("验证:", match)
-	if match != true {
+	if utils.PasswordVerify(user.Password, l.Password) != true {
 		return errors.New("密码不正确"), &user
 	}
-	//if user.Password != l.Password {
-	//	return errors.New("密码不正确"), &user
-	//}
 	return err, &user
 }
