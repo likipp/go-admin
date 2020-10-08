@@ -5,7 +5,9 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"go-admin/config"
+	"go-admin/utils/response"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -21,25 +23,21 @@ type JWT struct {
 }
 
 type CustomClaims struct {
-	UUID        string
-	ID          uint
-	NickName    string
-	AuthorityId string
-	Username    string
+	UUID       string
+	ID         int
+	Username   string
+	NickName   string
+	BufferTime int64
 	jwt.StandardClaims
-}
-
-func NewJWT() *JWT {
-	return &JWT{
-		[]byte(config.AdminConfig.JWT.SigningKey),
-	}
 }
 
 func JWTAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		token := c.Request.Header.Get("token")
+		token := c.Request.Header.Get("x-token")
 		if token == "" {
-			c.JSON(http.StatusNonAuthoritativeInfo, gin.H{"code": 203, "msg": "请先登录"})
+			response.Result(http.StatusNonAuthoritativeInfo, gin.H{
+				"reload": true,
+			}, "未登录或非法访问", false, c)
 			c.Abort()
 			return
 		}
@@ -47,16 +45,33 @@ func JWTAuth() gin.HandlerFunc {
 		claims, err := j.ParseToken(token)
 		if err != nil {
 			if err == TokenExpired {
-				c.JSON(http.StatusNonAuthoritativeInfo, gin.H{"code": 203, "msg": "token已过期,请重新登录"})
+				response.Result(http.StatusExpectationFailed, gin.H{
+					"reload": true,
+				}, "授权已过期", false, c)
 				c.Abort()
 				return
 			}
-			c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": err.Error()})
+			response.Result(http.StatusExpectationFailed, gin.H{
+				"reload": true,
+			}, err.Error(), false, c)
 			c.Abort()
 			return
 		}
+		if claims.ExpiresAt-time.Now().Unix() < claims.BufferTime {
+			claims.ExpiresAt = time.Now().Unix() + 60*60*24*7
+			newToken, _ := j.CreateToken(*claims)
+			newClaims, _ := j.ParseToken(newToken)
+			c.Header("new-token", newToken)
+			c.Header("new-expires-at", strconv.FormatInt(newClaims.ExpiresAt, 10))
+		}
 		c.Set("claims", claims)
 		c.Next()
+	}
+}
+
+func NewJWT() *JWT {
+	return &JWT{
+		[]byte(config.AdminConfig.JWT.SigningKey),
 	}
 }
 
@@ -94,20 +109,20 @@ func (j *JWT) ParseToken(tokenString string) (*CustomClaims, error) {
 	}
 }
 
-func (j *JWT) RefreshToken(tokenString string) (string, error) {
-	jwt.TimeFunc = func() time.Time {
-		return time.Unix(0, 0)
-	}
-	token, err := jwt.ParseWithClaims(tokenString, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return j.SigningKey, nil
-	})
-	if err != nil {
-		return "", nil
-	}
-	if claims, ok := token.Claims.(*CustomClaims); ok && token.Valid {
-		jwt.TimeFunc = time.Now
-		claims.StandardClaims.ExpiresAt = time.Now().Add(1 * time.Hour).Unix()
-		return j.CreateToken(*claims)
-	}
-	return "", TokenInvalid
-}
+//func (j *JWT) RefreshToken(tokenString string) (string, error) {
+//	jwt.TimeFunc = func() time.Time {
+//		return time.Unix(0, 0)
+//	}
+//	token, err := jwt.ParseWithClaims(tokenString, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
+//		return j.SigningKey, nil
+//	})
+//	if err != nil {
+//		return "", nil
+//	}
+//	if claims, ok := token.Claims.(*CustomClaims); ok && token.Valid {
+//		jwt.TimeFunc = time.Now
+//		claims.StandardClaims.ExpiresAt = time.Now().Add(1 * time.Hour).Unix()
+//		return j.CreateToken(*claims)
+//	}
+//	return "", TokenInvalid
+//}

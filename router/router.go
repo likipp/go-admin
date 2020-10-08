@@ -5,8 +5,7 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"github.com/swaggo/gin-swagger/swaggerFiles"
 	"go-admin/controller/apis"
-	"go-admin/utils/jwtauth"
-
+	"go-admin/middleware"
 	//_ "go-admin/docs"
 	"net/http"
 )
@@ -20,7 +19,7 @@ func InitRouter() *gin.Engine {
 	//r.Use(middleware.JWTAuth())
 	r.POST("/api/v1/base/login", apis.Login)
 
-	baseRouter := r.Group("/api/v1/base").Use(jwtauth.JWTAuth())
+	baseRouter := r.Group("/api/v1/base").Use(middleware.JWTAuth())
 	//.Use(middleware.JWTAuth())
 	{
 		// 用户登录

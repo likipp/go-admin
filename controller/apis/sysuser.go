@@ -6,9 +6,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"go-admin/config"
+	"go-admin/middleware"
 	"go-admin/models"
-	"go-admin/models/request"
-	"go-admin/utils/jwtauth"
 	"go-admin/utils/response"
 	"net/http"
 	"strconv"
@@ -172,10 +171,10 @@ func GetCurrentUser(c *gin.Context) {
 }
 
 func GetToken(c *gin.Context, user models.SysUser) {
-	j := &jwtauth.JWT{
+	j := &middleware.JWT{
 		SigningKey: []byte(config.AdminConfig.JWT.SigningKey),
 	}
-	clams := request.CustomClaims{
+	clams := middleware.CustomClaims{
 		UUID:       user.UUID,
 		ID:         user.ID,
 		NickName:   user.NickName,
