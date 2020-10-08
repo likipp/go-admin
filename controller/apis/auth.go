@@ -10,19 +10,19 @@ import (
 	"time"
 )
 
-func Authenticator(c *gin.Context) {
-	var login models.Login
-	_ = c.BindJSON(&login)
-	user, _, err := login.GetUser()
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"code":  401,
-			"error": err.Error(),
-		})
-	} else {
-		tokenNext(c, user)
-	}
-}
+//func Authenticator(c *gin.Context) {
+//	var login models.Login
+//	_ = c.BindJSON(&login)
+//	user, _, err := login.GetUser()
+//	if err != nil {
+//		c.JSON(http.StatusUnauthorized, gin.H{
+//			"code":  401,
+//			"error": err.Error(),
+//		})
+//	} else {
+//		tokenNext(c, user)
+//	}
+//}
 
 func tokenNext(c *gin.Context, user models.SysUser) {
 	j := &middleware.JWT{
