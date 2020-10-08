@@ -5,6 +5,8 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"github.com/swaggo/gin-swagger/swaggerFiles"
 	"go-admin/controller/apis"
+	"go-admin/utils/jwtauth"
+
 	//_ "go-admin/docs"
 	"net/http"
 )
@@ -16,12 +18,13 @@ func InitRouter() *gin.Engine {
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	//r.POST("/login", auth.Authenticator)
 	//r.Use(middleware.JWTAuth())
+	r.POST("/api/v1/base/login", apis.Login)
 
-	baseRouter := r.Group("/api/v1/base")
+	baseRouter := r.Group("/api/v1/base").Use(jwtauth.JWTAuth())
 	//.Use(middleware.JWTAuth())
 	{
 		// 用户登录
-		baseRouter.POST("login", apis.Login)
+		//baseRouter.POST("login", apis.Login)
 		baseRouter.GET("currentUser", apis.GetCurrentUser)
 		// 用户设置router
 		baseRouter.POST("user", apis.CreateUser)
@@ -30,7 +33,7 @@ func InitRouter() *gin.Engine {
 		baseRouter.GET("users", apis.GetUserList)
 		baseRouter.DELETE("users/:uuid", apis.DeleteUser)
 		baseRouter.PATCH("users/:uuid", apis.UpdateUser)
-		// 传递status值， 0代表禁用， 1代表启用
+		// 传递status值， 1代表禁用， 2代表启用
 		baseRouter.PATCH("users/:uuid/:status", apis.EnableOrDisableUser)
 
 		// 角色设置router

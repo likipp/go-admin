@@ -2,12 +2,17 @@ package apis
 
 import (
 	"fmt"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
+	"go-admin/config"
 	"go-admin/models"
+	"go-admin/models/request"
+	"go-admin/utils/jwtauth"
 	"go-admin/utils/response"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 //type RegisterStruct struct {
@@ -86,8 +91,8 @@ func GetUserList(c *gin.Context) {
 		//response.OkWithData(response.PageResult{
 		//	Data:     list,
 		//	Total:    total,
-		//	Page:     pageInfo.Page,
-		//	PageSize: pageInfo.PageSize,
+		//	Page:     userFilter.Page,
+		//	PageSize: userFilter.PageSize,
 		//}, c)
 	}
 }
@@ -153,11 +158,10 @@ func EnableOrDisableUser(c *gin.Context) {
 func Login(c *gin.Context) {
 	var L models.Login
 	_ = c.ShouldBindJSON(&L)
-	fmt.Println(&L)
-	if err, _ := models.UserLogin(&L); err != nil {
+	if err, user := models.UserLogin(&L); err != nil {
 		response.FailWithMessage(fmt.Sprintf("%v", err), c)
 	} else {
-		response.OkWithData(L, c)
+		GetToken(c, *user)
 	}
 
 }
@@ -165,4 +169,32 @@ func Login(c *gin.Context) {
 // 获取当前登录用户信息
 func GetCurrentUser(c *gin.Context) {
 	response.OkWithMessage("获取成功", c)
+}
+
+func GetToken(c *gin.Context, user models.SysUser) {
+	j := &jwtauth.JWT{
+		SigningKey: []byte(config.AdminConfig.JWT.SigningKey),
+	}
+	clams := request.CustomClaims{
+		UUID:       user.UUID,
+		ID:         user.ID,
+		NickName:   user.NickName,
+		Username:   user.Username,
+		BufferTime: 60 * 60 * 24, // 缓冲时间1天 缓冲时间内会获得新的token刷新令牌 此时一个用户会存在两个有效令牌 但是前端只留一个 另一个会丢失
+		StandardClaims: jwt.StandardClaims{
+			NotBefore: time.Now().Unix() - 1000,       // 签名生效时间
+			ExpiresAt: time.Now().Unix() + 60*60*24*7, // 过期时间 7天
+			Issuer:    "xiao",                         // 签名的发行者
+		},
+	}
+	token, err := j.CreateToken(clams)
+	if err != nil {
+		response.FailWithMessage("获取Token失败", c)
+		return
+	}
+	response.OkWithData(models.LoginResponse{
+		User:      user,
+		Token:     token,
+		ExpiresAt: clams.StandardClaims.ExpiresAt * 1000,
+	}, c)
 }

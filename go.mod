@@ -25,6 +25,7 @@ require (
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/pelletier/go-toml v1.6.0 // indirect
 	github.com/pkg/errors v0.9.1
+	github.com/satori/go.uuid v1.2.0
 	github.com/smartystreets/assertions v1.0.1 // indirect
 	github.com/sony/sonyflake v1.0.0
 	github.com/spf13/afero v1.2.2 // indirect

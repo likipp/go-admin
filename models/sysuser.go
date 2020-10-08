@@ -33,6 +33,12 @@ type UserInfo struct {
 	DeptName string
 }
 
+type LoginResponse struct {
+	User      SysUser `json:"user"`
+	Token     string  `json:"token"`
+	ExpiresAt int64   `json:"expiresAt"`
+}
+
 type UserFilter struct {
 	Page     int    `form:"current"`
 	PageSize int    `form:"pageSize"`

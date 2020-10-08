@@ -23,7 +23,7 @@ type Redis struct {
 }
 
 type JWT struct {
-	SigningKey string `json:"signingKey"`
+	SigningKey string `mapstructure:"signing-key" json:"signingKey" yaml:"signing-key"`
 }
 
 var AdminConfig Config

@@ -3,52 +3,68 @@ package response
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"time"
 )
+
+//const (
+//	ERROR   = 7
+//	SUCCESS = 0
+//)
 
 type Response struct {
-	Code int         `json:"code"`
-	Data interface{} `json:"data"`
-	Msg  string      `json:"msg"`
+	Code      int         `json:"code"`
+	Success   bool        `json:"success"`
+	Msg       string      `json:"msg"`
+	Timestamp int64       `json:"timestamp"`
+	Result    interface{} `json:"result"`
 }
 
-const (
-	ERROR   = 7
-	SUCCESS = 0
-)
+func (r *Response) Error() string {
+	return r.Msg
+}
 
-func Result(code int, data interface{}, msg string, c *gin.Context) {
+func Result(code int, data interface{}, msg string, success bool, c *gin.Context) {
 	// 开始时间
-	c.JSON(http.StatusOK, Response{
-		code,
-		data,
-		msg,
+	//c.JSON(http.StatusOK, Response{
+	//	Code:      code,
+	//	Success:   success,
+	//	Msg:       msg,
+	//	Timestamp: time.Now().Unix(),
+	//	Result:    data,
+	//})
+	c.JSON(code, &Response{
+		Code:      code,
+		Success:   success,
+		Msg:       msg,
+		Timestamp: time.Now().Unix(),
+		Result:    data,
 	})
 }
 
 func Ok(c *gin.Context) {
-	Result(SUCCESS, map[string]interface{}{}, "操作成功", c)
+	Result(http.StatusOK, map[string]interface{}{}, "操作成功", true, c)
 }
 
 func OkWithMessage(message string, c *gin.Context) {
-	Result(SUCCESS, map[string]interface{}{}, message, c)
+	Result(http.StatusOK, map[string]interface{}{}, message, true, c)
 }
 
 func OkWithData(data interface{}, c *gin.Context) {
-	Result(SUCCESS, data, "操作成功", c)
+	Result(http.StatusOK, data, "操作成功", true, c)
 }
 
 func OkDetailed(data interface{}, message string, c *gin.Context) {
-	Result(SUCCESS, data, message, c)
+	Result(http.StatusOK, data, message, true, c)
 }
 
 func Fail(c *gin.Context) {
-	Result(ERROR, map[string]interface{}{}, "操作失败", c)
+	Result(http.StatusBadRequest, map[string]interface{}{}, "操作失败", false, c)
 }
 
 func FailWithMessage(message string, c *gin.Context) {
-	Result(ERROR, map[string]interface{}{}, message, c)
+	Result(http.StatusBadRequest, map[string]interface{}{}, message, false, c)
 }
 
 func FailWithDetailed(code int, data interface{}, message string, c *gin.Context) {
-	Result(code, data, message, c)
+	Result(http.StatusBadRequest, data, message, false, c)
 }
