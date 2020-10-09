@@ -32,6 +32,7 @@ func Result(code int, data interface{}, msg string, success bool, c *gin.Context
 	//	Timestamp: time.Now().Unix(),
 	//	Result:    data,
 	//})
+	//time.Now().Format("2006-01-02 15:04:05")
 	c.JSON(code, &Response{
 		Code:      code,
 		Success:   success,
@@ -65,6 +66,6 @@ func FailWithMessage(message string, c *gin.Context) {
 	Result(http.StatusBadRequest, map[string]interface{}{}, message, false, c)
 }
 
-func FailWithDetailed(code int, data interface{}, message string, c *gin.Context) {
+func FailWithDetailed(data interface{}, message string, c *gin.Context) {
 	Result(http.StatusBadRequest, data, message, false, c)
 }
