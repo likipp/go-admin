@@ -21,6 +21,20 @@ type SysDept struct {
 	Users    []SysUser `gorm:"foreignkey:DeptID;association_foreignkey:DeptID"`
 }
 
+type SysDeptInfo struct {
+	DeptID   string        `json:"key"`
+	ParentId string        `json:"parent_id"`
+	DeptName string        `json:"title"`
+	DeptPath string        `json:"deptPath"`
+	Sort     int           `json:"sort"`
+	Leader   int           `json:"leader"`
+	Status   string        `json:"status"`
+	Children []SysDeptInfo `json:"children"`
+	//Leaf     bool    `json:"leaf`
+	EnableUsersCount  int `json:"en_users_count"`
+	DisableUsersCount int `json:"dis_users_count"`
+}
+
 func (SysDept) TableName() string {
 	return "sys_dept"
 }
@@ -40,8 +54,6 @@ func (d *SysDept) Create() (*SysDept, error) {
 		return d, err
 	} else {
 		d.DeptID, _ = initID.GetID()
-		//err := orm.DB.Create(&d).Error
-		//return d, nil
 	}
 	if d.DeptID != "" {
 		var ParDept SysDept
@@ -52,16 +64,9 @@ func (d *SysDept) Create() (*SysDept, error) {
 	}
 	err := orm.DB.Create(&d).Error
 	return d, err
-	//result := mysql.DB.Table("sys_dept").Create(&d)
-	//if result.Error != nil {
-	//	err := result.Error
-	//	return dept, err
-	//}
-	//dept = *d
-	//return dept, nil
 }
 
-// 获取带分页的用户列表, GetInfoList
+// 获取带分页的部门列表, GetInfoList
 func (d *SysDept) GetList(info page.InfoPage) (err error, list interface{}, total int) {
 	err, db, total := server.PagingServer(d, info)
 	if err != nil {
@@ -83,11 +88,10 @@ func (d *SysDept) GetByUUID() (D SysDept, err error) {
 }
 
 // 获取部门的组织架构
-func (d *SysDept) SetDept() ([]SysDept, error) {
-	//list, err := e.GetPage(bl)
+func (d *SysDept) DeptTree() ([]SysDeptInfo, error) {
 	var list []SysDept
-	err := orm.DB.Find(&list).Error
-	m := make([]SysDept, 0)
+	err := orm.DB.Order("sort").Find(&list).Error
+	m := make([]SysDeptInfo, 0)
 	for i := 0; i < len(list); i++ {
 		if list[i].ParentId != "" {
 			continue
@@ -99,27 +103,38 @@ func (d *SysDept) SetDept() ([]SysDept, error) {
 }
 
 // 对部门的组织树进行排列
-func DeptOrder(deptList *[]SysDept, menu SysDept) SysDept {
+func DeptOrder(deptList *[]SysDept, menu SysDept) SysDeptInfo {
 	list := *deptList
-	min := make([]SysDept, 0)
+	min := make([]SysDeptInfo, 0)
+	deptInfo := SysDeptInfo{
+		DeptID:            menu.DeptID,
+		ParentId:          menu.ParentId,
+		DeptName:          menu.DeptName,
+		DeptPath:          menu.DeptPath,
+		Sort:              menu.Sort,
+		Leader:            menu.Leader,
+		Status:            menu.Status,
+		Children:          nil,
+		EnableUsersCount:  orm.DB.Model(menu).Where("status = ?", 1).Association("Users").Count(),
+		DisableUsersCount: orm.DB.Model(menu).Where("status = ?", 2).Association("Users").Count(),
+	}
 	for i := 0; i < len(list); i++ {
 		if menu.DeptID != list[i].ParentId {
 			continue
 		}
-		mi := SysDept{}
-		mi.ID = list[i].ID
+		mi := SysDeptInfo{}
 		mi.ParentId = list[i].ParentId
 		mi.DeptName = list[i].DeptName
 		mi.Sort = list[i].Sort
 		mi.Leader = list[i].Leader
 		mi.Status = list[i].Status
 		mi.DeptID = list[i].DeptID
-		//mi.CreatedAt = list[i].CreatedAt
-		//mi.UpdatedAt = list[i].UpdatedAt
-		mi.Children = []SysDept{}
-		//ms := DeptOrder(deptList, list[i])
-		min = append(min, mi)
+		mi.DisableUsersCount = orm.DB.Model(list[i]).Where("status = ?", 1).Association("Users").Count()
+		mi.EnableUsersCount = orm.DB.Model(list[i]).Where("status = ?", 2).Association("Users").Count()
+		mi.Children = []SysDeptInfo{}
+		ms := DeptOrder(deptList, list[i])
+		min = append(min, ms)
 	}
-	menu.Children = min
-	return menu
+	deptInfo.Children = min
+	return deptInfo
 }

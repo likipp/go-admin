@@ -51,7 +51,7 @@ func GetByUUID(c *gin.Context) {
 }
 
 func GetDepTree(c *gin.Context) {
-	dept, err := new(models.SysDept).SetDept()
+	dept, err := new(models.SysDept).DeptTree()
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "data": err.Error()})
 	} else {
