@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"fmt"
 	"go-admin/controller/server"
 	orm "go-admin/init/database"
 	initID "go-admin/init/globalID"
@@ -100,6 +101,34 @@ func (d *SysDept) DeptTree() ([]SysDeptInfo, error) {
 		m = append(m, info)
 	}
 	return m, err
+}
+
+func (d *SysDept) DeptTreeByName() ([]SysDeptInfo, error) {
+	var list []SysDept
+	//var childList []SysDept
+	err := orm.DB.Where("dept_name LIKE ?", "%"+d.DeptName+"%").Order("sort").Find(&list).Error
+	fmt.Println(list, "dept_id")
+	m := make([]SysDeptInfo, 0)
+	list = DeptCompare(list)
+	fmt.Println(list, "dept_id after")
+	for i := 0; i < len(list); i++ {
+		info := DeptOrder(&list, list[i])
+		m = append(m, info)
+	}
+	return m, err
+}
+
+func DeptCompare(deptList []SysDept) []SysDept {
+	result := make([]SysDept, 0)
+	for i := 0; i < len(deptList); i++ {
+		for j := 0; j < len(deptList); j++ {
+			if deptList[i].ParentId == deptList[j].DeptID {
+				deptList[j].Children = append(deptList[j].Children, deptList[i])
+				result = append(result, deptList[j])
+			}
+		}
+	}
+	return result
 }
 
 // 对部门的组织树进行排列

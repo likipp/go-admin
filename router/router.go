@@ -44,6 +44,7 @@ func InitRouter() *gin.Engine {
 		baseRouter.GET("dept", apis.GetAll)
 		baseRouter.GET("dept/:uuid", apis.GetByUUID)
 		baseRouter.GET("dept-tree", apis.GetDepTree)
+		baseRouter.GET("dept-tree/:name", apis.GetDepTreeByName)
 		//baseRouter.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	}
 

@@ -1,6 +1,7 @@
 package apis
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"go-admin/models"
 	"go-admin/models/page"
@@ -58,6 +59,22 @@ func GetDepTree(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"code":    200,
 			"depTree": dept,
+			"msg":     "获取组织树成功",
+		})
+	}
+}
+
+func GetDepTreeByName(c *gin.Context) {
+	var D models.SysDept
+	name := c.Param("name")
+	D.DeptName = name
+	fmt.Println(name, "name")
+	if DList, err := D.DeptTreeByName(); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "data": err.Error()})
+	} else {
+		c.JSON(http.StatusOK, gin.H{
+			"code":    200,
+			"depTree": DList,
 			"msg":     "获取组织树成功",
 		})
 	}
