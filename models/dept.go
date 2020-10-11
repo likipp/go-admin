@@ -107,27 +107,29 @@ func (d *SysDept) DeptTreeByName() ([]SysDeptInfo, error) {
 	var list []SysDept
 	//var childList []SysDept
 	err := orm.DB.Where("dept_name LIKE ?", "%"+d.DeptName+"%").Order("sort").Find(&list).Error
-	fmt.Println(list, "dept_id")
 	m := make([]SysDeptInfo, 0)
-	list = DeptCompare(list)
-	fmt.Println(list, "dept_id after")
 	for i := 0; i < len(list); i++ {
 		info := DeptOrder(&list, list[i])
 		m = append(m, info)
 	}
+	m = DeptCompare(m)
 	return m, err
 }
 
-func DeptCompare(deptList []SysDept) []SysDept {
-	result := make([]SysDept, 0)
+func DeptCompare(deptList []SysDeptInfo) []SysDeptInfo {
+	result := make([]SysDeptInfo, 0)
 	for i := 0; i < len(deptList); i++ {
+		repeat := false
 		for j := 0; j < len(deptList); j++ {
 			if deptList[i].ParentId == deptList[j].DeptID {
-				deptList[j].Children = append(deptList[j].Children, deptList[i])
-				result = append(result, deptList[j])
+				repeat = true
 			}
 		}
+		if !repeat {
+			result = append(result, deptList[i])
+		}
 	}
+	fmt.Println(result)
 	return result
 }
 
