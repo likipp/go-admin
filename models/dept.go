@@ -2,7 +2,7 @@ package models
 
 import (
 	"errors"
-	"fmt"
+	"github.com/jinzhu/copier"
 	"go-admin/controller/server"
 	orm "go-admin/init/database"
 	initID "go-admin/init/globalID"
@@ -116,6 +116,7 @@ func (d *SysDept) DeptTreeByName() ([]SysDeptInfo, error) {
 	return m, err
 }
 
+//过滤重复的部门
 func DeptCompare(deptList []SysDeptInfo) []SysDeptInfo {
 	result := make([]SysDeptInfo, 0)
 	for i := 0; i < len(deptList); i++ {
@@ -129,28 +130,32 @@ func DeptCompare(deptList []SysDeptInfo) []SysDeptInfo {
 			result = append(result, deptList[i])
 		}
 	}
-	fmt.Println(result)
 	return result
 }
 
 // 对部门的组织树进行排列
-func DeptOrder(deptList *[]SysDept, menu SysDept) SysDeptInfo {
+func DeptOrder(deptList *[]SysDept, dept SysDept) SysDeptInfo {
 	list := *deptList
 	min := make([]SysDeptInfo, 0)
-	deptInfo := SysDeptInfo{
-		DeptID:            menu.DeptID,
-		ParentId:          menu.ParentId,
-		DeptName:          menu.DeptName,
-		DeptPath:          menu.DeptPath,
-		Sort:              menu.Sort,
-		Leader:            menu.Leader,
-		Status:            menu.Status,
-		Children:          nil,
-		EnableUsersCount:  orm.DB.Model(menu).Where("status = ?", 1).Association("Users").Count(),
-		DisableUsersCount: orm.DB.Model(menu).Where("status = ?", 2).Association("Users").Count(),
-	}
+	deptInfo := SysDeptInfo{}
+	// copier可以拷贝相同类型的结构
+	copier.Copy(&deptInfo, &dept)
+	deptInfo.EnableUsersCount = orm.DB.Model(dept).Where("status = ?", 1).Association("Users").Count()
+	deptInfo.DisableUsersCount = orm.DB.Model(dept).Where("status = ?", 2).Association("Users").Count()
+	//deptInfo := SysDeptInfo{
+	//	DeptID:            dept.DeptID,
+	//	ParentId:          dept.ParentId,
+	//	DeptName:          dept.DeptName,
+	//	DeptPath:          dept.DeptPath,
+	//	Sort:              dept.Sort,
+	//	Leader:            dept.Leader,
+	//	Status:            dept.Status,
+	//	Children:          nil,
+	//	EnableUsersCount:  orm.DB.Model(dept).Where("status = ?", 1).Association("Users").Count(),
+	//	DisableUsersCount: orm.DB.Model(dept).Where("status = ?", 2).Association("Users").Count(),
+	//}
 	for i := 0; i < len(list); i++ {
-		if menu.DeptID != list[i].ParentId {
+		if dept.DeptID != list[i].ParentId {
 			continue
 		}
 		mi := SysDeptInfo{}
