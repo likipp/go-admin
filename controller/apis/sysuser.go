@@ -8,26 +8,12 @@ import (
 	"go-admin/config"
 	"go-admin/middleware"
 	"go-admin/models"
-	"go-admin/utils/response"
+	"go-admin/utils/errors"
 	"net/http"
 	"strconv"
 	"time"
 )
 
-//type RegisterStruct struct {
-//	Username string `json:"username"`
-//	Password string `json:"password"`
-//	NickName string `json:"nickname" gorm:"default:'QMPlusUser'"`
-//	HeaderImg string `json:"headerImg" gorm:"default:'http://www.henrongyi.top/avatar/lufu.jpg'"`
-//	AuthorityId string `json:"authorityId" gorm:"default:888"`
-//}
-
-// @title Register
-// @Summary 用户注册账号
-// @Produce  application/json
-// @Param u models.SysUser
-// @Success 200 {string} string "{"code":200,"data":{},"msg":"创建成功"}"
-// @Router /api/v1/base/user [post]
 func CreateUser(c *gin.Context) {
 	//var R RegisterStruct
 	var U models.SysUser
@@ -37,10 +23,10 @@ func CreateUser(c *gin.Context) {
 	U.Password = "123456"
 	err, user := U.CreateUser()
 	if err != nil {
-		response.FailWithMessage("用户创建失败", c)
+		errors.FailWithMessage("用户创建失败", c)
 		return
 	} else {
-		response.OkWithData(user, c)
+		errors.OkWithData(user, c)
 	}
 }
 
@@ -51,10 +37,10 @@ func GetUserByUUID(c *gin.Context) {
 	U.UUID = uid
 	user, err := U.GetUserByUUID()
 	if err != nil {
-		response.FailWithMessage("用户查询失败", c)
+		errors.FailWithMessage("用户查询失败", c)
 		return
 	} else {
-		response.OkWithData(user, c)
+		errors.OkWithData(user, c)
 	}
 }
 
@@ -78,7 +64,7 @@ func GetUserList(c *gin.Context) {
 	err, list, total := new(models.SysUser).GetList(userFilter)
 	if err != nil {
 		//c.JSON(http.StatusBadRequest, gin.H{"code": 400, "data": err.Error()})
-		response.FailWithMessage(fmt.Sprintf("获取用户数据失败, %v", err), c)
+		errors.FailWithMessage(fmt.Sprintf("获取用户数据失败, %v", err), c)
 	} else {
 		c.JSON(http.StatusOK, gin.H{
 			"code":     200,
@@ -135,21 +121,21 @@ func EnableOrDisableUser(c *gin.Context) {
 	if status == 0 {
 		if err != nil {
 			//c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "禁用失败", "data": err.Error()})
-			response.FailWithMessage("禁用失败", c)
+			errors.FailWithMessage("禁用失败", c)
 			return
 		} else {
 			//c.JSON(http.StatusOK, gin.H{"code": 200, "msg": "禁用成功"})
-			response.OkWithMessage("禁用成功", c)
+			errors.OkWithMessage("禁用成功", c)
 		}
 	} else if status == 1 {
 		if err != nil {
-			response.FailWithMessage("启用失败", c)
+			errors.FailWithMessage("启用失败", c)
 			return
 		} else {
-			response.OkWithMessage("启用成功", c)
+			errors.OkWithMessage("启用成功", c)
 		}
 	} else {
-		response.FailWithMessage("未知状态", c)
+		errors.FailWithMessage("未知状态", c)
 	}
 }
 
@@ -158,7 +144,7 @@ func Login(c *gin.Context) {
 	var L models.Login
 	_ = c.ShouldBindJSON(&L)
 	if err, user := models.UserLogin(&L); err != nil {
-		response.FailWithMessage(fmt.Sprintf("%v", err), c)
+		errors.FailWithMessage(fmt.Sprintf("%v", err), c)
 	} else {
 		GetToken(c, *user)
 	}
@@ -167,7 +153,7 @@ func Login(c *gin.Context) {
 
 // 获取当前登录用户信息
 func GetCurrentUser(c *gin.Context) {
-	response.OkWithMessage("获取成功", c)
+	errors.OkWithMessage("获取成功", c)
 }
 
 func GetToken(c *gin.Context, user models.SysUser) {
@@ -188,10 +174,10 @@ func GetToken(c *gin.Context, user models.SysUser) {
 	}
 	token, err := j.CreateToken(clams)
 	if err != nil {
-		response.FailWithMessage("获取Token失败", c)
+		errors.FailWithMessage("获取Token失败", c)
 		return
 	}
-	response.OkWithData(models.LoginResponse{
+	errors.OkWithData(models.LoginResponse{
 		User:      user,
 		Token:     token,
 		ExpiresAt: clams.StandardClaims.ExpiresAt * 1000,

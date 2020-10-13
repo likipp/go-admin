@@ -5,7 +5,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"go-admin/config"
-	"go-admin/utils/response"
+	Errors "go-admin/utils/errors"
 	"net/http"
 	"strconv"
 	"time"
@@ -35,7 +35,7 @@ func JWTAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token := c.Request.Header.Get("x-token")
 		if token == "" {
-			response.Result(http.StatusNonAuthoritativeInfo, gin.H{
+			Errors.Result(http.StatusNonAuthoritativeInfo, gin.H{
 				"reload": true,
 			}, "未登录或非法访问", false, c)
 			c.Abort()
@@ -45,13 +45,13 @@ func JWTAuth() gin.HandlerFunc {
 		claims, err := j.ParseToken(token)
 		if err != nil {
 			if err == TokenExpired {
-				response.Result(http.StatusExpectationFailed, gin.H{
+				Errors.Result(http.StatusExpectationFailed, gin.H{
 					"reload": true,
 				}, "授权已过期", false, c)
 				c.Abort()
 				return
 			}
-			response.Result(http.StatusExpectationFailed, gin.H{
+			Errors.Result(http.StatusExpectationFailed, gin.H{
 				"reload": true,
 			}, err.Error(), false, c)
 			c.Abort()
