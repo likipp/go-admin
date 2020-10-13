@@ -6,6 +6,10 @@ import (
 	"go-admin/utils/errors"
 )
 
+const (
+	UserIDKey = "/user-id"
+)
+
 func ParseJSON(c *gin.Context, obj interface{}) {
 	if err := c.ShouldBindJSON(obj); err != nil {
 		errors.FailWithMessage("解析请求参数发生错误", c)
@@ -25,4 +29,12 @@ func ParseForm(c *gin.Context, obj interface{}) {
 		errors.FailWithMessage("解析请求参数发生错误", c)
 	}
 	errors.OkWithMessage("获取数据成功", c)
+}
+
+func GetUserID(c *gin.Context) string {
+	return c.GetString(UserIDKey)
+}
+
+func SetUserID(c *gin.Context, userID string) {
+	c.Set(UserIDKey, userID)
 }
