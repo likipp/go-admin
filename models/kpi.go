@@ -1,31 +1,33 @@
 package models
 
-import "time"
+import (
+	"github.com/pkg/errors"
+	orm "go-admin/init/database"
+	"go-admin/init/globalID"
+)
 
 type KPI struct {
 	BaseModel
-	KpiId  string    `gorm:"column:kpi_id" json:"kpiID"`
-	Name   string    `gorm:"column:name" json:"name"`
-	Unit   string    `gorm:"column:unit" json:"unit"`
-	Status string    `gorm:"column:status" json:"status"`
-	InTime time.Time `gorm:"column:in_time" json:"inTime"`
-	MoTime time.Time `gorm:"column:mo_time" json:"moTime"`
+	UUID   string `json:"uuid"`
+	Name   string `gorm:"column:name" json:"name"`
+	Unit   string `gorm:"column:unit" json:"unit"`
+	Status string `gorm:"column:status" json:"status"`
 }
 
-type GroupKPI struct {
-	BaseModel
-	Dept   string `gorm:"column:dept"  json:"deptID"`
-	KPI    string `gorm:"column:kpi"   json:"KpiID"`
-	ULimit int    `gorm:"u_limit"      json:"u_limit"`
-	LLimit int    `gorm:"l_limit"      json:"l_limit"`
-	TLimit int    `gorm:"t_limit"      json:"t_limit"`
-	Status string `gorm:"status"       json:"status"`
+func (KPI) TableName() string {
+	return "kpi"
 }
 
-type KpiInput struct {
-	BaseModel
-	RValue   int        `gorm:"column:r_value" json:"r_value"`
-	Month    time.Month `gorm:"column: month"  json:"month"`
-	User     string     `gorm:"user"           json:"user"`
-	GroupKPI GroupKPI   `gorm:"group_kpi"      json:"group_kpi"`
+func (k *KPI) CreateKPI() (err error, KPI *KPI) {
+	hasKPI := orm.DB.Where("name = ?", k.Name).RecordNotFound()
+	if hasKPI {
+		return errors.New("用户名已经注册"), nil
+	} else {
+		k.UUID, err = initID.GetID()
+		if err != nil {
+			return
+		}
+		err = orm.DB.Create(k).Error
+	}
+	return err, k
 }

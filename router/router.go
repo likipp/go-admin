@@ -46,6 +46,9 @@ func InitRouter() *gin.Engine {
 		baseRouter.GET("dept-tree", apis.GetDepTree)
 		baseRouter.GET("dept-tree/:name", apis.GetDepTreeByName)
 		//baseRouter.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
+		// KPI设置kpi
+		baseRouter.POST("kpi", apis.CreateKPI)
 	}
 
 	return r
