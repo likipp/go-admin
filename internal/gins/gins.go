@@ -1,4 +1,4 @@
-package gorm
+package gins
 
 import (
 	"github.com/gin-gonic/gin"
