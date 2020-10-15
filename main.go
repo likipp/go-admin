@@ -16,6 +16,5 @@ func main() {
 		panic("ID生成器初始化失败")
 	}
 	initTableStruct.InitTableStruct(db)
-
 	_ = router.InitRouter().Run()
 }

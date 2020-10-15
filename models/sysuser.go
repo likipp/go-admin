@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/jinzhu/gorm"
 	orm "go-admin/init/database"
-	globalID "go-admin/init/globalID"
+	"go-admin/init/globalID"
 	"go-admin/utils"
 )
 
@@ -82,7 +82,7 @@ func (u *SysUser) CreateUser() (err error, userInter *SysUser) {
 		return errors.New("用户名已经注册"), nil
 	} else {
 		u.Roles = u.GetRoleList()
-		u.UUID, err = globalID.GetID()
+		u.UUID, err = initID.GetID()
 		if err != nil {
 			return
 		}
