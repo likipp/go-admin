@@ -1,6 +1,8 @@
 package models
 
 import (
+	"fmt"
+	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 	orm "go-admin/init/database"
 	"go-admin/init/globalID"
@@ -40,7 +42,16 @@ func (k *KPI) CreateKPI() (err error, KPI *KPI) {
 }
 
 func (k *KPI) GetKPIList(params KPIQueryParam) (err error, KPIList []*KPI) {
-
+	var db *gorm.DB
+	fmt.Println(db, db)
+	if v := params.Name; v != "" {
+		db = orm.DB.Where("name = ?", v)
+	}
+	if v := params.Status; v > 0 {
+		db = orm.DB.Where("status =?", v)
+	}
+	//var list []KPI
+	//schema.QueryPaging(params, list, db)
 	return nil, nil
 }
 
