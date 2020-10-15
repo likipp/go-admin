@@ -36,7 +36,7 @@ const (
 	OrderByDESC OrderDirection = 2
 )
 
-func QueryPaging(pp PaginationParam, model interface{}) (err error, db *gorm.DB, total int) {
+func QueryPaging(pp PaginationParam, model interface{}, db *gorm.DB) (err error, total int) {
 	if pp.OnlyCount {
 		err = orm.DB.Count(&total).Error
 	} else if pp.Pagination {
@@ -48,7 +48,7 @@ func QueryPaging(pp PaginationParam, model interface{}) (err error, db *gorm.DB,
 		db = orm.DB.Limit(limit).Offset(offset).Order("id desc")
 	}
 
-	return err, db, total
+	return err, total
 }
 
 // NewOrderFieldWithKeys 创建排序字段(默认升序排序)，可指定不同key的排序规则
