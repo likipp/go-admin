@@ -6,6 +6,7 @@ import (
 	"go-admin/internal/gins"
 	"go-admin/models"
 	"go-admin/utils/errors"
+	"net/http"
 )
 
 func CreateKPI(c *gin.Context) {
@@ -22,8 +23,19 @@ func CreateKPI(c *gin.Context) {
 }
 
 func GetKPIList(c *gin.Context) {
+	var kpiList []models.KPI
 	var params models.KPIQueryParam
 	gins.ParseQuery(c, &params)
-	params.Pagination = true
-
+	err, kpiList := new(models.KPI).GetKPIList(params)
+	if err != nil {
+		errors.FailWithMessage("KPI查询失败", c)
+	} else {
+		c.JSON(http.StatusOK, gin.H{
+			"code":     200,
+			"data":     kpiList,
+			"total":    len(kpiList),
+			"page":     params.Current,
+			"pageSize": params.PageSize,
+		})
+	}
 }

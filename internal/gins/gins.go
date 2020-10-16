@@ -21,7 +21,7 @@ func ParseQuery(c *gin.Context, obj interface{}) {
 	if err := c.ShouldBindQuery(obj); err != nil {
 		errors.FailWithMessage("解析请求参数发生错误", c)
 	}
-	errors.OkWithMessage("获取数据成功", c)
+	//errors.OkWithData(obj, c)
 }
 
 func ParseForm(c *gin.Context, obj interface{}) {

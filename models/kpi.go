@@ -1,7 +1,6 @@
 package models
 
 import (
-	"fmt"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 	orm "go-admin/init/database"
@@ -19,8 +18,8 @@ type KPI struct {
 
 type KPIQueryParam struct {
 	schema.PaginationParam
-	Name   string `from:"name"`
-	Status int    `from:"status"`
+	Name   string `form:"name"`
+	Status int    `form:"status"`
 }
 
 func (KPI) TableName() string {
@@ -30,7 +29,7 @@ func (KPI) TableName() string {
 func (k *KPI) CreateKPI() (err error, KPI *KPI) {
 	hasKPI := orm.DB.Where("name = ?", k.Name).RecordNotFound()
 	if hasKPI {
-		return errors.New("用户名已经注册"), nil
+		return errors.New("KPI名称重复,请检查"), nil
 	} else {
 		k.UUID, err = initID.GetID()
 		if err != nil {
@@ -41,18 +40,28 @@ func (k *KPI) CreateKPI() (err error, KPI *KPI) {
 	return err, k
 }
 
-func (k *KPI) GetKPIList(params KPIQueryParam) (err error, KPIList []*KPI) {
+func PagingServer(pageParams KPIQueryParam, db *gorm.DB) {
+	var total int
+	limit := pageParams.PageSize
+	offset := pageParams.PageSize * (pageParams.Current - 1)
+	_ = db.Model(&KPI{}).Count(&total).Error
+	db.Limit(limit).Offset(offset).Order("id desc")
+}
+
+func (k *KPI) GetKPIList(params KPIQueryParam) (err error, KPIList []KPI) {
 	var db *gorm.DB
-	fmt.Println(db, db)
 	if v := params.Name; v != "" {
-		db = orm.DB.Where("name = ?", v)
+		db = orm.DB.Where("name = ?", v).Find(&KPIList)
 	}
 	if v := params.Status; v > 0 {
-		db = orm.DB.Where("status =?", v)
+		db = orm.DB.Where("status =?", v).Find(&KPIList)
 	}
-	//var list []KPI
-	//schema.QueryPaging(params, list, db)
-	return nil, nil
+	if params.Status <= 0 && params.Name == "" {
+		db = orm.DB.Find(&KPIList)
+	}
+	params.Pagination = true
+	PagingServer(params, db)
+	return err, KPIList
 }
 
 func (k *KPI) GetKPIByUUID(uuid string) (err error, KPI *KPI) {
