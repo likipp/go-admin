@@ -5,6 +5,7 @@ import (
 	"github.com/pkg/errors"
 	orm "go-admin/init/database"
 	"go-admin/init/globalID"
+	"go-admin/internal/entity"
 	"go-admin/internal/schema"
 )
 
@@ -44,28 +45,50 @@ func PagingServer(pageParams KPIQueryParam, db *gorm.DB) {
 	var total int
 	limit := pageParams.PageSize
 	offset := pageParams.PageSize * (pageParams.Current - 1)
-	_ = db.Model(&KPI{}).Count(&total).Error
+	_ = db.Count(&total).Error
 	db.Limit(limit).Offset(offset).Order("id desc")
 }
 
+func GetKpiDB(db *gorm.DB) *gorm.DB {
+	return entity.GetDBWithModel(db, new(KPI))
+}
+
 func (k *KPI) GetKPIList(params KPIQueryParam) (err error, KPIList []KPI) {
-	var db *gorm.DB
+	db := GetKpiDB(orm.DB)
 	if v := params.Name; v != "" {
-		db = orm.DB.Where("name = ?", v).Find(&KPIList)
+		db = db.Where("name = ?", v).Find(&KPIList)
 	}
 	if v := params.Status; v > 0 {
-		db = orm.DB.Where("status =?", v).Find(&KPIList)
+		db = db.Where("status =?", v).Find(&KPIList)
 	}
 	if params.Status <= 0 && params.Name == "" {
-		db = orm.DB.Find(&KPIList)
+		db = db.Find(&KPIList)
 	}
 	params.Pagination = true
 	PagingServer(params, db)
 	return err, KPIList
 }
 
-func (k *KPI) GetKPIByUUID(uuid string) (err error, KPI *KPI) {
-	return nil, nil
+func (k *KPI) GetKPIByUUID() (KPI KPI, err error) {
+	db := GetKpiDB(orm.DB)
+	result := db.Where("uuid = ?", k.UUID).First(&KPI)
+	if result.Error != nil {
+		return KPI, result.Error
+	}
+	return KPI, nil
+}
+
+func (k *KPI) UpdateKPIByUUID() (KPI KPI, err error) {
+	db := GetKpiDB(orm.DB)
+	result := db.Where("uuid = ?", k.UUID)
+	if result.Error != nil {
+		return KPI, errors.New("KPI不存在")
+	}
+	result = db.Where("uuid = ?", k.UUID).Updates(k)
+	if result.Error != nil {
+		return KPI, result.Error
+	}
+	return KPI, nil
 }
 
 func (k *KPI) DeleteKPIByUUID(uuid string) error {

@@ -13,8 +13,9 @@ const (
 func ParseJSON(c *gin.Context, obj interface{}) {
 	if err := c.ShouldBindJSON(obj); err != nil {
 		errors.FailWithMessage("解析请求参数发生错误", c)
+		return
 	}
-	errors.OkWithMessage("获取数据成功", c)
+	//errors.OkWithMessage("获取数据成功", c)
 }
 
 func ParseQuery(c *gin.Context, obj interface{}) {

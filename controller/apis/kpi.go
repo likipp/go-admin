@@ -39,3 +39,27 @@ func GetKPIList(c *gin.Context) {
 		})
 	}
 }
+
+func GetKPIByUUID(c *gin.Context) {
+	var K models.KPI
+	K.UUID = c.Param("uuid")
+	kpi, err := K.GetKPIByUUID()
+	if err != nil {
+		errors.FailWithMessage("KPI查询失败", c)
+		return
+	} else {
+		errors.OkWithData(kpi, c)
+	}
+}
+
+func UpdateKPIByUUID(c *gin.Context) {
+	var K models.KPI
+	gins.ParseJSON(c, &K)
+	kpi, err := K.UpdateKPIByUUID()
+	if err != nil {
+		errors.FailWithMessage("KPI修改失败", c)
+		return
+	} else {
+		errors.OkWithData(kpi, c)
+	}
+}
