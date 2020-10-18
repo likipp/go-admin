@@ -52,6 +52,10 @@ func InitRouter() *gin.Engine {
 		baseRouter.GET("kpi", apis.GetKPIList)
 		baseRouter.GET("kpi/:uuid", apis.GetKPIByUUID)
 		baseRouter.PATCH("kpi/:uuid", apis.UpdateKPIByUUID)
+
+		// GroupKPI
+		baseRouter.POST("group-kpi", apis.CreateGroupKPI)
+		baseRouter.GET("group-kpi", apis.GetGroupKPI)
 	}
 
 	return r
