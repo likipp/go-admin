@@ -63,23 +63,35 @@ func KpdDataPagingServer(pageParams KpiDataQueryParam, db *gorm.DB) {
 	db.Limit(limit).Offset(offset).Order("in_time desc")
 }
 
+func GroupByDept(kd []*KpiData) {
+	//var result []*KpiData
+	//var t map[string]interface{}
+	for i, v := range kd {
+		fmt.Println(i, "数据", v)
+		//t[v.Dept] = make([]interface)
+
+	}
+}
+
 func (k *KpiData) GetKpiData(params KpiDataQueryParam) (err error, kd []*KpiData) {
 	db := GetKpiDataDB(orm.DB)
 	if v := params.Dept; v != "" {
-		db = db.Select("r_value, in_time, user, dept, group_kpi").Order("in_time desc").Where("dept = ?", v).Find(&kd)
+		db = db.Select("r_value, in_time, user, dept, group_kpi").Order("dept desc, in_time").Where("dept = ?", v).Find(&kd)
 	}
 	if v := params.GroupKPI; v != "" {
-		db = db.Select("r_value, in_time, user, dept, group_kpi").Order("in_time desc").Where("group_kpi = ?", v).Group("dept").Find(&kd)
+		db = db.Select("r_value, in_time, user, dept, group_kpi").Order("dept desc, in_time").Where("group_kpi = ?", v).Group("dept").Find(&kd)
 	}
 	if v := params.User; v != "" {
-		db = db.Select("r_value, in_time, user, dept, group_kpi").Order("in_time desc").Where("user = ?", v).Group("dept").Find(&kd)
+		db = db.Select("r_value, in_time, user, dept, group_kpi").Order("dept desc, in_time").Where("user = ?", v).Group("dept").Find(&kd)
 	}
 	if params.Dept == "" && params.GroupKPI == "" && params.User == "" {
-		db = db.Limit(100).Select("dept, any_value(user) as user, any_value(group_kpi) as group_kpi, any_value(r_value) as r_value, any_value(in_time) as in_time").Group("dept").Find(&kd)
+		//db = db.Limit(100).Select("dept, any_value(user) as user, any_value(group_kpi) as group_kpi, any_value(r_value) as r_value, any_value(in_time) as in_time").Group("dept").Find(&kd)
+		db = db.Order("dept desc, in_time").Group("dept").Find(&kd)
 	}
 	// 根据月份进行排序
-	//params.Pagination = true
+	params.Pagination = true
 	//db.Order("in_time desc").Find(&kd)
-	//KpdDataPagingServer(params, db)
+	KpdDataPagingServer(params, db)
+	//GroupByDept(kd)
 	return nil, kd
 }
