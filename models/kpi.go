@@ -78,6 +78,16 @@ func (k *KPI) GetKPIByUUID() (KPI KPI, err error) {
 	return KPI, nil
 }
 
+//func GetKPIName(uuid string) (KPIName string, err error) {
+//	var kpi KPI
+//	db := GetKpiDB(orm.DB)
+//	hasKPI := db.Where("uuid = ?", k.UUID).First(&kpi).RecordNotFound()
+//	if !hasKPI {
+//		return KPIName, errors.New("未找到此KPI")
+//	}
+//	return kpi.Name, nil
+//}
+
 func (k *KPI) UpdateKPIByUUID() (KPI KPI, err error) {
 	db := GetKpiDB(orm.DB)
 	result := db.Where("uuid = ?", k.UUID)

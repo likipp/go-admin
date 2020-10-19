@@ -69,7 +69,6 @@ func (g *GroupKPI) CreateGroupKPI() (err error, gK *GroupKPI) {
 func (g *GroupKPI) GetGroupKPI() (err error, gk []GroupKPIWithName) {
 	var results []GroupKPI
 	var resultsWithName []GroupKPIWithName
-
 	db := GetGroupKpiDB(orm.DB)
 	db.Find(&results)
 	for _, v := range results {
