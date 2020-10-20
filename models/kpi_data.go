@@ -110,6 +110,10 @@ func (k *KpiData) GetKpiData(params KpiDataQueryParam) (err error, kd []Result) 
 	if params.GroupKPI == "" && params.User == "" {
 		//db = db.Limit(100).Select("dept, any_value(user) as user, any_value(group_kpi) as group_kpi, any_value(r_value) as r_value, any_value(in_time) as in_time").Group("dept").Find(&kd)
 		//db = db.Order("in_time").Find(&kd)
+		//select group_kpi.dept, group_kpi.kpi, group_kpi.l_limit, group_kpi.t_limit, group_kpi.u_limit, kpi_data.r_value, kpi.unit, kpi_data.user, kpi_data.in_time, kpi.unit from kpi_data
+		//	Join group_kpi on kpi_data.group_kpi = group_kpi.uuid
+		//	Join kpi on group_kpi.kpi = kpi.uuid
+		//	order by group_kpi.dept desc, group_kpi.kpi, kpi_data.in_time
 		db = db.Select("group_kpi.dept, group_kpi.kpi, group_kpi.l_limit, group_kpi.t_limit, group_kpi.u_limit, kpi_data.r_value, kpi_data.user").Joins("join group_kpi on kpi_data.group_kpi = group_kpi.uuid").Scan(&result)
 
 	}
