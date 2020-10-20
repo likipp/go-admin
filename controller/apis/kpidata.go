@@ -25,7 +25,6 @@ func CreateKPIData(c *gin.Context) {
 func GetKpiDataList(c *gin.Context) {
 	var params models.KpiDataQueryParam
 	gins.ParseQuery(c, &params)
-	fmt.Println(params, "params")
 	err, kpiDataList := new(models.KpiData).GetKpiData(params)
 	if err != nil {
 		errors.FailWithMessage("获取KPI数据失败", c)
