@@ -2,20 +2,23 @@ package models
 
 import (
 	"errors"
+	"fmt"
 	"github.com/jinzhu/gorm"
 	orm "go-admin/init/database"
+	initID "go-admin/init/globalID"
 	"go-admin/internal/entity"
 	"go-admin/internal/schema"
 )
 
 type GroupKPI struct {
 	BaseModel
-	Dept   string `gorm:"column:dept"  json:"deptID"`
-	KPI    string `gorm:"column:kpi"   json:"KpiID"`
-	ULimit int    `gorm:"u_limit"      json:"u_limit"`
-	LLimit int    `gorm:"l_limit"      json:"l_limit"`
-	TLimit int    `gorm:"t_limit"      json:"t_limit"`
-	Status string `gorm:"status"       json:"status"`
+	UUID   string `gorm:"column:uuid"         json:"uuid"`
+	Dept   string `gorm:"column:dept"         json:"deptID"`
+	KPI    string `gorm:"column:kpi"          json:"KpiID"`
+	ULimit int    `gorm:"column:u_limit"      json:"u_limit"`
+	LLimit int    `gorm:"column:l_limit"      json:"l_limit"`
+	TLimit int    `gorm:"column:t_limit"      json:"t_limit"`
+	Status string `gorm:"column:status"       json:"status"`
 }
 
 type GroupKpiQueryParam struct {
@@ -26,6 +29,7 @@ type GroupKpiQueryParam struct {
 }
 
 type GroupKPIWithName struct {
+	UUID     string `json:"uuid"`
 	Dept     string `json:"deptID"`
 	DeptName string `json:"deptName"`
 	KPI      string `json:"KpiID"`
@@ -59,6 +63,11 @@ func (g *GroupKPI) CreateGroupKPI() (err error, gK *GroupKPI) {
 	if !hasGroupKpi {
 		return errors.New("部门KPI已经关联"), nil
 	}
+	fmt.Println(g, "前端数据")
+	g.UUID, err = initID.GetID()
+	if err != nil {
+		return
+	}
 	err = orm.DB.Create(g).Error
 	if err != nil {
 		return err, g
@@ -77,6 +86,7 @@ func (g *GroupKPI) GetGroupKPI() (err error, gk []GroupKPIWithName) {
 		orm.DB.Where("dept_id  = ?", v.Dept).First(&dept)
 		orm.DB.Where("uuid = ?", v.KPI).First(&kpi)
 		resultWithName := GroupKPIWithName{
+			UUID:     v.UUID,
 			Dept:     v.Dept,
 			DeptName: dept.DeptName,
 			KPI:      v.KPI,

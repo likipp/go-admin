@@ -11,10 +11,10 @@ import (
 
 type KpiData struct {
 	BaseModel
+	UUID     string `gorm:"column:uuid"       json:"uuid"`
 	RValue   int    `gorm:"column:r_value"    json:"r_value"`
 	InTime   string `gorm:"column:in_time"    json:"in_time"`
 	User     string `gorm:"column:user"       json:"user"`
-	Dept     string `gorm:"column:dept"       json:"dept"`
 	GroupKPI string `gorm:"column:group_kpi"  json:"group_kpi"`
 }
 
@@ -23,11 +23,20 @@ type KpiDataResult struct {
 	KpiData map[string]interface{}
 }
 
+type KpiChild struct {
+	RValue int `json:"r_value"`
+	ULimit int `json:"u_limit"`
+	LLimit int `json:"l_limit"`
+	TLimit int `json:"t_limit"`
+	//Unit   string `json:"unit"`
+	InTime string `json:"in_time"`
+	User   string `json:"user"`
+}
+
 type KpiDataQueryParam struct {
 	schema.PaginationParam
 	GroupKPI string `form:"group_kpi"`
 	User     string `form:"user"`
-	Dept     string `form:"dept"`
 }
 
 func (KpiData) TableName() string {
@@ -41,7 +50,7 @@ func GetKpiDataDB(db *gorm.DB) *gorm.DB {
 func (k *KpiData) CreateKpiData() (err error, kd *KpiData) {
 	var result KpiData
 	db := GetKpiDataDB(orm.DB)
-	hasKpiData := db.Where("group_kpi = ? AND in_time = ? AND dept = ?", k.GroupKPI, k.InTime, k.Dept).First(&result).RecordNotFound()
+	hasKpiData := db.Where("group_kpi = ? AND in_time = ?", k.GroupKPI, k.InTime).First(&result).RecordNotFound()
 	if !hasKpiData {
 		return errors.New("KPI数据已经录入"), kd
 	}
@@ -73,25 +82,43 @@ func GroupByDept(kd []*KpiData) {
 	}
 }
 
-func (k *KpiData) GetKpiData(params KpiDataQueryParam) (err error, kd []*KpiData) {
+type Result struct {
+	RValue int `json:"r_value"`
+	//InTime   string `gorm:"column:in_time"    json:"in_time"`
+	User string `json:"user"`
+	//GroupKPI string `gorm:"column:group_kpi"  json:"group_kpi"`
+	Dept   string `json:"deptID"`
+	KPI    string `json:"KpiID"`
+	ULimit int    `json:"u_limit"`
+	LLimit int    `json:"l_limit"`
+	TLimit int    `json:"t_limit"`
+	//Unit   string `json:"unit"`
+}
+
+func (k *KpiData) GetKpiData(params KpiDataQueryParam) (err error, kd []Result) {
 	db := GetKpiDataDB(orm.DB)
-	if v := params.Dept; v != "" {
-		db = db.Select("r_value, in_time, user, dept, group_kpi").Order("dept desc, in_time").Where("dept = ?", v).Find(&kd)
-	}
+	var result []Result
+	//if v := params.Dept; v != "" {
+	//	db = db.Select("r_value, in_time, user, dept, group_kpi").Order("dept desc, in_time").Where("dept = ?", v).Find(&kd)
+	//}
 	if v := params.GroupKPI; v != "" {
-		db = db.Select("r_value, in_time, user, dept, group_kpi").Order("dept desc, in_time").Where("group_kpi = ?", v).Group("dept").Find(&kd)
+		db = db.Select("r_value, in_time, user, group_kpi").Order("in_time").Where("group_kpi = ?", v).Find(&kd)
 	}
 	if v := params.User; v != "" {
-		db = db.Select("r_value, in_time, user, dept, group_kpi").Order("dept desc, in_time").Where("user = ?", v).Group("dept").Find(&kd)
+		db = db.Select("r_value, in_time, user, group_kpi").Order("in_time").Where("user = ?", v).Find(&kd)
 	}
-	if params.Dept == "" && params.GroupKPI == "" && params.User == "" {
+	if params.GroupKPI == "" && params.User == "" {
 		//db = db.Limit(100).Select("dept, any_value(user) as user, any_value(group_kpi) as group_kpi, any_value(r_value) as r_value, any_value(in_time) as in_time").Group("dept").Find(&kd)
-		db = db.Order("dept desc, in_time").Group("dept").Find(&kd)
+		//db = db.Order("in_time").Find(&kd)
+		db = db.Select("group_kpi.dept, group_kpi.kpi, group_kpi.l_limit, group_kpi.t_limit, group_kpi.u_limit, kpi_data.r_value, kpi_data.user").Joins("join group_kpi on kpi_data.group_kpi = group_kpi.uuid").Scan(&result)
+
 	}
 	// 根据月份进行排序
 	params.Pagination = true
-	//db.Order("in_time desc").Find(&kd)
-	KpdDataPagingServer(params, db)
-	//GroupByDept(kd)
-	return nil, kd
+	//KpdDataPagingServer(params, db)
+	//var tem = make(map[string]map[string][]KpiChild)
+	for _, v := range result {
+		fmt.Println(v)
+	}
+	return nil, result
 }
