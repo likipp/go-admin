@@ -97,31 +97,24 @@ func GroupByDept(kd []Result) {
 }
 
 func (k *KpiData) GetKpiData(params KpiDataQueryParam) (err error, kd []Result) {
-	db := GetKpiDataDB(orm.DB)
-	//var selectData = "group_kpi.dept, group_kpi.kpi, group_kpi.l_limit, group_kpi.t_limit, group_kpi.u_limit, kpi_data.r_value, kpi.unit, kpi_data.user, kpi_data.in_time"
-	//var joinData = "join group_kpi on kpi_data.group_kpi = group_kpi.uuid join kpi on group_kpi.kpi = kpi.uuid"
-	//var orderData = "group_kpi.dept desc, group_kpi.kpi, kpi_data.in_time"
-	var selectData = "g.dept, g.kpi, g.l_limit, g.t_limit, g.u_limit, kpi_data.r_value, k.unit, kpi_data.user, kpi_data.in_time"
-	var joinData = "join group_kpi g on kpi_data.group_kpi = g.uuid join kpi k on g.kpi = k.uuid"
-	var orderData = "g.dept desc, g.kpi, kpi_data.in_time"
+	var selectData = "group_kpi.dept, group_kpi.kpi, group_kpi.l_limit, group_kpi.t_limit, group_kpi.u_limit, kpi_data.r_value, kpi.unit, kpi_data.user, kpi_data.in_time"
+	var joinData = "join group_kpi on kpi_data.group_kpi = group_kpi.uuid join kpi on group_kpi.kpi = kpi.uuid"
+	var orderData = "group_kpi.dept desc, group_kpi.kpi, kpi_data.in_time"
+	db := GetKpiDataDB(orm.DB).Select(selectData).Joins(joinData).Order(orderData)
 	var result []Result
+	if v := params.User; v != "" {
+		db = db.Where("kpi_data.user = ?", v).Scan(&result)
+	}
 	if v := params.Dept; v != "" {
-		db = db.Select(selectData).Joins(joinData).Order(orderData).Where("g.dept = ?", v).Scan(&result)
+		db = db.Where("group_kpi.dept = ?", v).Scan(&result)
 	}
 	if v := params.GroupKPI; v != "" {
-		db = db.Select(selectData).Joins(joinData).Order(orderData).Where("g.kpi = ?", v).Scan(&result)
+		db = db.Where("group_kpi.kpi = ?", v).Scan(&result)
 	}
-	if v := params.User; v != "" {
-		db = db.Select(selectData).Joins(joinData).Order(orderData).Where("kpi_data.user = ?", v).Scan(&result)
-	}
+
 	if params.GroupKPI == "" && params.User == "" && params.Dept == "" {
-		db = db.Select(selectData).Joins(joinData).Order(orderData).Scan(&result)
+		db = db.Scan(&result)
 	}
-	//select g.dept, g.kpi, g.l_limit, g.t_limit, g.u_limit, kpi_data.r_value, kpi.unit, kpi_data.user, kpi_data.in_time from kpi_data
-	//	join group_kpi g on kpi_data.group_kpi = g.uuid
-	//	join kpi on g.kpi = kpi.uuid
-	//	where dept = '323404962476326913'
-	//	order by g.dept desc, g.kpi, kpi_data.in_time
 	// 根据月份进行排序
 	params.Pagination = true
 	//KpdDataPagingServer(params, db)
