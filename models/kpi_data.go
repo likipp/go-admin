@@ -3,6 +3,7 @@ package models
 import (
 	"errors"
 	"fmt"
+	"github.com/jinzhu/copier"
 	"github.com/jinzhu/gorm"
 	orm "go-admin/init/database"
 	"go-admin/internal/entity"
@@ -19,7 +20,7 @@ type KpiData struct {
 }
 
 type KpiDataResult struct {
-	Dept    string
+	//Dept    string
 	KpiData map[string]interface{}
 }
 
@@ -42,8 +43,16 @@ type Result struct {
 	RValue int    `json:"r_value"`
 	Unit   string `json:"unit"`
 	User   string `json:"user"`
-	//InTime   string `gorm:"column:in_time"    json:"in_time"`
+	InTime string `json:"in_time"`
 	//GroupKPI string `gorm:"column:group_kpi"  json:"group_kpi"`
+}
+
+type ResultWithMonth struct {
+	KPI    string `json:"kpi"`
+	Month  map[string]interface{}
+	ULimit int `json:"u_limit"`
+	LLimit int `json:"l_limit"`
+	TLimit int `json:"t_limit"`
 }
 
 type KpiDataQueryParam struct {
@@ -87,13 +96,18 @@ func KpdDataPagingServer(pageParams KpiDataQueryParam, db *gorm.DB) {
 }
 
 func GroupByDept(kd []Result) {
-	//var result []*KpiData
+	//var result []KpiDataResult
+	var t ResultWithMonth
+	t.Month = make(map[string]interface{})
 	//var t = make(map[string]interface{})
 	for i, v := range kd {
-		fmt.Println(i, "数据", v)
-		//t[v.Dept]
-
+		//fmt.Println(i, "数据", v)
+		copier.Copy(t, i)
+		fmt.Println("v.RValue", v.RValue)
+		t.Month = map[string]interface{}{v.InTime: v.RValue}
+		fmt.Println(t.Month, "month")
 	}
+	fmt.Println(t, "t")
 }
 
 func (k *KpiData) GetKpiData(params KpiDataQueryParam) (err error, kd []Result) {
