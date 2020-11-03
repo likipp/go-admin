@@ -3,7 +3,6 @@ package models
 import (
 	"errors"
 	"fmt"
-	"github.com/jinzhu/copier"
 	"github.com/jinzhu/gorm"
 	orm "go-admin/init/database"
 	"go-admin/internal/entity"
@@ -49,7 +48,7 @@ type Result struct {
 
 type ResultWithMonth struct {
 	KPI    string `json:"kpi"`
-	Month  map[string]interface{}
+	Month  map[string]int
 	ULimit int `json:"u_limit"`
 	LLimit int `json:"l_limit"`
 	TLimit int `json:"t_limit"`
@@ -95,19 +94,20 @@ func KpdDataPagingServer(pageParams KpiDataQueryParam, db *gorm.DB) {
 	db.Limit(limit).Offset(offset).Order("in_time desc")
 }
 
-func GroupByDept(kd []Result) {
-	//var result []KpiDataResult
-	var t ResultWithMonth
-	t.Month = make(map[string]interface{})
-	//var t = make(map[string]interface{})
-	for i, v := range kd {
-		//fmt.Println(i, "数据", v)
-		copier.Copy(t, i)
-		fmt.Println("v.RValue", v.RValue)
-		t.Month = map[string]interface{}{v.InTime: v.RValue}
-		fmt.Println(t.Month, "month")
+func GetKPICate(kd []Result) []map[string]interface{} {
+	var res = make([]map[string]interface{}, 12)
+	var temp = map[string][]map[string]int{}
+	var result = map[string][]map[string][]map[string]int{}
+	var dept string
+	for i := 0; i < len(kd); i++ {
+		var ss = make(map[string]int, 1)
+		ss[kd[i].InTime] = kd[i].RValue
+		temp[kd[i].KPI] = append(temp[kd[i].KPI], ss)
+		dept = kd[i].Dept
 	}
-	fmt.Println(t, "t")
+	result[dept] = append(result[dept], temp)
+	fmt.Println(result)
+	return res
 }
 
 func (k *KpiData) GetKpiData(params KpiDataQueryParam) (err error, kd []Result) {
@@ -131,8 +131,7 @@ func (k *KpiData) GetKpiData(params KpiDataQueryParam) (err error, kd []Result) 
 	}
 	// 根据月份进行排序
 	params.Pagination = true
-	//KpdDataPagingServer(params, db)
-	//var tem = make(map[string]map[string][]KpiChild)
-	GroupByDept(result)
+	//KpdDataPagingServer(params, db
+	GetKPICate(result)
 	return nil, result
 }
