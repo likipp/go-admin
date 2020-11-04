@@ -95,12 +95,25 @@ func KpdDataPagingServer(pageParams KpiDataQueryParam, db *gorm.DB) {
 	db.Limit(limit).Offset(offset).Order("in_time desc")
 }
 
+func Test(kd []Result, listSort map[string]int, dept map[string]map[string]int, kpi string) {
+	for _, v := range kd {
+		if v.RValue != 0 {
+			if utils.StringConvInt(v.InTime[5:7]) >= 10 {
+				listSort[utils.StringConvJoin(v.InTime[2:4], v.InTime[5:7])] = v.RValue
+			} else {
+				listSort[utils.StringConvJoin(v.InTime[2:4], v.InTime[6:7])] = v.RValue
+			}
+		}
+	}
+}
+
 func GetKPICate(kd []Result) map[string][]map[string]map[string]int {
 	var temp = map[string]map[string]int{}
 	var result = map[string][]map[string]map[string]int{}
+	var ss = make(map[string]int)
 	var dept string
 	for i := 0; i < len(kd); i++ {
-		var ss = make(map[string]int)
+
 		if utils.StringConvInt(kd[i].InTime[5:7]) >= 10 {
 			ss[utils.StringConvJoin(kd[i].InTime[2:4], kd[i].InTime[5:7])] = kd[i].RValue
 		} else {
@@ -108,7 +121,6 @@ func GetKPICate(kd []Result) map[string][]map[string]map[string]int {
 		}
 
 		temp[kd[i].KPI] = ss
-
 		dept = kd[i].Dept
 	}
 	result[dept] = append(result[dept], temp)
