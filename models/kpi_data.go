@@ -7,6 +7,7 @@ import (
 	orm "go-admin/init/database"
 	"go-admin/internal/entity"
 	"go-admin/internal/schema"
+	"go-admin/utils"
 )
 
 type KpiData struct {
@@ -94,23 +95,27 @@ func KpdDataPagingServer(pageParams KpiDataQueryParam, db *gorm.DB) {
 	db.Limit(limit).Offset(offset).Order("in_time desc")
 }
 
-func GetKPICate(kd []Result) []map[string]interface{} {
-	var res = make([]map[string]interface{}, 12)
-	var temp = map[string][]map[string]int{}
-	var result = map[string][]map[string][]map[string]int{}
+func GetKPICate(kd []Result) map[string][]map[string]map[string]int {
+	var temp = map[string]map[string]int{}
+	var result = map[string][]map[string]map[string]int{}
 	var dept string
 	for i := 0; i < len(kd); i++ {
-		var ss = make(map[string]int, 1)
-		ss[kd[i].InTime] = kd[i].RValue
-		temp[kd[i].KPI] = append(temp[kd[i].KPI], ss)
+		var ss = make(map[string]int)
+		if utils.StringConvInt(kd[i].InTime[5:7]) >= 10 {
+			ss[utils.StringConvJoin(kd[i].InTime[2:4], kd[i].InTime[5:7])] = kd[i].RValue
+		} else {
+			ss[utils.StringConvJoin(kd[i].InTime[2:4], kd[i].InTime[6:7])] = kd[i].RValue
+		}
+
+		temp[kd[i].KPI] = ss
+
 		dept = kd[i].Dept
 	}
 	result[dept] = append(result[dept], temp)
-	fmt.Println(result)
-	return res
+	return result
 }
 
-func (k *KpiData) GetKpiData(params KpiDataQueryParam) (err error, kd []Result) {
+func (k *KpiData) GetKpiData(params KpiDataQueryParam) (err error, kd map[string][]map[string]map[string]int) {
 	var selectData = "group_kpi.dept, group_kpi.kpi, group_kpi.l_limit, group_kpi.t_limit, group_kpi.u_limit, kpi_data.r_value, kpi.unit, kpi_data.user, kpi_data.in_time"
 	var joinData = "join group_kpi on kpi_data.group_kpi = group_kpi.uuid join kpi on group_kpi.kpi = kpi.uuid"
 	var orderData = "group_kpi.dept desc, group_kpi.kpi, kpi_data.in_time"
@@ -132,6 +137,6 @@ func (k *KpiData) GetKpiData(params KpiDataQueryParam) (err error, kd []Result) 
 	// 根据月份进行排序
 	params.Pagination = true
 	//KpdDataPagingServer(params, db
-	GetKPICate(result)
-	return nil, result
+	res := GetKPICate(result)
+	return nil, res
 }

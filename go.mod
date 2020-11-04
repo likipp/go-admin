@@ -27,7 +27,7 @@ require (
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/pelletier/go-toml v1.6.0 // indirect
 	github.com/pkg/errors v0.9.1
-	github.com/satori/go.uuid v1.2.0
+	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/smartystreets/assertions v1.0.1 // indirect
 	github.com/sony/sonyflake v1.0.0
 	github.com/spf13/afero v1.2.2 // indirect
@@ -38,7 +38,7 @@ require (
 	github.com/stretchr/testify v1.5.1 // indirect
 	github.com/swaggo/gin-swagger v1.2.0
 	github.com/swaggo/swag v1.6.7
-	github.com/uniplaces/carbon v0.1.6
+	github.com/uniplaces/carbon v0.1.6 // indirect
 	github.com/urfave/cli/v2 v2.2.0 // indirect
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 	golang.org/x/net v0.0.0-20200904194848-62affa334b73 // indirect
