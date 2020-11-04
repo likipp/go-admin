@@ -95,37 +95,61 @@ func KpdDataPagingServer(pageParams KpiDataQueryParam, db *gorm.DB) {
 	db.Limit(limit).Offset(offset).Order("in_time desc")
 }
 
-func Test(kd []Result, listSort map[string]int, dept map[string]map[string]int, kpi string) {
+func Test(kd []Result, listSort map[string]int, dept map[string]map[string]interface{}) {
+
 	for _, v := range kd {
+		var b = make(map[string]int)
+		//fmt.Println(v, "v")
 		if v.RValue != 0 {
 			if utils.StringConvInt(v.InTime[5:7]) >= 10 {
-				listSort[utils.StringConvJoin(v.InTime[2:4], v.InTime[5:7])] = v.RValue
+				b[utils.StringConvJoin(v.InTime[2:4], v.InTime[5:7])] = v.RValue
 			} else {
-				listSort[utils.StringConvJoin(v.InTime[2:4], v.InTime[6:7])] = v.RValue
+				b[utils.StringConvJoin(v.InTime[2:4], v.InTime[6:7])] = v.RValue
 			}
 		}
+		var a = make(map[string]interface{})
+		a["t_value"] = v.TLimit
+		a["l_limit"] = v.LLimit
+		//a["r_value"] = v.RValue
+		dept[v.KPI] = a
 	}
+	Com(kd, dept)
+	//fmt.Println(dept, "dept")
 }
 
-func GetKPICate(kd []Result) map[string][]map[string]map[string]int {
-	var temp = map[string]map[string]int{}
-	var result = map[string][]map[string]map[string]int{}
-	var ss = make(map[string]int)
-	var dept string
+func Com(kd []Result, dept map[string]map[string]interface{}) {
 	for i := 0; i < len(kd); i++ {
 
-		if utils.StringConvInt(kd[i].InTime[5:7]) >= 10 {
-			ss[utils.StringConvJoin(kd[i].InTime[2:4], kd[i].InTime[5:7])] = kd[i].RValue
-		} else {
-			ss[utils.StringConvJoin(kd[i].InTime[2:4], kd[i].InTime[6:7])] = kd[i].RValue
+		//fmt.Print(kd[i].KPI, "间隔", dept[kd[i].KPI])
+		if _, ok := dept[kd[i].KPI]; ok {
+			var b = make(map[string]interface{})
+			fmt.Println("在里面")
+			b[utils.StringConvJoin(kd[i].InTime[2:4], kd[i].InTime[5:7])] = kd[i].RValue
+			dept[kd[i].KPI]["r_value"] = b
 		}
-
-		temp[kd[i].KPI] = ss
-		dept = kd[i].Dept
 	}
-	result[dept] = append(result[dept], temp)
-	return result
+	fmt.Println(dept, "dept")
 }
+
+//func GetKPICate(kd []Result) map[string][]map[string]map[string]int {
+//	var temp = map[string]map[string]int{}
+//	var result = map[string][]map[string]map[string]int{}
+//	var ss = make(map[string]int)
+//	var dept string
+//	for i := 0; i < len(kd); i++ {
+//
+//		if utils.StringConvInt(kd[i].InTime[5:7]) >= 10 {
+//			ss[utils.StringConvJoin(kd[i].InTime[2:4], kd[i].InTime[5:7])] = kd[i].RValue
+//		} else {
+//			ss[utils.StringConvJoin(kd[i].InTime[2:4], kd[i].InTime[6:7])] = kd[i].RValue
+//		}
+//
+//		temp[kd[i].KPI] = ss
+//		dept = kd[i].Dept
+//	}
+//	result[dept] = append(result[dept], temp)
+//	return result
+//}
 
 func (k *KpiData) GetKpiData(params KpiDataQueryParam) (err error, kd map[string][]map[string]map[string]int) {
 	var selectData = "group_kpi.dept, group_kpi.kpi, group_kpi.l_limit, group_kpi.t_limit, group_kpi.u_limit, kpi_data.r_value, kpi.unit, kpi_data.user, kpi_data.in_time"
@@ -149,6 +173,9 @@ func (k *KpiData) GetKpiData(params KpiDataQueryParam) (err error, kd map[string
 	// 根据月份进行排序
 	params.Pagination = true
 	//KpdDataPagingServer(params, db
-	res := GetKPICate(result)
-	return nil, res
+	//res := GetKPICate(result)
+	var listSort = make(map[string]int)
+	var dept = make(map[string]map[string]interface{})
+	Test(result, listSort, dept)
+	return nil, nil
 }
