@@ -49,10 +49,8 @@ type Result struct {
 
 type ResultWithMonth struct {
 	KPI    string `json:"kpi"`
-	Month  map[string]int
-	ULimit int `json:"u_limit"`
-	LLimit int `json:"l_limit"`
-	TLimit int `json:"t_limit"`
+	ULimit int    `json:"u_limit"`
+	LLimit int    `json:"l_limit"`
 }
 
 type KpiDataQueryParam struct {
@@ -131,7 +129,7 @@ func (k *KpiData) GetKpiData(params KpiDataQueryParam) (err error, kd map[string
 	var selectData = "group_kpi.dept, group_kpi.kpi, group_kpi.l_limit, group_kpi.t_limit, group_kpi.u_limit, kpi_data.r_value, kpi.unit, kpi_data.user, kpi_data.in_time"
 	var joinData = "join group_kpi on kpi_data.group_kpi = group_kpi.uuid join kpi on group_kpi.kpi = kpi.uuid"
 	var orderData = "group_kpi.dept desc, group_kpi.kpi, kpi_data.in_time"
-	db := GetKpiDataDB(orm.DB).Select(selectData).Joins(joinData).Order(orderData)
+	db := GetKpiDataDB(orm.DB).Select(selectData).Joins(joinData).Order(orderData).Limit(12)
 	var result []Result
 	if v := params.User; v != "" {
 		db = db.Where("kpi_data.user = ?", v).Scan(&result)
@@ -149,6 +147,22 @@ func (k *KpiData) GetKpiData(params KpiDataQueryParam) (err error, kd map[string
 	// 根据月份进行排序
 	params.Pagination = true
 	//KpdDataPagingServer(params, db
-	res := GetKPICate(result)
-	return nil, res
+	//res := GetKPICate(result)
+	GroupBy(result)
+	return nil, nil
+}
+
+func GroupBy(data []Result) {
+	var i = 0
+	var j int
+	var kList = make([]map[string]interface{}, 2)
+	var month = make(map[string]interface{})
+	for j = i + 1; j < len(data) && data[i].KPI == data[j].KPI; j++ {
+		month["KPI"] = data[i].KPI
+		month["LLimit"] = data[i].LLimit
+		month["ULimit"] = data[i].ULimit
+		month[data[i].InTime] = data[i].RValue
+	}
+	kList = append(kList, month)
+	fmt.Println(kList, "month")
 }
