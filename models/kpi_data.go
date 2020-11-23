@@ -157,12 +157,14 @@ func GroupBy(data []Result) {
 	var j int
 	var kList = make([]map[string]interface{}, 2)
 	var month = make(map[string]interface{})
-	for j = i + 1; j < len(data) && data[i].KPI == data[j].KPI; j++ {
-		month["KPI"] = data[i].KPI
-		month["LLimit"] = data[i].LLimit
-		month["ULimit"] = data[i].ULimit
-		month[data[i].InTime] = data[i].RValue
+	for j = i; j < len(data) && data[i].KPI == data[j].KPI; j++ {
+		month["KPI"] = data[j].KPI
+		month["LLimit"] = data[j].LLimit
+		month["ULimit"] = data[j].ULimit
+		month["TLimit"] = data[j].TLimit
+		month[data[j].InTime] = data[j].RValue
 	}
+
 	kList = append(kList, month)
-	fmt.Println(kList, "month")
+	fmt.Println(kList)
 }
