@@ -49,10 +49,8 @@ type Result struct {
 
 type ResultWithMonth struct {
 	KPI    string `json:"kpi"`
-	Month  map[string]int
-	ULimit int `json:"u_limit"`
-	LLimit int `json:"l_limit"`
-	TLimit int `json:"t_limit"`
+	ULimit int    `json:"u_limit"`
+	LLimit int    `json:"l_limit"`
 }
 
 type KpiDataQueryParam struct {
@@ -95,67 +93,43 @@ func KpdDataPagingServer(pageParams KpiDataQueryParam, db *gorm.DB) {
 	db.Limit(limit).Offset(offset).Order("in_time desc")
 }
 
-func Test(kd []Result, listSort map[string]int, dept map[string]map[string]interface{}) {
-
+func Test(kd []Result, listSort map[string]int, dept map[string]map[string]int, kpi string) {
 	for _, v := range kd {
-		var b = make(map[string]int)
-		//fmt.Println(v, "v")
 		if v.RValue != 0 {
 			if utils.StringConvInt(v.InTime[5:7]) >= 10 {
-				b[utils.StringConvJoin(v.InTime[2:4], v.InTime[5:7])] = v.RValue
+				listSort[utils.StringConvJoin(v.InTime[2:4], v.InTime[5:7])] = v.RValue
 			} else {
-				b[utils.StringConvJoin(v.InTime[2:4], v.InTime[6:7])] = v.RValue
+				listSort[utils.StringConvJoin(v.InTime[2:4], v.InTime[6:7])] = v.RValue
 			}
 		}
-		var a = make(map[string]interface{})
-		a["t_value"] = v.TLimit
-		a["l_limit"] = v.LLimit
-		//a["r_value"] = v.RValue
-		dept[v.KPI] = a
 	}
-	Com(kd, dept)
-	//fmt.Println(dept, "dept")
 }
 
-func Com(kd []Result, dept map[string]map[string]interface{}) {
+func GetKPICate(kd []Result) map[string][]map[string]map[string]int {
+	var temp = map[string]map[string]int{}
+	var result = map[string][]map[string]map[string]int{}
+	var ss = make(map[string]int)
+	var dept string
 	for i := 0; i < len(kd); i++ {
 
-		//fmt.Print(kd[i].KPI, "间隔", dept[kd[i].KPI])
-		if _, ok := dept[kd[i].KPI]; ok {
-			var b = make(map[string]interface{})
-			fmt.Println("在里面")
-			b[utils.StringConvJoin(kd[i].InTime[2:4], kd[i].InTime[5:7])] = kd[i].RValue
-			dept[kd[i].KPI]["r_value"] = b
+		if utils.StringConvInt(kd[i].InTime[5:7]) >= 10 {
+			ss[utils.StringConvJoin(kd[i].InTime[2:4], kd[i].InTime[5:7])] = kd[i].RValue
+		} else {
+			ss[utils.StringConvJoin(kd[i].InTime[2:4], kd[i].InTime[6:7])] = kd[i].RValue
 		}
-	}
-	fmt.Println(dept, "dept")
-}
 
-//func GetKPICate(kd []Result) map[string][]map[string]map[string]int {
-//	var temp = map[string]map[string]int{}
-//	var result = map[string][]map[string]map[string]int{}
-//	var ss = make(map[string]int)
-//	var dept string
-//	for i := 0; i < len(kd); i++ {
-//
-//		if utils.StringConvInt(kd[i].InTime[5:7]) >= 10 {
-//			ss[utils.StringConvJoin(kd[i].InTime[2:4], kd[i].InTime[5:7])] = kd[i].RValue
-//		} else {
-//			ss[utils.StringConvJoin(kd[i].InTime[2:4], kd[i].InTime[6:7])] = kd[i].RValue
-//		}
-//
-//		temp[kd[i].KPI] = ss
-//		dept = kd[i].Dept
-//	}
-//	result[dept] = append(result[dept], temp)
-//	return result
-//}
+		temp[kd[i].KPI] = ss
+		dept = kd[i].Dept
+	}
+	result[dept] = append(result[dept], temp)
+	return result
+}
 
 func (k *KpiData) GetKpiData(params KpiDataQueryParam) (err error, kd map[string][]map[string]map[string]int) {
 	var selectData = "group_kpi.dept, group_kpi.kpi, group_kpi.l_limit, group_kpi.t_limit, group_kpi.u_limit, kpi_data.r_value, kpi.unit, kpi_data.user, kpi_data.in_time"
 	var joinData = "join group_kpi on kpi_data.group_kpi = group_kpi.uuid join kpi on group_kpi.kpi = kpi.uuid"
 	var orderData = "group_kpi.dept desc, group_kpi.kpi, kpi_data.in_time"
-	db := GetKpiDataDB(orm.DB).Select(selectData).Joins(joinData).Order(orderData)
+	db := GetKpiDataDB(orm.DB).Select(selectData).Joins(joinData).Order(orderData).Limit(12)
 	var result []Result
 	if v := params.User; v != "" {
 		db = db.Where("kpi_data.user = ?", v).Scan(&result)
@@ -174,8 +148,23 @@ func (k *KpiData) GetKpiData(params KpiDataQueryParam) (err error, kd map[string
 	params.Pagination = true
 	//KpdDataPagingServer(params, db
 	//res := GetKPICate(result)
-	var listSort = make(map[string]int)
-	var dept = make(map[string]map[string]interface{})
-	Test(result, listSort, dept)
+	GroupBy(result)
 	return nil, nil
+}
+
+func GroupBy(data []Result) {
+	var i = 0
+	var j int
+	var kList = make([]map[string]interface{}, 2)
+	var month = make(map[string]interface{})
+	for j = i; j < len(data) && data[i].KPI == data[j].KPI; j++ {
+		month["KPI"] = data[j].KPI
+		month["LLimit"] = data[j].LLimit
+		month["ULimit"] = data[j].ULimit
+		month["TLimit"] = data[j].TLimit
+		month[data[j].InTime] = data[j].RValue
+	}
+
+	kList = append(kList, month)
+	fmt.Println(kList)
 }
