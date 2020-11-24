@@ -7,7 +7,6 @@ import (
 	orm "go-admin/init/database"
 	"go-admin/internal/entity"
 	"go-admin/internal/schema"
-	"go-admin/utils"
 )
 
 type KpiData struct {
@@ -45,6 +44,10 @@ type Result struct {
 	User   string `json:"user"`
 	InTime string `json:"in_time"`
 	//GroupKPI string `gorm:"column:group_kpi"  json:"group_kpi"`
+}
+
+type RkPI struct {
+	KPI string `json:"kpi"`
 }
 
 type ResultWithMonth struct {
@@ -93,49 +96,21 @@ func KpdDataPagingServer(pageParams KpiDataQueryParam, db *gorm.DB) {
 	db.Limit(limit).Offset(offset).Order("in_time desc")
 }
 
-func Test(kd []Result, listSort map[string]int, dept map[string]map[string]int, kpi string) {
-	for _, v := range kd {
-		if v.RValue != 0 {
-			if utils.StringConvInt(v.InTime[5:7]) >= 10 {
-				listSort[utils.StringConvJoin(v.InTime[2:4], v.InTime[5:7])] = v.RValue
-			} else {
-				listSort[utils.StringConvJoin(v.InTime[2:4], v.InTime[6:7])] = v.RValue
-			}
-		}
-	}
-}
-
-func GetKPICate(kd []Result) map[string][]map[string]map[string]int {
-	var temp = map[string]map[string]int{}
-	var result = map[string][]map[string]map[string]int{}
-	var ss = make(map[string]int)
-	var dept string
-	for i := 0; i < len(kd); i++ {
-
-		if utils.StringConvInt(kd[i].InTime[5:7]) >= 10 {
-			ss[utils.StringConvJoin(kd[i].InTime[2:4], kd[i].InTime[5:7])] = kd[i].RValue
-		} else {
-			ss[utils.StringConvJoin(kd[i].InTime[2:4], kd[i].InTime[6:7])] = kd[i].RValue
-		}
-
-		temp[kd[i].KPI] = ss
-		dept = kd[i].Dept
-	}
-	result[dept] = append(result[dept], temp)
-	return result
-}
-
-func (k *KpiData) GetKpiData(params KpiDataQueryParam) (err error, kd map[string][]map[string]map[string]int) {
+func (k *KpiData) GetKpiData(params KpiDataQueryParam) (err error, kd []map[string]interface{}) {
 	var selectData = "group_kpi.dept, group_kpi.kpi, group_kpi.l_limit, group_kpi.t_limit, group_kpi.u_limit, kpi_data.r_value, kpi.unit, kpi_data.user, kpi_data.in_time"
 	var joinData = "join group_kpi on kpi_data.group_kpi = group_kpi.uuid join kpi on group_kpi.kpi = kpi.uuid"
-	var orderData = "group_kpi.dept desc, group_kpi.kpi, kpi_data.in_time"
+	var orderData = "group_kpi.kpi desc, group_kpi.dept, kpi_data.in_time"
 	db := GetKpiDataDB(orm.DB).Select(selectData).Joins(joinData).Order(orderData).Limit(12)
+	//kDB := GetKpiDataDB(orm.DB).Select("group_kpi.kpi").Joins(joinData).Order(orderData).Limit(12)
 	var result []Result
+	var kList []RkPI
+	var sList []string
 	if v := params.User; v != "" {
 		db = db.Where("kpi_data.user = ?", v).Scan(&result)
 	}
 	if v := params.Dept; v != "" {
 		db = db.Where("group_kpi.dept = ?", v).Scan(&result)
+		db.Where("group_kpi.dept = ?", v).Select("group_kpi.kpi").Scan(&kList)
 	}
 	if v := params.GroupKPI; v != "" {
 		db = db.Where("group_kpi.kpi = ?", v).Scan(&result)
@@ -144,27 +119,37 @@ func (k *KpiData) GetKpiData(params KpiDataQueryParam) (err error, kd map[string
 	if params.GroupKPI == "" && params.User == "" && params.Dept == "" {
 		db = db.Scan(&result)
 	}
+
+	for i := 0; i < len(kList)-1; i++ {
+		if kList[i].KPI == kList[i+1].KPI {
+
+		} else {
+			sList = append(sList, kList[i].KPI, kList[i+1].KPI)
+		}
+	}
 	// 根据月份进行排序
 	params.Pagination = true
 	//KpdDataPagingServer(params, db
 	//res := GetKPICate(result)
-	GroupBy(result)
-	return nil, nil
+	kd = GroupBy(result, sList)
+	return nil, kd
 }
 
-func GroupBy(data []Result) {
-	var i = 0
-	var j int
-	var kList = make([]map[string]interface{}, 2)
-	var month = make(map[string]interface{})
-	for j = i; j < len(data) && data[i].KPI == data[j].KPI; j++ {
-		month["KPI"] = data[j].KPI
-		month["LLimit"] = data[j].LLimit
-		month["ULimit"] = data[j].ULimit
-		month["TLimit"] = data[j].TLimit
-		month[data[j].InTime] = data[j].RValue
-	}
+func GroupBy(data []Result, s []string) []map[string]interface{} {
+	var kList = make([]map[string]interface{}, 0)
 
-	kList = append(kList, month)
-	fmt.Println(kList)
+	for i := 0; i < len(s); i++ {
+		var month = make(map[string]interface{})
+		for _, v := range data {
+			if s[i] == v.KPI {
+				month[v.InTime] = v.RValue
+				month["KPI"] = v.KPI
+				month["LLimit"] = v.LLimit
+				month["ULimit"] = v.ULimit
+				month["TLimit"] = v.TLimit
+			}
+		}
+		kList = append(kList, month)
+	}
+	return kList
 }
