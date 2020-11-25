@@ -7,6 +7,7 @@ import (
 	orm "go-admin/init/database"
 	"go-admin/internal/entity"
 	"go-admin/internal/schema"
+	"go-admin/utils"
 )
 
 type KpiData struct {
@@ -18,24 +19,11 @@ type KpiData struct {
 	GroupKPI string `gorm:"column:group_kpi"  json:"group_kpi"`
 }
 
-type KpiDataResult struct {
-	//Dept    string
-	KpiData map[string]interface{}
-}
-
-type KpiChild struct {
-	RValue int `json:"r_value"`
-	ULimit int `json:"u_limit"`
-	LLimit int `json:"l_limit"`
-	TLimit int `json:"t_limit"`
-	//Unit   string `json:"unit"`
-	InTime string `json:"in_time"`
-	User   string `json:"user"`
-}
-
 type Result struct {
+	ID     string `json:"id"`
 	Dept   string `json:"dept"`
 	KPI    string `json:"kpi"`
+	Name   string `json:"name"`
 	ULimit int    `json:"u_limit"`
 	LLimit int    `json:"l_limit"`
 	TLimit int    `json:"t_limit"`
@@ -43,13 +31,6 @@ type Result struct {
 	Unit   string `json:"unit"`
 	User   string `json:"user"`
 	InTime string `json:"in_time"`
-	//GroupKPI string `gorm:"column:group_kpi"  json:"group_kpi"`
-}
-
-type ResultWithMonth struct {
-	KPI    string `json:"kpi"`
-	ULimit int    `json:"u_limit"`
-	LLimit int    `json:"l_limit"`
 }
 
 type KpiDataQueryParam struct {
@@ -93,7 +74,7 @@ func KpdDataPagingServer(pageParams KpiDataQueryParam, db *gorm.DB) {
 }
 
 func (k *KpiData) GetKpiData(params KpiDataQueryParam) (err error, kd []map[string]interface{}) {
-	var selectData = "group_kpi.dept, group_kpi.kpi, group_kpi.l_limit, group_kpi.t_limit, group_kpi.u_limit, kpi_data.r_value, kpi.unit, kpi_data.user, kpi_data.in_time"
+	var selectData = "kpi_data.id, group_kpi.dept, group_kpi.kpi, kpi.name, group_kpi.l_limit, group_kpi.t_limit, group_kpi.u_limit, kpi_data.r_value, kpi.unit, kpi_data.user, kpi_data.in_time"
 	var joinData = "join group_kpi on kpi_data.group_kpi = group_kpi.uuid join kpi on group_kpi.kpi = kpi.uuid"
 	var orderData = "group_kpi.kpi desc, group_kpi.dept, kpi_data.in_time"
 	db := GetKpiDataDB(orm.DB).Select(selectData).Joins(joinData).Order(orderData).Limit(12)
@@ -112,11 +93,9 @@ func (k *KpiData) GetKpiData(params KpiDataQueryParam) (err error, kd []map[stri
 	if params.GroupKPI == "" && params.User == "" && params.Dept == "" {
 		db = db.Scan(&result)
 	}
-
 	// 根据月份进行排序
 	params.Pagination = true
 	//KpdDataPagingServer(params, db
-	//res := GetKPICate(result)
 	kd = GroupBy(result)
 	return nil, kd
 }
@@ -124,7 +103,6 @@ func (k *KpiData) GetKpiData(params KpiDataQueryParam) (err error, kd []map[stri
 func GroupBy(data []Result) []map[string]interface{} {
 	var kList = make([]map[string]interface{}, 0)
 
-	//var s = []string{"324858678177955841", "324858629188485121", "324858517754216449"}
 	var s []string
 	var temp = map[string]bool{}
 
@@ -136,16 +114,21 @@ func GroupBy(data []Result) []map[string]interface{} {
 			s = append(s, data[i].KPI)
 		}
 	}
-	fmt.Println(s, "list")
+	if s == nil {
+		return kList
+	}
+
 	for i := 0; i < len(s); i++ {
 		var month = make(map[string]interface{})
 		for _, v := range data {
 			if s[i] == v.KPI {
-				month[v.InTime] = v.RValue
-				month["KPI"] = v.KPI
-				month["LLimit"] = v.LLimit
-				month["ULimit"] = v.ULimit
-				month["TLimit"] = v.TLimit
+				month[utils.ChangeDate(v.InTime)] = v.RValue
+				month["id"] = v.ID
+				month["kpi"] = v.KPI
+				month["name"] = v.Name
+				month["lLimit"] = v.LLimit
+				month["uLimit"] = v.ULimit
+				month["tValue"] = v.TLimit
 			}
 		}
 		kList = append(kList, month)
