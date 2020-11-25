@@ -46,10 +46,6 @@ type Result struct {
 	//GroupKPI string `gorm:"column:group_kpi"  json:"group_kpi"`
 }
 
-type RkPI struct {
-	KPI string `json:"kpi"`
-}
-
 type ResultWithMonth struct {
 	KPI    string `json:"kpi"`
 	ULimit int    `json:"u_limit"`
@@ -103,14 +99,11 @@ func (k *KpiData) GetKpiData(params KpiDataQueryParam) (err error, kd []map[stri
 	db := GetKpiDataDB(orm.DB).Select(selectData).Joins(joinData).Order(orderData).Limit(12)
 	//kDB := GetKpiDataDB(orm.DB).Select("group_kpi.kpi").Joins(joinData).Order(orderData).Limit(12)
 	var result []Result
-	var kList []RkPI
-	var sList []string
 	if v := params.User; v != "" {
 		db = db.Where("kpi_data.user = ?", v).Scan(&result)
 	}
 	if v := params.Dept; v != "" {
 		db = db.Where("group_kpi.dept = ?", v).Scan(&result)
-		db.Where("group_kpi.dept = ?", v).Select("group_kpi.kpi").Scan(&kList)
 	}
 	if v := params.GroupKPI; v != "" {
 		db = db.Where("group_kpi.kpi = ?", v).Scan(&result)
@@ -120,24 +113,30 @@ func (k *KpiData) GetKpiData(params KpiDataQueryParam) (err error, kd []map[stri
 		db = db.Scan(&result)
 	}
 
-	for i := 0; i < len(kList)-1; i++ {
-		if kList[i].KPI == kList[i+1].KPI {
-
-		} else {
-			sList = append(sList, kList[i].KPI, kList[i+1].KPI)
-		}
-	}
 	// 根据月份进行排序
 	params.Pagination = true
 	//KpdDataPagingServer(params, db
 	//res := GetKPICate(result)
-	kd = GroupBy(result, sList)
+	kd = GroupBy(result)
 	return nil, kd
 }
 
-func GroupBy(data []Result, s []string) []map[string]interface{} {
+func GroupBy(data []Result) []map[string]interface{} {
 	var kList = make([]map[string]interface{}, 0)
 
+	//var s = []string{"324858678177955841", "324858629188485121", "324858517754216449"}
+	var s []string
+	var temp = map[string]bool{}
+
+	for i := 0; i < len(data); i++ {
+		if _, ok := temp[data[i].KPI]; ok {
+
+		} else {
+			temp[data[i].KPI] = true
+			s = append(s, data[i].KPI)
+		}
+	}
+	fmt.Println(s, "list")
 	for i := 0; i < len(s); i++ {
 		var month = make(map[string]interface{})
 		for _, v := range data {
