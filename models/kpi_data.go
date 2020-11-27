@@ -129,9 +129,23 @@ func GroupBy(data []Result) []map[string]interface{} {
 				month["lLimit"] = v.LLimit
 				month["uLimit"] = v.ULimit
 				month["tValue"] = v.TLimit
+				month["className"] = SetClassName(v.LLimit, v.TLimit, v.RValue)
 			}
 		}
 		kList = append(kList, month)
 	}
 	return kList
+}
+
+func SetClassName(uLimit, tValue, rValue int) string {
+	if rValue <= 0 {
+		return "styles.normal"
+	}
+	if rValue < uLimit {
+		return "styles.fail"
+	} else if rValue > tValue {
+		return "styles.success"
+	} else {
+		return "styles.nesc"
+	}
 }
