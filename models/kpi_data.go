@@ -33,6 +33,13 @@ type Result struct {
 	InTime string `json:"in_time"`
 }
 
+type ResultLine struct {
+	Name   string `json:"type"`
+	RValue int    `json:"value"`
+	Unit   string `json:"unit"`
+	InTime string `json:"date"`
+}
+
 type KpiDataQueryParam struct {
 	schema.PaginationParam
 	GroupKPI string `form:"group_kpi"`
@@ -100,6 +107,7 @@ func (k *KpiData) GetKpiData(params KpiDataQueryParam) (err error, kd []map[stri
 	return nil, kd
 }
 
+// 对数据根据KPI名称进行分组
 func GroupBy(data []Result) []map[string]interface{} {
 	var kList = make([]map[string]interface{}, 0)
 
@@ -129,7 +137,7 @@ func GroupBy(data []Result) []map[string]interface{} {
 				month["lLimit"] = v.LLimit
 				month["uLimit"] = v.ULimit
 				month["tValue"] = v.TLimit
-				month["className"] = SetClassName(v.LLimit, v.TLimit, v.RValue)
+				//month["className"] = SetClassName(v.LLimit, v.TLimit, v.RValue)
 			}
 		}
 		kList = append(kList, month)
@@ -137,15 +145,30 @@ func GroupBy(data []Result) []map[string]interface{} {
 	return kList
 }
 
-func SetClassName(uLimit, tValue, rValue int) string {
-	if rValue <= 0 {
-		return "styles.normal"
+func (k *KpiData) GetKPIDataForLine(params KpiDataQueryParam) (err error, r []ResultLine) {
+	var selectData = "kpi_data.id, group_kpi.dept, group_kpi.kpi, kpi.name, group_kpi.l_limit, group_kpi.t_limit, group_kpi.u_limit, kpi_data.r_value, kpi.unit, kpi_data.user, kpi_data.in_time"
+	var joinData = "join group_kpi on kpi_data.group_kpi = group_kpi.uuid join kpi on group_kpi.kpi = kpi.uuid"
+	var orderData = "kpi_data.in_time asc, group_kpi.kpi"
+	db := GetKpiDataDB(orm.DB).Select(selectData).Joins(joinData).Order(orderData).Limit(12)
+	//kDB := GetKpiDataDB(orm.DB).Select("group_kpi.kpi").Joins(joinData).Order(orderData).Limit(12)
+	var result []ResultLine
+	if v := params.User; v != "" {
+		db = db.Where("kpi_data.user = ?", v).Scan(&result)
 	}
-	if rValue < uLimit {
-		return "styles.fail"
-	} else if rValue > tValue {
-		return "styles.success"
-	} else {
-		return "styles.nesc"
+	if v := params.Dept; v != "" {
+		db = db.Where("group_kpi.dept = ?", v).Scan(&result)
 	}
+	if v := params.GroupKPI; v != "" {
+		db = db.Where("group_kpi.kpi = ?", v).Scan(&result)
+	}
+
+	if params.GroupKPI == "" && params.User == "" && params.Dept == "" {
+		db = db.Scan(&result)
+	}
+	// 根据月份进行排序
+	params.Pagination = true
+	for i := 0; i < len(result); i++ {
+		result[i].InTime = utils.ChangeDate(result[i].InTime)
+	}
+	return nil, result
 }

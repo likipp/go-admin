@@ -39,3 +39,21 @@ func GetKpiDataList(c *gin.Context) {
 		})
 	}
 }
+
+func GetKpiDateLine(c *gin.Context) {
+	var params models.KpiDataQueryParam
+	gins.ParseQuery(c, &params)
+	err, kpiDataList := new(models.KpiData).GetKPIDataForLine(params)
+	if err != nil {
+		errors.FailWithMessage("获取KPI Line数据失败", c)
+		return
+	} else {
+		c.JSON(http.StatusOK, gin.H{
+			"code":     200,
+			"data":     kpiDataList,
+			"total":    len(kpiDataList),
+			"page":     params.Current,
+			"pageSize": params.PageSize,
+		})
+	}
+}
