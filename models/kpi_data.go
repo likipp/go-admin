@@ -35,6 +35,9 @@ type Result struct {
 
 type ResultLine struct {
 	Name   string `json:"type"`
+	ULimit int    `json:"u_limit"`
+	LLimit int    `json:"l_limit"`
+	TLimit int    `json:"t_limit"`
 	RValue int    `json:"value"`
 	Unit   string `json:"unit"`
 	InTime string `json:"date"`
@@ -45,6 +48,7 @@ type KpiDataQueryParam struct {
 	GroupKPI string `form:"group_kpi"`
 	User     string `form:"user"`
 	Dept     string `form:"dept"`
+	KPI      string `form:"kpi"`
 }
 
 func (KpiData) TableName() string {
@@ -94,7 +98,7 @@ func (k *KpiData) GetKpiData(params KpiDataQueryParam) (err error, kd []map[stri
 		db = db.Where("group_kpi.dept = ?", v).Scan(&result)
 	}
 	if v := params.GroupKPI; v != "" {
-		db = db.Where("group_kpi.kpi = ?", v).Scan(&result)
+		db = db.Where("group_kpi.uuid = ?", v).Scan(&result)
 	}
 
 	if params.GroupKPI == "" && params.User == "" && params.Dept == "" {
@@ -150,7 +154,6 @@ func (k *KpiData) GetKPIDataForLine(params KpiDataQueryParam) (err error, r []Re
 	var joinData = "join group_kpi on kpi_data.group_kpi = group_kpi.uuid join kpi on group_kpi.kpi = kpi.uuid"
 	var orderData = "kpi_data.in_time asc, group_kpi.kpi"
 	db := GetKpiDataDB(orm.DB).Select(selectData).Joins(joinData).Order(orderData).Limit(12)
-	//kDB := GetKpiDataDB(orm.DB).Select("group_kpi.kpi").Joins(joinData).Order(orderData).Limit(12)
 	var result []ResultLine
 	if v := params.User; v != "" {
 		db = db.Where("kpi_data.user = ?", v).Scan(&result)
@@ -159,7 +162,7 @@ func (k *KpiData) GetKPIDataForLine(params KpiDataQueryParam) (err error, r []Re
 		db = db.Where("group_kpi.dept = ?", v).Scan(&result)
 	}
 	if v := params.GroupKPI; v != "" {
-		db = db.Where("group_kpi.kpi = ?", v).Scan(&result)
+		db = db.Where("group_kpi.uuid = ?", v).Scan(&result)
 	}
 
 	if params.GroupKPI == "" && params.User == "" && params.Dept == "" {

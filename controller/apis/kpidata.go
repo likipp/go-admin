@@ -44,6 +44,8 @@ func GetKpiDateLine(c *gin.Context) {
 	var params models.KpiDataQueryParam
 	gins.ParseQuery(c, &params)
 	err, kpiDataList := new(models.KpiData).GetKPIDataForLine(params)
+	fmt.Println(params)
+	fmt.Println(kpiDataList, 6666)
 	if err != nil {
 		errors.FailWithMessage("获取KPI Line数据失败", c)
 		return
