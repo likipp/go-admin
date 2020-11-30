@@ -56,6 +56,7 @@ func InitRouter() *gin.Engine {
 		// GroupKPI
 		baseRouter.POST("group-kpi", apis.CreateGroupKPI)
 		baseRouter.GET("group-kpi", apis.GetGroupKPI)
+		baseRouter.GET("group-kpi-dept", apis.GetGroupKPIDept)
 
 		// KpiData
 		baseRouter.POST("kpi-data", apis.CreateKPIData)

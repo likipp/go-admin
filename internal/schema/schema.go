@@ -1,8 +1,8 @@
 package schema
 
 import (
-	"github.com/jinzhu/gorm"
 	orm "go-admin/init/database"
+	"gorm.io/gorm"
 )
 
 type PaginationParam struct {
@@ -36,7 +36,7 @@ const (
 	OrderByDESC OrderDirection = 2
 )
 
-func QueryPaging(pp PaginationParam, model interface{}, db *gorm.DB) (err error, total int) {
+func QueryPaging(pp PaginationParam, model interface{}, db *gorm.DB) (err error, total int64) {
 	if pp.OnlyCount {
 		err = orm.DB.Count(&total).Error
 	} else if pp.Pagination {
@@ -45,7 +45,7 @@ func QueryPaging(pp PaginationParam, model interface{}, db *gorm.DB) (err error,
 		limit := pp.PageSize
 		offset := pp.PageSize * (pp.Current - 1)
 		err = orm.DB.Model(model).Count(&total).Error
-		db = orm.DB.Limit(limit).Offset(offset).Order("id desc")
+		db = orm.DB.Limit(int(limit)).Offset(int(offset)).Order("id desc")
 	}
 
 	return err, total

@@ -10,7 +10,8 @@ import (
 
 func main() {
 	db := orm.InitMySQL(config.AdminConfig.MysqlAdmin)
-	defer db.Close()
+	sqlDB, _ := db.DB()
+	defer sqlDB.Close()
 	err := globalID.Init(1)
 	if err != nil {
 		panic("ID生成器初始化失败")

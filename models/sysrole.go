@@ -28,7 +28,7 @@ func (r *SysRole) CreateRole() (role *SysRole, err error) {
 	return r, err
 }
 
-func (r *SysRole) GetList(info page.InfoPage) (err error, list interface{}, total int) {
+func (r *SysRole) GetList(info page.InfoPage) (err error, list interface{}, total int64) {
 	fmt.Println(r, "r", info)
 	err, db, total := server.PagingServer(r, info)
 	var roles []SysRole

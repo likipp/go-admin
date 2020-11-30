@@ -1,12 +1,12 @@
 package initTableStruct
 
 import (
-	"github.com/jinzhu/gorm"
 	models "go-admin/models"
+	"gorm.io/gorm"
 )
 
 func InitTableStruct(db *gorm.DB) {
-	db.AutoMigrate(
+	_ = db.AutoMigrate(
 		models.SysUser{},
 		models.SysDept{},
 		models.SysRole{},

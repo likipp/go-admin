@@ -27,3 +27,13 @@ func GetGroupKPI(c *gin.Context) {
 		errors.OkWithData(results, c)
 	}
 }
+
+func GetGroupKPIDept(c *gin.Context) {
+	err, results := new(models.GroupKPI).GetGroupKPIDept()
+	if err != nil {
+		errors.FailWithMessage("成功部门列表", c)
+		return
+	} else {
+		errors.OkWithData(results, c)
+	}
+}

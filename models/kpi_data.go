@@ -2,12 +2,11 @@ package models
 
 import (
 	"errors"
-	"fmt"
-	"github.com/jinzhu/gorm"
 	orm "go-admin/init/database"
 	"go-admin/internal/entity"
 	"go-admin/internal/schema"
 	"go-admin/utils"
+	"gorm.io/gorm"
 )
 
 type KpiData struct {
@@ -62,11 +61,11 @@ func GetKpiDataDB(db *gorm.DB) *gorm.DB {
 func (k *KpiData) CreateKpiData() (err error, kd *KpiData) {
 	var result KpiData
 	db := GetKpiDataDB(orm.DB)
-	hasKpiData := db.Where("group_kpi = ? AND in_time = ?", k.GroupKPI, k.InTime).First(&result).RecordNotFound()
-	if !hasKpiData {
+	hasKpiData := db.Where("group_kpi = ? AND in_time = ?", k.GroupKPI, k.InTime).First(&result).Error
+	hasKpiDataResult := errors.Is(hasKpiData, gorm.ErrRecordNotFound)
+	if !hasKpiDataResult {
 		return errors.New("KPI数据已经录入"), kd
 	}
-	fmt.Println(k, "k 数据")
 	err = db.Create(&k).Error
 	if err != nil {
 		return errors.New("创建KPI数据失败"), kd
@@ -76,12 +75,11 @@ func (k *KpiData) CreateKpiData() (err error, kd *KpiData) {
 }
 
 func KpdDataPagingServer(pageParams KpiDataQueryParam, db *gorm.DB) {
-	var total int
+	var total int64
 	limit := pageParams.PageSize
 	offset := pageParams.PageSize * (pageParams.Current - 1)
 	_ = db.Count(&total).Error
-	fmt.Println(total, "total")
-	db.Limit(limit).Offset(offset).Order("in_time desc")
+	db.Limit(int(limit)).Offset(int(offset)).Order("in_time desc")
 }
 
 func (k *KpiData) GetKpiData(params KpiDataQueryParam) (err error, kd []map[string]interface{}) {

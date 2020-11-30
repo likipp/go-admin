@@ -1,7 +1,7 @@
 package entity
 
 import (
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 )
 
 func GetDBWithModel(db *gorm.DB, i interface{}) *gorm.DB {

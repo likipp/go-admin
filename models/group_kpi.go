@@ -3,11 +3,11 @@ package models
 import (
 	"errors"
 	"fmt"
-	"github.com/jinzhu/gorm"
 	orm "go-admin/init/database"
 	initID "go-admin/init/globalID"
 	"go-admin/internal/entity"
 	"go-admin/internal/schema"
+	"gorm.io/gorm"
 )
 
 type GroupKPI struct {
@@ -40,16 +40,21 @@ type GroupKPIWithName struct {
 	Status   string `json:"status"`
 }
 
+type Dept struct {
+	DeptName string `json:"dept_name"`
+	DeptID   string `json:"dept_id"`
+}
+
 func (GroupKPI) TableName() string {
 	return "group_kpi"
 }
 
 func GroupKpiPagingServer(pageParams GroupKpiQueryParam, db *gorm.DB) {
-	var total int
+	var total int64
 	limit := pageParams.PageSize
 	offset := pageParams.PageSize * (pageParams.Current - 1)
 	_ = db.Count(&total).Error
-	db.Limit(limit).Offset(offset).Order("id desc")
+	db.Limit(int(limit)).Offset(int(offset)).Order("id desc")
 }
 
 func GetGroupKpiDB(db *gorm.DB) *gorm.DB {
@@ -59,8 +64,9 @@ func GetGroupKpiDB(db *gorm.DB) *gorm.DB {
 func (g *GroupKPI) CreateGroupKPI() (err error, gK *GroupKPI) {
 	var result GroupKPI
 	db := GetGroupKpiDB(orm.DB)
-	hasGroupKpi := db.Where("dept = ? AND kpi = ?", g.Dept, g.KPI).First(&result).RecordNotFound()
-	if !hasGroupKpi {
+	hasGroupKpi := db.Where("dept = ? AND kpi = ?", g.Dept, g.KPI).First(&result).Error
+	hasGroupKpiResult := errors.Is(hasGroupKpi, gorm.ErrRecordNotFound)
+	if !hasGroupKpiResult {
 		return errors.New("部门KPI已经关联"), nil
 	}
 	fmt.Println(g, "前端数据")
@@ -99,4 +105,13 @@ func (g *GroupKPI) GetGroupKPI() (err error, gk []GroupKPIWithName) {
 		resultsWithName = append(resultsWithName, resultWithName)
 	}
 	return nil, resultsWithName
+}
+
+func (g *GroupKPI) GetGroupKPIDept() (err error, dept []SysDept) {
+	//var results []SysDept
+	var result []Dept
+	//.Distinct("sys_dept.dept_id, sys_dept.dept_name")
+	_ = GetGroupKpiDB(orm.DB).Distinct("sys_dept.dept_id, sys_dept.dept_name").Select("sys_dept.dept_id, sys_dept.dept_name").Joins("join sys_dept on sys_dept.dept_id = group_kpi.dept").Scan(&result)
+	fmt.Println(result)
+	return nil, nil
 }

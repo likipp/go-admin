@@ -68,7 +68,7 @@ func (d *SysDept) Create() (*SysDept, error) {
 }
 
 // 获取带分页的部门列表, GetInfoList
-func (d *SysDept) GetList(info page.InfoPage) (err error, list interface{}, total int) {
+func (d *SysDept) GetList(info page.InfoPage) (err error, list interface{}, total int64) {
 	err, db, total := server.PagingServer(d, info)
 	if err != nil {
 		return
@@ -140,8 +140,8 @@ func DeptOrder(deptList *[]SysDept, dept SysDept) SysDeptInfo {
 	deptInfo := SysDeptInfo{}
 	// copier可以拷贝相同类型的结构
 	copier.Copy(&deptInfo, &dept)
-	deptInfo.EnableUsersCount = orm.DB.Model(dept).Where("status = ?", 1).Association("Users").Count()
-	deptInfo.DisableUsersCount = orm.DB.Model(dept).Where("status = ?", 2).Association("Users").Count()
+	deptInfo.EnableUsersCount = int(orm.DB.Model(dept).Where("status = ?", 1).Association("Users").Count())
+	deptInfo.DisableUsersCount = int(orm.DB.Model(dept).Where("status = ?", 2).Association("Users").Count())
 	//deptInfo := SysDeptInfo{
 	//	DeptID:            dept.DeptID,
 	//	ParentId:          dept.ParentId,
@@ -165,8 +165,8 @@ func DeptOrder(deptList *[]SysDept, dept SysDept) SysDeptInfo {
 		mi.Leader = list[i].Leader
 		mi.Status = list[i].Status
 		mi.DeptID = list[i].DeptID
-		mi.DisableUsersCount = orm.DB.Model(list[i]).Where("status = ?", 1).Association("Users").Count()
-		mi.EnableUsersCount = orm.DB.Model(list[i]).Where("status = ?", 2).Association("Users").Count()
+		mi.DisableUsersCount = int(orm.DB.Model(list[i]).Where("status = ?", 1).Association("Users").Count())
+		mi.EnableUsersCount = int(orm.DB.Model(list[i]).Where("status = ?", 2).Association("Users").Count())
 		mi.Children = []SysDeptInfo{}
 		ms := DeptOrder(deptList, list[i])
 		min = append(min, ms)

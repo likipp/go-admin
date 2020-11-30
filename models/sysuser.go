@@ -3,10 +3,10 @@ package models
 import (
 	"errors"
 	"fmt"
-	"github.com/jinzhu/gorm"
 	orm "go-admin/init/database"
 	"go-admin/init/globalID"
 	"go-admin/utils"
+	"gorm.io/gorm"
 )
 
 type SysUser struct {
@@ -60,7 +60,7 @@ func (SysUser) TableName() string {
 	return "sys_user"
 }
 
-func PagingTest(filter UserFilter, model interface{}) (err error, db *gorm.DB, total int) {
+func PagingTest(filter UserFilter, model interface{}) (err error, db *gorm.DB, total int64) {
 	limit := filter.PageSize
 	offset := filter.PageSize * (filter.Page - 1)
 	// 当前端没有传值时(1, 2)就认为是3没有传递状态属性
@@ -77,8 +77,9 @@ func PagingTest(filter UserFilter, model interface{}) (err error, db *gorm.DB, t
 func (u *SysUser) CreateUser() (err error, userInter *SysUser) {
 	var user SysUser
 	//mysql.DB.Model(&u).Association("Roles").Find(&u.Roles)
-	hasUser := orm.DB.Where("username = ?", u.Username).First(&user).RecordNotFound()
-	if !hasUser {
+	hasUser := orm.DB.Where("username = ?", u.Username).First(&user).Error
+	hasUserResult := errors.Is(hasUser, gorm.ErrRecordNotFound)
+	if !hasUserResult {
 		return errors.New("用户名已经注册"), nil
 	} else {
 		u.Roles = u.GetRoleList()
@@ -124,7 +125,7 @@ func (u *SysUser) GetUserByUUID() (userInfo UserInfo, err error) {
 	return userInfo, nil
 }
 
-func (u *SysUser) GetList(filters UserFilter) (err error, list interface{}, total int) {
+func (u *SysUser) GetList(filters UserFilter) (err error, list interface{}, total int64) {
 	var userList []SysUser
 	// 获取用户关联的部门与角色
 	var userInfoList []UserInfo

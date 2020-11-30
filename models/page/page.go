@@ -6,5 +6,5 @@ type InfoPage struct {
 }
 
 type Paging interface {
-	GetList(InfoPage) (err error, list interface{}, total int)
+	GetList(InfoPage) (err error, list interface{}, total int64)
 }

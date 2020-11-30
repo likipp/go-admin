@@ -1,12 +1,12 @@
 package models
 
 import (
-	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 	orm "go-admin/init/database"
 	"go-admin/init/globalID"
 	"go-admin/internal/entity"
 	"go-admin/internal/schema"
+	"gorm.io/gorm"
 )
 
 type KPI struct {
@@ -28,8 +28,9 @@ func (KPI) TableName() string {
 }
 
 func (k *KPI) CreateKPI() (err error, KPI *KPI) {
-	hasKPI := orm.DB.Where("name = ?", k.Name).RecordNotFound()
-	if hasKPI {
+	hasKPI := orm.DB.Where("name = ?", k.Name).Error
+	hasKPIResult := errors.Is(hasKPI, gorm.ErrRecordNotFound)
+	if hasKPIResult {
 		return errors.New("KPI名称重复,请检查"), nil
 	} else {
 		k.UUID, err = initID.GetID()
@@ -42,11 +43,11 @@ func (k *KPI) CreateKPI() (err error, KPI *KPI) {
 }
 
 func PagingServer(pageParams KPIQueryParam, db *gorm.DB) {
-	var total int
+	var total int64
 	limit := pageParams.PageSize
 	offset := pageParams.PageSize * (pageParams.Current - 1)
 	_ = db.Count(&total).Error
-	db.Limit(limit).Offset(offset).Order("id desc")
+	db.Limit(int(limit)).Offset(int(offset)).Order("id desc")
 }
 
 func GetKpiDB(db *gorm.DB) *gorm.DB {
