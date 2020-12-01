@@ -43,11 +43,12 @@ type GroupKPIWithName struct {
 type Dept struct {
 	DeptName string `json:"dept_name"`
 	DeptID   string `json:"dept_id"`
+	KPI      string `json:"kpi"`
 }
 
 type KPIDeptQueryParam struct {
-	Dept string `json:"dept_id"`
-	KPI  string `json:"kpi"`
+	Dept string `form:"dept"`
+	KPI  string `form:"kpi"`
 }
 
 func (GroupKPI) TableName() string {
@@ -114,12 +115,16 @@ func (g *GroupKPI) GetGroupKPI() (err error, gk []GroupKPIWithName) {
 
 func (g *GroupKPI) GetGroupKPIDept(params KPIDeptQueryParam) (err error, dept []Dept) {
 	var result []Dept
-	db := GetGroupKpiDB(orm.DB).Distinct("sys_dept.dept_id, sys_dept.dept_name").Select("sys_dept.dept_id, sys_dept.dept_name").Joins("join sys_dept on sys_dept.dept_id = group_kpi.dept")
+	db := GetGroupKpiDB(orm.DB).Distinct("sys_dept.dept_id, sys_dept.dept_name").Select("sys_dept.dept_id, sys_dept.dept_name, group_kpi.kpi").Joins("join sys_dept on sys_dept.dept_id = group_kpi.dept")
 	if params.Dept == "" && params.KPI == "" {
 		db = db.Scan(&result)
 	}
 	if v := params.Dept; v != "" {
 		db = db.Where("group_kpi.dept = ?", v).Scan(&result)
+	}
+
+	if v := params.KPI; v != "" {
+		db = db.Where("group_kpi.kpi = ?", v).Scan(&result)
 	}
 	//_ = GetGroupKpiDB(orm.DB).Distinct("sys_dept.dept_id, sys_dept.dept_name").Select("sys_dept.dept_id, sys_dept.dept_name").Joins("join sys_dept on sys_dept.dept_id = group_kpi.dept").Scan(&result)
 	return nil, result
