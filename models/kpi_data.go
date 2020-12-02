@@ -99,6 +99,10 @@ func (k *KpiData) GetKpiData(params KpiDataQueryParam) (err error, kd []map[stri
 		db = db.Where("group_kpi.uuid = ?", v).Scan(&result)
 	}
 
+	if v := params.KPI; v != "" {
+		db = db.Where("kpi.uuid = ?", v).Scan(&result)
+	}
+
 	if params.GroupKPI == "" && params.User == "" && params.Dept == "" {
 		db = db.Scan(&result)
 	}

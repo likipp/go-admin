@@ -1,7 +1,6 @@
 package apis
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"go-admin/internal/gins"
 	"go-admin/models"
@@ -33,7 +32,6 @@ func GetGroupKPI(c *gin.Context) {
 func GetGroupKPIDept(c *gin.Context) {
 	var params models.KPIDeptQueryParam
 	gins.ParseQuery(c, &params)
-	fmt.Println(params, "params")
 	err, results := new(models.GroupKPI).GetGroupKPIDept(params)
 	if err != nil {
 		errors.FailWithMessage("成功部门列表", c)
