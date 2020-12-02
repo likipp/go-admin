@@ -122,15 +122,17 @@ func (g *GroupKPI) GetGroupKPI() (err error, gk []GroupKPIWithName) {
 func (g *GroupKPI) GetGroupKPIDept(params KPIDeptQueryParam) (err error, result []DeptKPIResult) {
 	//var result []Dept
 	//var result []DeptKPIResult
-	var selectDept = "sys_dept.dept_id, sys_dept.dept_name, kpi.uuid, kpi.name"
+	var selectDept = "sys_dept.dept_id, sys_dept.dept_name"
 	//var selectKPi = "kpi.uuid, kpi.name"
-	db := GetGroupKpiDB(orm.DB).Joins("join sys_dept on sys_dept.dept_id = group_kpi.dept join kpi on group_kpi.kpi = kpi.uuid")
+	var joinQuery = "join sys_dept on sys_dept.dept_id = group_kpi.dept join kpi on group_kpi.kpi = kpi.uuid join kpi_data on group_kpi.uuid = kpi_data.group_kpi"
+	db := GetGroupKpiDB(orm.DB).Distinct("sys_dept.dept_id, sys_dept.dept_name").Joins(joinQuery)
 	if params.Dept == "" && params.KPI == "" {
-		fmt.Println("dept")
 		db = db.Distinct("sys_dept.dept_id, sys_dept.dept_name").Select(selectDept).Scan(&result)
 	}
-	if params.Dept != "" && params.KPI == "" {
-		db = db.Distinct("sys_dept.dept_id, sys_dept.dept_name").Select(selectDept).Where("group_kpi.dept = ?", params.Dept).Scan(&result)
+	if params.Dept != "" {
+		fmt.Println(params, "params")
+		fmt.Println("kpi")
+		db = db.Distinct("sys_dept.dept_id, sys_dept.dept_name").Select("kpi.uuid, kpi.name").Where("group_kpi.dept = ?", params.Dept).Scan(&result)
 	}
 	//else if params.Dept != "" && params.KPI != "" {
 	//	fmt.Println(params, "group_params")
