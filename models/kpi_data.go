@@ -167,8 +167,11 @@ func (k *KpiData) GetKPIDataForLine(params KpiDataQueryParam) (err error, r []Re
 		db = db.Where("group_kpi.uuid = ?", v).Scan(&result)
 	}
 
-	if params.GroupKPI == "" && params.User == "" && params.Dept == "" {
-		db = db.Scan(&result)
+	//if params.GroupKPI == "" && params.User == "" && params.Dept == "" {
+	//	db = db.Scan(&result)
+	//}
+	if v := params.KPI; v != "" {
+		db = db.Where("kpi.uuid = ?", v).Scan(&result)
 	}
 	// 根据月份进行排序
 	params.Pagination = true
