@@ -118,7 +118,7 @@ func EnableOrDisableUser(c *gin.Context) {
 	status, _ := strconv.Atoi(c.Param("status"))
 	U.UUID = uid
 	err := U.EnableOrDisableUser(status)
-	if status == 0 {
+	if status == 2 {
 		if err != nil {
 			//c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "禁用失败", "data": err.Error()})
 			errors.FailWithMessage("禁用失败", c)
