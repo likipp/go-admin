@@ -7,6 +7,7 @@ import (
 	"go-admin/init/globalID"
 	"go-admin/utils"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type SysUser struct {
@@ -165,10 +166,10 @@ func (u *SysUser) UpdateUser(user SysUser) (err error) {
 func (u *SysUser) DeleteUser() (err error) {
 	var user SysUser
 	if err = orm.DB.Where("uuid = ?", u.UUID).First(&user).Error; err == nil {
-		if err = orm.DB.Unscoped().Delete(&user).Error; err != nil {
+		if err = orm.DB.Select(clause.Associations).Unscoped().Delete(&user).Error; err != nil {
 			return errors.New("删除用户失败")
 		}
-		return errors.New("删除用户成功")
+		return err
 	} else {
 		return errors.New("未找到要删除的用户")
 	}
@@ -180,7 +181,9 @@ func (u *SysUser) EnableOrDisableUser(status int) (err error) {
 		return errors.New("未找到此用户")
 	}
 	// 根据前端传递的status值, 更新用户的状态信息
+	// 使用Update时，数据库执行时间过长，SLOW SQL >= 200ms, 后面更改成UpdateColumn
+	//err = orm.DB.Model(&user).Update("status", status).Error
 	//单个Update时，需要传递id主键值，所以需要传递整个use结构体，或者传递id
-	err = orm.DB.Model(&user).Update("status", status).Error
+	err = orm.DB.Model(&user).UpdateColumn("status", status).Error
 	return err
 }

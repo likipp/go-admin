@@ -11,15 +11,15 @@ import (
 
 type SysDept struct {
 	BaseModel
-	DeptID   string    `gorm:"column:dept_id" json:"deptID"`
-	ParentId string    `gorm:"column:parent_id" json:"parent_id"`
-	DeptName string    `gorm:"column:dept_name" json:"deptName"`
-	DeptPath string    `gorm:"column:dept_path" json:"deptPath"`
-	Sort     int       `gorm:"column:sort" json:"sort"`
-	Leader   int       `gorm:"column:leader" json:"leader"`
-	Status   string    `gorm:"column:status" json:"status"`
-	Children []SysDept `json:"children"`
-	Users    []SysUser `gorm:"foreignkey:DeptID;association_foreignkey:DeptID"`
+	DeptID   string     `gorm:"column:dept_id" json:"deptID"`
+	ParentId string     `gorm:"column:parent_id" json:"parent_id"`
+	DeptName string     `gorm:"column:dept_name" json:"deptName"`
+	DeptPath string     `gorm:"column:dept_path" json:"deptPath"`
+	Sort     int        `gorm:"column:sort" json:"sort"`
+	Leader   int        `gorm:"column:leader" json:"leader"`
+	Status   string     `gorm:"column:status" json:"status"`
+	Children []*SysDept `gorm:"many2many:child_dept" json:"children"`
+	Users    []SysUser  `gorm:"foreignkey:DeptID;association_foreignkey:DeptID"`
 }
 
 type SysDeptInfo struct {
