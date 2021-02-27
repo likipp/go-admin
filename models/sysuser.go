@@ -168,7 +168,7 @@ func (u *SysUser) DeleteUser() (err error) {
 		if err = orm.DB.Unscoped().Delete(&user).Error; err != nil {
 			return errors.New("删除用户失败")
 		}
-		return err
+		return errors.New("删除用户成功")
 	} else {
 		return errors.New("未找到要删除的用户")
 	}
