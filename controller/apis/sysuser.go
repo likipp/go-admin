@@ -8,6 +8,7 @@ import (
 	"go-admin/config"
 	"go-admin/middleware"
 	"go-admin/models"
+	"go-admin/utils"
 	"go-admin/utils/errors"
 	"net/http"
 	"strconv"
@@ -58,7 +59,13 @@ func GetUserList(c *gin.Context) {
 	status := c.PostForm("status")
 	if status == "" {
 		userFilter.Status = 3
+	} else {
+		userFilter.Status = utils.StringConvInt(status)
 	}
+	//if status == "" {
+	//	userFilter.Status = 3
+	//}
+
 	_ = c.BindQuery(&userFilter)
 	//_ = c.ShouldBindJSON(&pageInfo)
 	err, list, total := new(models.SysUser).GetList(userFilter)
