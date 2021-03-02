@@ -125,25 +125,44 @@ func EnableOrDisableUser(c *gin.Context) {
 	status, _ := strconv.Atoi(c.Param("status"))
 	U.UUID = uid
 	err := U.EnableOrDisableUser(status)
-	if status == 2 {
-		if err != nil {
-			//c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "禁用失败", "data": err.Error()})
-			errors.FailWithMessage("禁用失败", c)
-			return
-		} else {
-			//c.JSON(http.StatusOK, gin.H{"code": 200, "msg": "禁用成功"})
-			errors.OkWithMessage("禁用成功", c)
-		}
-	} else if status == 1 {
+
+	if status == 1 {
 		if err != nil {
 			errors.FailWithMessage("启用失败", c)
 			return
 		} else {
 			errors.OkWithMessage("启用成功", c)
 		}
+	} else if status == 0 {
+		if err != nil {
+			errors.FailWithMessage("禁用失败", c)
+			return
+		} else {
+			errors.OkWithMessage("禁用成功", c)
+		}
 	} else {
 		errors.FailWithMessage("未知状态", c)
 	}
+
+	//if status == 2 {
+	//	if err != nil {
+	//		//c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "禁用失败", "data": err.Error()})
+	//		errors.FailWithMessage("禁用失败", c)
+	//		return
+	//	} else {
+	//		//c.JSON(http.StatusOK, gin.H{"code": 200, "msg": "禁用成功"})
+	//		errors.OkWithMessage("禁用成功", c)
+	//	}
+	//} else if status == 1 {
+	//	if err != nil {
+	//		errors.FailWithMessage("启用失败", c)
+	//		return
+	//	} else {
+	//		errors.OkWithMessage("启用成功", c)
+	//	}
+	//} else {
+	//	errors.FailWithMessage("未知状态", c)
+	//}
 }
 
 // 用户登录
