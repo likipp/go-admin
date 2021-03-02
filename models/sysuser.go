@@ -66,26 +66,16 @@ func (SysUser) TableName() string {
 func PagingTest(filter UserFilter, model interface{}) (err error, db *gorm.DB, total int64) {
 	limit := filter.PageSize
 	offset := filter.PageSize * (filter.Page - 1)
-	//var user SysUser
-	//err = copier.Copy(&user, &filter)
-	// 当前端没有传值时(1, 2)就认为是3没有传递状态属性
-	//if filter.Status != 3 {
-	//	//var user = &SysUser{Status: filter.Status, Username: filter.Username, NickName: filter.NickName, Sex: filter.Sex, DeptID: filter.DeptID}
-	//	var user SysUser
-	//	err = copier.Copy(&user, &filter)
-	//	db = orm.DB.Where(&user).Find(model).Count(&total).Limit(limit).Offset(offset).Order("id desc")
-	//	return err, db, total
-	//}
 	var user SysUser
-	//var user = &SysUser{Username: filter.Username, NickName: filter.NickName, Sex: filter.Sex, DeptID: filter.DeptID}
-
+	fmt.Println(limit, offset, filter.Page)
 	if filter.Status == 3 {
 		err = copier.Copy(&user, &filter)
 		user.Status = 0
 		db = orm.DB.Where(&user).Find(model).Count(&total).Limit(limit).Offset(offset).Order("id desc")
 	} else {
 		err = copier.Copy(&user, &filter)
-		db = orm.DB.Where(&user, "Status").Find(model).Count(&total).Limit(limit).Offset(offset).Order("id desc")
+		db = orm.DB.Where(&user).Find(model).Count(&total).Limit(limit).Offset(offset).Order("id desc")
+		db = db.Where(&user, "Status").Find(model).Count(&total).Limit(limit).Offset(offset).Order("id desc")
 	}
 
 	return err, db, total
@@ -197,8 +187,9 @@ func (u *SysUser) EnableOrDisableUser(status int) (err error) {
 	}
 	// 根据前端传递的status值, 更新用户的状态信息
 	// 使用Update时，数据库执行时间过长，SLOW SQL >= 200ms, 后面更改成UpdateColumn
-	//err = orm.DB.Model(&user).Update("status", status).Error
+	err = orm.DB.Model(&user).Update("status", status).Error
 	//单个Update时，需要传递id主键值，所以需要传递整个use结构体，或者传递id
-	err = orm.DB.Model(&user).UpdateColumn("status", status).Error
+	fmt.Println(status, "用户status")
+	//err = orm.DB.Model(&user).UpdateColumn("status", status).Error
 	return err
 }
