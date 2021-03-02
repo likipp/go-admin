@@ -187,9 +187,8 @@ func (u *SysUser) EnableOrDisableUser(status int) (err error) {
 	}
 	// 根据前端传递的status值, 更新用户的状态信息
 	// 使用Update时，数据库执行时间过长，SLOW SQL >= 200ms, 后面更改成UpdateColumn
-	err = orm.DB.Model(&user).Update("status", status).Error
+	//err = orm.DB.Model(&user).Update("status", status).Error
 	//单个Update时，需要传递id主键值，所以需要传递整个use结构体，或者传递id
-	fmt.Println(status, "用户status")
-	//err = orm.DB.Model(&user).UpdateColumn("status", status).Error
+	err = orm.DB.Model(&user).UpdateColumn("status", status).Error
 	return err
 }

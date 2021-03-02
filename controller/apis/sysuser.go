@@ -62,9 +62,6 @@ func GetUserList(c *gin.Context) {
 	} else {
 		userFilter.Status = utils.StringConvInt(status)
 	}
-	//if status == "" {
-	//	userFilter.Status = 3
-	//}
 
 	_ = c.BindQuery(&userFilter)
 	//_ = c.ShouldBindJSON(&pageInfo)
