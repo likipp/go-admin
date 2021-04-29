@@ -26,7 +26,7 @@ func InitRouter() *gin.Engine {
 		//baseRouter.POST("login", apis.Login)
 		baseRouter.GET("currentUser", apis.GetCurrentUser)
 		// 用户设置router
-		baseRouter.POST("user", apis.CreateUser)
+		baseRouter.POST("users", apis.CreateUser)
 		baseRouter.GET("users/:uuid", apis.GetUserByUUID)
 		// 后端需要这样的格式 base/users?page=1&pageSize=3
 		baseRouter.GET("users", apis.GetUserList)
@@ -37,7 +37,7 @@ func InitRouter() *gin.Engine {
 
 		// 角色设置router
 		baseRouter.GET("roles", apis.GetRoleList)
-		baseRouter.POST("role", apis.CreateRole)
+		baseRouter.POST("roles", apis.CreateRole)
 
 		// 部门设置router
 		baseRouter.POST("dept", apis.CreateDept)

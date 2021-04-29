@@ -3,10 +3,12 @@ package models
 import (
 	"errors"
 	"fmt"
+	"github.com/jinzhu/copier"
 	orm "go-admin/init/database"
 	"go-admin/init/globalID"
 	"go-admin/utils"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type SysUser struct {
@@ -46,6 +48,7 @@ type UserFilter struct {
 	Username string `form:"username"`
 	NickName string `form:"nickname"`
 	Sex      int    `form:"sex"`
+	DeptID   string `form:"deptID"`
 	//Filter map[string][]interface{} `form:"filter"`
 }
 
@@ -63,14 +66,18 @@ func (SysUser) TableName() string {
 func PagingTest(filter UserFilter, model interface{}) (err error, db *gorm.DB, total int64) {
 	limit := filter.PageSize
 	offset := filter.PageSize * (filter.Page - 1)
-	// 当前端没有传值时(1, 2)就认为是3没有传递状态属性
-	if filter.Status != 3 {
-		var user = &SysUser{Status: filter.Status, Username: filter.Username, NickName: filter.NickName, Sex: filter.Sex}
+	var user SysUser
+	fmt.Println(limit, offset, filter.Page)
+	if filter.Status == 3 {
+		err = copier.Copy(&user, &filter)
+		user.Status = 0
 		db = orm.DB.Where(&user).Find(model).Count(&total).Limit(limit).Offset(offset).Order("id desc")
-		return err, db, total
+	} else {
+		err = copier.Copy(&user, &filter)
+		db = orm.DB.Where(&user).Find(model).Count(&total).Limit(limit).Offset(offset).Order("id desc")
+		db = db.Where(&user, "Status").Find(model).Count(&total).Limit(limit).Offset(offset).Order("id desc")
 	}
-	var user = &SysUser{Username: filter.Username, NickName: filter.NickName, Sex: filter.Sex}
-	db = orm.DB.Where(&user).Not("status = ?", 3).Find(model).Count(&total).Limit(limit).Offset(offset).Order("id desc")
+
 	return err, db, total
 }
 
@@ -130,14 +137,13 @@ func (u *SysUser) GetList(filters UserFilter) (err error, list interface{}, tota
 	// 获取用户关联的部门与角色
 	var userInfoList []UserInfo
 	var userInfo UserInfo
-	fmt.Println(filters, "userFilter")
 	err, db, total := PagingTest(filters, &userList)
 	if err != nil {
 		return
 	} else {
-		if filters.Status != 3 {
-			err = db.Preload("Roles").Find(&userList).Where("status = ?", filters.Status).Error
-		}
+		//if filters.Status != 3 {
+		//	err = db.Preload("Roles").Find(&userList).Where("status = ?", filters.Status).Error
+		//}
 		err = db.Preload("Roles").Find(&userList).Error
 		for _, value := range userList {
 			var dept SysDept
@@ -165,10 +171,10 @@ func (u *SysUser) UpdateUser(user SysUser) (err error) {
 func (u *SysUser) DeleteUser() (err error) {
 	var user SysUser
 	if err = orm.DB.Where("uuid = ?", u.UUID).First(&user).Error; err == nil {
-		if err = orm.DB.Unscoped().Delete(&user).Error; err != nil {
+		if err = orm.DB.Select(clause.Associations).Unscoped().Delete(&user).Error; err != nil {
 			return errors.New("删除用户失败")
 		}
-		return errors.New("删除用户成功")
+		return err
 	} else {
 		return errors.New("未找到要删除的用户")
 	}
@@ -180,7 +186,9 @@ func (u *SysUser) EnableOrDisableUser(status int) (err error) {
 		return errors.New("未找到此用户")
 	}
 	// 根据前端传递的status值, 更新用户的状态信息
+	// 使用Update时，数据库执行时间过长，SLOW SQL >= 200ms, 后面更改成UpdateColumn
+	//err = orm.DB.Model(&user).Update("status", status).Error
 	//单个Update时，需要传递id主键值，所以需要传递整个use结构体，或者传递id
-	err = orm.DB.Model(&user).Update("status", status).Error
+	err = orm.DB.Model(&user).UpdateColumn("status", status).Error
 	return err
 }
