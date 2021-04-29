@@ -18,7 +18,7 @@ type SysDept struct {
 	Sort     int       `gorm:"column:sort" json:"sort"`
 	Leader   int       `gorm:"column:leader" json:"leader"`
 	Status   string    `gorm:"column:status" json:"status"`
-	Children []SysDept `json:"children"`
+	Children []SysDept `gorm:"foreignkey:DeptID" json:"children"`
 	Users    []SysUser `gorm:"foreignkey:DeptID;association_foreignkey:DeptID"`
 }
 
