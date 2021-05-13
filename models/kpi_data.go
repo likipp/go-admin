@@ -2,11 +2,14 @@ package models
 
 import (
 	"errors"
+	"fmt"
 	orm "go-admin/init/database"
 	"go-admin/internal/entity"
 	"go-admin/internal/schema"
 	"go-admin/utils"
 	"gorm.io/gorm"
+	"strings"
+	"time"
 )
 
 type KpiData struct {
@@ -83,6 +86,7 @@ func KpdDataPagingServer(pageParams KpiDataQueryParam, db *gorm.DB) {
 }
 
 func (k *KpiData) GetKpiData(params KpiDataQueryParam) (err error, kd []map[string]interface{}) {
+	var month = time.Now().Format("2006-01")
 	var selectData = "kpi_data.id, group_kpi.dept, group_kpi.kpi, kpi.name, group_kpi.l_limit, group_kpi.t_limit, group_kpi.u_limit, kpi_data.r_value, kpi.unit, kpi_data.user, kpi_data.in_time"
 	var joinData = "join group_kpi on kpi_data.group_kpi = group_kpi.uuid join kpi on group_kpi.kpi = kpi.uuid"
 	var orderData = "group_kpi.kpi desc, group_kpi.dept, kpi_data.in_time"
@@ -90,17 +94,17 @@ func (k *KpiData) GetKpiData(params KpiDataQueryParam) (err error, kd []map[stri
 	//kDB := GetKpiDataDB(orm.DB).Select("group_kpi.kpi").Joins(joinData).Order(orderData).Limit(12)
 	var result []Result
 	if v := params.User; v != "" {
-		db = db.Where("kpi_data.user = ?", v).Scan(&result)
+		db = db.Where("kpi_data.user = ? and in_time < ?", v, month).Scan(&result)
 	}
 	if v := params.Dept; v != "" {
-		db = db.Where("group_kpi.dept = ?", v).Scan(&result)
+		db = db.Where("group_kpi.dept = ? and in_time < ?", v, month).Scan(&result)
 	}
 	if v := params.GroupKPI; v != "" {
-		db = db.Where("group_kpi.uuid = ?", v).Scan(&result)
+		db = db.Where("group_kpi.uuid = ? and in_time < ?", v, month).Scan(&result)
 	}
 
 	if v := params.KPI; v != "" {
-		db = db.Where("kpi.uuid = ?", v).Scan(&result)
+		db = db.Where("kpi.uuid = ? and in_time < ?", v, month).Scan(&result)
 	}
 
 	if params.GroupKPI == "" && params.User == "" && params.Dept == "" {
@@ -108,15 +112,24 @@ func (k *KpiData) GetKpiData(params KpiDataQueryParam) (err error, kd []map[stri
 	}
 	// 根据月份进行排序
 	params.Pagination = true
-	//KpdDataPagingServer(params, db
-	kd = GroupBy(result)
+	kd = GroupBy(result, time.Now())
 	return nil, kd
 }
 
-// 对数据根据KPI名称进行分组
-func GroupBy(data []Result) []map[string]interface{} {
-	var kList = make([]map[string]interface{}, 0)
+func getKeys(m map[string]interface{}) []string {
+	// 数组默认长度为map长度,后面append时,不需要重新申请内存和拷贝,效率很高
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		if strings.Contains(k, "/") {
+			keys = append(keys, k)
+		}
+	}
+	return keys
+}
 
+func GroupBy(data []Result, date time.Time) []map[string]interface{} {
+	var kList = make([]map[string]interface{}, 0)
+	var monthList = make([]map[string]interface{}, 0)
 	var s []string
 	var temp = map[string]bool{}
 
@@ -129,11 +142,11 @@ func GroupBy(data []Result) []map[string]interface{} {
 		}
 	}
 	if s == nil {
-		return kList
+		return monthList
 	}
-
 	for i := 0; i < len(s); i++ {
 		var month = make(map[string]interface{})
+		var monthTemp = make(map[string]interface{})
 		for _, v := range data {
 			if s[i] == v.KPI {
 				month[utils.ChangeDate(v.InTime)] = v.RValue
@@ -146,37 +159,95 @@ func GroupBy(data []Result) []map[string]interface{} {
 				//month["className"] = SetClassName(v.LLimit, v.TLimit, v.RValue)
 			}
 		}
+
 		kList = append(kList, month)
+		if len(month) < 18 {
+			monthTemp = utils.CompareByMonth(date)
+			for _, v := range kList {
+				for i, v := range v {
+					monthTemp[i] = v
+				}
+			}
+		}
+		monthList = append(monthList, monthTemp)
 	}
-	return kList
+	return monthList
 }
 
 func (k *KpiData) GetKPIDataForLine(params KpiDataQueryParam) (err error, r []ResultLine) {
+	var month = time.Now().Format("2006-01")
 	var selectData = "kpi_data.id, group_kpi.dept, group_kpi.kpi, kpi.name, group_kpi.l_limit, group_kpi.t_limit, group_kpi.u_limit, kpi_data.r_value, kpi.unit, kpi_data.user, kpi_data.in_time"
 	var joinData = "join group_kpi on kpi_data.group_kpi = group_kpi.uuid join kpi on group_kpi.kpi = kpi.uuid"
 	var orderData = "kpi_data.in_time asc, group_kpi.kpi"
 	db := GetKpiDataDB(orm.DB).Select(selectData).Joins(joinData).Order(orderData).Limit(12)
 	var result []ResultLine
+	//if v := params.User; v != "" {
+	//	db = db.Where("kpi_data.user = ?", v).Scan(&result)
+	//}
+	//if v := params.Dept; v != "" {
+	//	db = db.Where("group_kpi.dept = ?", v).Scan(&result)
+	//}
+	//if v := params.GroupKPI; v != "" {
+	//	db = db.Where("group_kpi.uuid = ?", v).Scan(&result)
+	//}
 	if v := params.User; v != "" {
-		db = db.Where("kpi_data.user = ?", v).Scan(&result)
+		db = db.Where("kpi_data.user = ? and in_time < ?", v, month).Scan(&result)
 	}
 	if v := params.Dept; v != "" {
-		db = db.Where("group_kpi.dept = ?", v).Scan(&result)
+		db = db.Where("group_kpi.dept = ? and in_time < ?", v, month).Scan(&result)
 	}
 	if v := params.GroupKPI; v != "" {
-		db = db.Where("group_kpi.uuid = ?", v).Scan(&result)
+		db = db.Where("group_kpi.uuid = ? and in_time < ?", v, month).Scan(&result)
 	}
 
 	//if params.GroupKPI == "" && params.User == "" && params.Dept == "" {
 	//	db = db.Scan(&result)
 	//}
 	if v := params.KPI; v != "" {
-		db = db.Where("kpi.uuid = ?", v).Scan(&result)
+		db = db.Where("kpi.uuid = ? and in_time < ?", v, month).Scan(&result)
 	}
+	fmt.Println(result, "result")
 	// 根据月份进行排序
 	params.Pagination = true
 	for i := 0; i < len(result); i++ {
 		result[i].InTime = utils.ChangeDate(result[i].InTime)
 	}
+	GroupByLine(result, time.Now())
 	return nil, result
+}
+
+func GroupByLine(result []ResultLine, date time.Time) {
+	var monthTimeList []time.Time
+	//monthMap := make(map[string]interface{}, 12)
+	var monthStringList []ResultLine
+	fmt.Println(result, "result")
+	for i := 1; i <= 12; i++ {
+		m := date.AddDate(0, -i, 0)
+		monthTimeList = append(monthTimeList, m)
+	}
+	for n := 0; n <= len(monthTimeList); n++ {
+		for i := 1; i < len(monthTimeList)-n; i++ {
+			if monthTimeList[i].Before(monthTimeList[i-1]) {
+				monthTimeList[i], monthTimeList[i-1] = monthTimeList[i-1], monthTimeList[i]
+			}
+		}
+	}
+
+	for _, i := range monthTimeList {
+		var a ResultLine
+		//monthMap["date"] = i.Format("2006/01")
+		//monthStringList = append(monthStringList, monthMap)
+		for _, v := range result {
+			if v.InTime != i.Format("2006/01") {
+				a.InTime = i.Format("2006/01")
+				a.Name = v.Name
+				a.LLimit = v.LLimit
+				a.TLimit = 0
+				a.Unit = v.Unit
+				a.RValue = v.RValue
+				a.ULimit = v.ULimit
+			}
+		}
+		monthStringList = append(monthStringList, a)
+	}
 }
