@@ -206,7 +206,6 @@ func (k *KpiData) GetKPIDataForLine(params KpiDataQueryParam) (err error, r []Re
 	if v := params.KPI; v != "" {
 		db = db.Where("kpi.uuid = ? and in_time < ?", v, month).Scan(&result)
 	}
-	fmt.Println(result, "result")
 	// 根据月份进行排序
 	params.Pagination = true
 	for i := 0; i < len(result); i++ {
@@ -220,7 +219,6 @@ func GroupByLine(result []ResultLine, date time.Time) {
 	var monthTimeList []time.Time
 	//monthMap := make(map[string]interface{}, 12)
 	var monthStringList []ResultLine
-	fmt.Println(result, "result")
 	for i := 1; i <= 12; i++ {
 		m := date.AddDate(0, -i, 0)
 		monthTimeList = append(monthTimeList, m)
@@ -250,4 +248,5 @@ func GroupByLine(result []ResultLine, date time.Time) {
 		}
 		monthStringList = append(monthStringList, a)
 	}
+	fmt.Println(monthStringList)
 }
