@@ -2,7 +2,6 @@ package models
 
 import (
 	"errors"
-	"fmt"
 	orm "go-admin/init/database"
 	"go-admin/internal/entity"
 	"go-admin/internal/schema"
@@ -211,13 +210,12 @@ func (k *KpiData) GetKPIDataForLine(params KpiDataQueryParam) (err error, r []Re
 	for i := 0; i < len(result); i++ {
 		result[i].InTime = utils.ChangeDate(result[i].InTime)
 	}
-	GroupByLine(result, time.Now())
+	result = GroupByLine(result, time.Now())
 	return nil, result
 }
 
-func GroupByLine(result []ResultLine, date time.Time) {
+func GroupByLine(result []ResultLine, date time.Time) []ResultLine {
 	var monthTimeList []time.Time
-	//monthMap := make(map[string]interface{}, 12)
 	var monthStringList []ResultLine
 	for i := 1; i <= 12; i++ {
 		m := date.AddDate(0, -i, 0)
@@ -233,20 +231,25 @@ func GroupByLine(result []ResultLine, date time.Time) {
 
 	for _, i := range monthTimeList {
 		var a ResultLine
-		//monthMap["date"] = i.Format("2006/01")
-		//monthStringList = append(monthStringList, monthMap)
 		for _, v := range result {
 			if v.InTime != i.Format("2006/01") {
 				a.InTime = i.Format("2006/01")
 				a.Name = v.Name
 				a.LLimit = v.LLimit
-				a.TLimit = 0
+				a.TLimit = v.TLimit
 				a.Unit = v.Unit
-				a.RValue = v.RValue
+				a.RValue = 0
 				a.ULimit = v.ULimit
 			}
 		}
 		monthStringList = append(monthStringList, a)
 	}
-	fmt.Println(monthStringList)
+	for i, mi := range monthStringList {
+		for _, ri := range result {
+			if mi.InTime == ri.InTime {
+				monthStringList[i].RValue = ri.RValue
+			}
+		}
+	}
+	return monthStringList
 }
