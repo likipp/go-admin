@@ -1,7 +1,6 @@
 package apis
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"go-admin/internal/gins"
 	"go-admin/models"
@@ -12,7 +11,6 @@ import (
 func CreateKPIData(c *gin.Context) {
 	var KD models.KpiData
 	var _ = c.ShouldBind(&KD)
-	fmt.Println(KD, "KD")
 	err, kpiData := KD.CreateKpiData()
 	if err != nil {
 		errors.FailWithMessage("创建KPI数据失败", c)

@@ -8,6 +8,7 @@ import (
 	"go-admin/internal/entity"
 	"go-admin/internal/schema"
 	"gorm.io/gorm"
+	"time"
 )
 
 type GroupKPI struct {
@@ -81,7 +82,6 @@ func (g *GroupKPI) CreateGroupKPI() (err error, gK *GroupKPI) {
 	if !hasGroupKpiResult {
 		return errors.New("部门KPI已经关联"), nil
 	}
-	fmt.Println(g, "前端数据")
 	g.UUID, err = initID.GetID()
 	if err != nil {
 		return
@@ -120,10 +120,8 @@ func (g *GroupKPI) GetGroupKPI() (err error, gk []GroupKPIWithName) {
 }
 
 func (g *GroupKPI) GetGroupKPIDept(params KPIDeptQueryParam) (err error, result []DeptKPIResult) {
-	//var result []Dept
-	//var result []DeptKPIResult
+	var month = time.Now().Format("2006-01")
 	var selectDept = "sys_dept.dept_id, sys_dept.dept_name"
-	//var selectKPi = "kpi.uuid, kpi.name"
 	var joinQuery = "join sys_dept on sys_dept.dept_id = group_kpi.dept join kpi on group_kpi.kpi = kpi.uuid join kpi_data on group_kpi.uuid = kpi_data.group_kpi"
 	db := GetGroupKpiDB(orm.DB).Distinct("sys_dept.dept_id, sys_dept.dept_name").Joins(joinQuery)
 	if params.Dept == "" && params.KPI == "" {
@@ -131,20 +129,7 @@ func (g *GroupKPI) GetGroupKPIDept(params KPIDeptQueryParam) (err error, result 
 	}
 	if params.Dept != "" {
 		fmt.Println(params, "params")
-		fmt.Println("kpi")
-		db = db.Distinct("sys_dept.dept_id, sys_dept.dept_name").Select("kpi.uuid, kpi.name").Where("group_kpi.dept = ?", params.Dept).Scan(&result)
+		db = db.Distinct("sys_dept.dept_id, sys_dept.dept_name").Select("kpi.uuid, kpi.name").Where("group_kpi.dept = ? and kpi_data.in_time < ?", params.Dept, month).Scan(&result)
 	}
-	//else if params.Dept != "" && params.KPI != "" {
-	//	fmt.Println(params, "group_params")
-	//	db = db.Select(selectDept).Where("group_kpi.dept = ?", params.Dept).Scan(&result)
-	//}
-	//if params.Dept != "" && params.KPI != "" {
-	//
-	//}
-	fmt.Println(result)
-	//if v := params.KPI; v != "" {
-	//	db = db.Where("group_kpi.kpi = ?", v).Scan(&result)
-	//}
-	//_ = GetGroupKpiDB(orm.DB).Distinct("sys_dept.dept_id, sys_dept.dept_name").Select("sys_dept.dept_id, sys_dept.dept_name").Joins("join sys_dept on sys_dept.dept_id = group_kpi.dept").Scan(&result)
 	return nil, result
 }

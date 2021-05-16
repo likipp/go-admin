@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"fmt"
 	orm "go-admin/init/database"
 	"go-admin/internal/entity"
 	"go-admin/internal/schema"
@@ -85,25 +86,26 @@ func KpdDataPagingServer(pageParams KpiDataQueryParam, db *gorm.DB) {
 }
 
 func (k *KpiData) GetKpiData(params KpiDataQueryParam) (err error, kd []map[string]interface{}) {
-	var month = time.Now().Format("2006-01")
+	var nowMonth = time.Now().Format("2006-01")
+	var beforeMonth = time.Now().AddDate(0, -11, 0).Format("2006-01")
 	var selectData = "kpi_data.id, group_kpi.dept, group_kpi.kpi, kpi.name, group_kpi.l_limit, group_kpi.t_limit, group_kpi.u_limit, kpi_data.r_value, kpi.unit, kpi_data.user, kpi_data.in_time"
 	var joinData = "join group_kpi on kpi_data.group_kpi = group_kpi.uuid join kpi on group_kpi.kpi = kpi.uuid"
 	var orderData = "group_kpi.kpi desc, group_kpi.dept, kpi_data.in_time"
-	db := GetKpiDataDB(orm.DB).Select(selectData).Joins(joinData).Order(orderData).Limit(12)
+	db := GetKpiDataDB(orm.DB).Select(selectData).Joins(joinData).Where("kpi_data.in_time BETWEEN ? AND ?", beforeMonth, nowMonth).Order(orderData)
 	//kDB := GetKpiDataDB(orm.DB).Select("group_kpi.kpi").Joins(joinData).Order(orderData).Limit(12)
 	var result []Result
 	if v := params.User; v != "" {
-		db = db.Where("kpi_data.user = ? and in_time < ?", v, month).Scan(&result)
+		db = db.Where("kpi_data.user = ?", v).Scan(&result)
 	}
 	if v := params.Dept; v != "" {
-		db = db.Where("group_kpi.dept = ? and in_time < ?", v, month).Scan(&result)
+		db = db.Where("group_kpi.dept = ?", v).Scan(&result)
 	}
 	if v := params.GroupKPI; v != "" {
-		db = db.Where("group_kpi.uuid = ? and in_time < ?", v, month).Scan(&result)
+		db = db.Where("group_kpi.uuid = ?", v).Scan(&result)
 	}
 
 	if v := params.KPI; v != "" {
-		db = db.Where("kpi.uuid = ? and in_time < ?", v, month).Scan(&result)
+		db = db.Where("kpi.uuid = ?", v).Scan(&result)
 	}
 
 	if params.GroupKPI == "" && params.User == "" && params.Dept == "" {
@@ -174,36 +176,25 @@ func GroupBy(data []Result, date time.Time) []map[string]interface{} {
 }
 
 func (k *KpiData) GetKPIDataForLine(params KpiDataQueryParam) (err error, r []ResultLine) {
-	var month = time.Now().Format("2006-01")
+	var nowMonth = time.Now().Format("2006-01")
+	var beforeMonth = time.Now().AddDate(0, -11, 0).Format("2006-01")
 	var selectData = "kpi_data.id, group_kpi.dept, group_kpi.kpi, kpi.name, group_kpi.l_limit, group_kpi.t_limit, group_kpi.u_limit, kpi_data.r_value, kpi.unit, kpi_data.user, kpi_data.in_time"
 	var joinData = "join group_kpi on kpi_data.group_kpi = group_kpi.uuid join kpi on group_kpi.kpi = kpi.uuid"
-	var orderData = "kpi_data.in_time asc, group_kpi.kpi"
-	db := GetKpiDataDB(orm.DB).Select(selectData).Joins(joinData).Order(orderData).Limit(12)
+	var orderData = "group_kpi.kpi, kpi_data.in_time asc"
+	db := GetKpiDataDB(orm.DB).Select(selectData).Joins(joinData).Where("kpi_data.in_time BETWEEN ? AND ?", beforeMonth, nowMonth).Order(orderData)
 	var result []ResultLine
-	//if v := params.User; v != "" {
-	//	db = db.Where("kpi_data.user = ?", v).Scan(&result)
-	//}
-	//if v := params.Dept; v != "" {
-	//	db = db.Where("group_kpi.dept = ?", v).Scan(&result)
-	//}
-	//if v := params.GroupKPI; v != "" {
-	//	db = db.Where("group_kpi.uuid = ?", v).Scan(&result)
-	//}
 	if v := params.User; v != "" {
-		db = db.Where("kpi_data.user = ? and in_time < ?", v, month).Scan(&result)
+		db = db.Where("kpi_data.user = ?", v).Scan(&result)
 	}
 	if v := params.Dept; v != "" {
-		db = db.Where("group_kpi.dept = ? and in_time < ?", v, month).Scan(&result)
+		db = db.Where("group_kpi.dept = ?", v).Scan(&result)
 	}
 	if v := params.GroupKPI; v != "" {
-		db = db.Where("group_kpi.uuid = ? and in_time < ?", v, month).Scan(&result)
+		db = db.Where("group_kpi.uuid = ?", v).Scan(&result)
 	}
 
-	//if params.GroupKPI == "" && params.User == "" && params.Dept == "" {
-	//	db = db.Scan(&result)
-	//}
 	if v := params.KPI; v != "" {
-		db = db.Where("kpi.uuid = ? and in_time < ?", v, month).Scan(&result)
+		db = db.Where("kpi.uuid = ?", v).Scan(&result)
 	}
 	// 根据月份进行排序
 	params.Pagination = true
@@ -217,6 +208,7 @@ func (k *KpiData) GetKPIDataForLine(params KpiDataQueryParam) (err error, r []Re
 func GroupByLine(result []ResultLine, date time.Time) []ResultLine {
 	var monthTimeList []time.Time
 	var monthStringList []ResultLine
+
 	for i := 1; i <= 12; i++ {
 		m := date.AddDate(0, -i, 0)
 		monthTimeList = append(monthTimeList, m)
@@ -228,9 +220,8 @@ func GroupByLine(result []ResultLine, date time.Time) []ResultLine {
 			}
 		}
 	}
-
+	var a ResultLine
 	for _, i := range monthTimeList {
-		var a ResultLine
 		for _, v := range result {
 			if v.InTime != i.Format("2006/01") {
 				a.InTime = i.Format("2006/01")
@@ -251,5 +242,23 @@ func GroupByLine(result []ResultLine, date time.Time) []ResultLine {
 			}
 		}
 	}
+
+	var b ResultLine
+	var temp = result
+	for _, v := range result {
+		for _, i := range monthTimeList {
+			if v.InTime != i.Format("2006/01") {
+				b.InTime = i.Format("2006/01")
+				b.Name = v.Name
+				b.LLimit = v.LLimit
+				b.TLimit = v.TLimit
+				b.Unit = v.Unit
+				b.RValue = 0
+				b.ULimit = v.ULimit
+			}
+		}
+		temp = append(temp, b)
+	}
+	fmt.Println(temp)
 	return monthStringList
 }
