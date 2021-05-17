@@ -92,7 +92,6 @@ func (k *KpiData) GetKpiData(params KpiDataQueryParam) (err error, kd []map[stri
 	var joinData = "join group_kpi on kpi_data.group_kpi = group_kpi.uuid join kpi on group_kpi.kpi = kpi.uuid"
 	var orderData = "group_kpi.kpi desc, group_kpi.dept, kpi_data.in_time"
 	db := GetKpiDataDB(orm.DB).Select(selectData).Joins(joinData).Where("kpi_data.in_time BETWEEN ? AND ?", beforeMonth, nowMonth).Order(orderData)
-	//kDB := GetKpiDataDB(orm.DB).Select("group_kpi.kpi").Joins(joinData).Order(orderData).Limit(12)
 	var result []Result
 	if v := params.User; v != "" {
 		db = db.Where("kpi_data.user = ?", v).Scan(&result)
@@ -242,23 +241,41 @@ func GroupByLine(result []ResultLine, date time.Time) []ResultLine {
 			}
 		}
 	}
-
 	var b ResultLine
-	var temp = result
+	var bList []ResultLine
+	var temp = make(map[string]string)
 	for _, v := range result {
+		temp[v.Name] = v.Name
+	}
+	for _, v := range temp {
 		for _, i := range monthTimeList {
-			if v.InTime != i.Format("2006/01") {
-				b.InTime = i.Format("2006/01")
-				b.Name = v.Name
-				b.LLimit = v.LLimit
-				b.TLimit = v.TLimit
-				b.Unit = v.Unit
-				b.RValue = 0
-				b.ULimit = v.ULimit
+			b.InTime = i.Format("2006/01")
+			b.Name = v
+			b.LLimit = 0
+			b.TLimit = 0
+			b.Unit = ""
+			b.RValue = 0
+			b.ULimit = 0
+			bList = append(bList, b)
+		}
+	}
+	for i, _ := range bList {
+		for _, v := range result {
+			if bList[i].Name == v.Name && bList[i].InTime == v.InTime {
+				bList[i].LLimit = v.LLimit
+				bList[i].TLimit = v.TLimit
+				bList[i].Unit = v.Unit
+				fmt.Println(234235)
+				bList[i].RValue = v.RValue
+				bList[i].ULimit = v.ULimit
+			} else if bList[i].Name == v.Name {
+				bList[i].LLimit = v.LLimit
+				bList[i].TLimit = v.TLimit
+				bList[i].Unit = v.Unit
+				bList[i].RValue = 0
+				bList[i].ULimit = v.ULimit
 			}
 		}
-		temp = append(temp, b)
 	}
-	fmt.Println(temp)
-	return monthStringList
+	return bList
 }
