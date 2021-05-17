@@ -3,6 +3,7 @@ package utils
 import (
 	"golang.org/x/crypto/bcrypt"
 	"log"
+	"strings"
 	"time"
 )
 
@@ -26,25 +27,22 @@ func bubbleSort(slice []int) []int {
 	return slice
 }
 
-func CompareByMonth(date time.Time) map[string]interface{} {
-
-	var monthTimeList []time.Time
-	var monthStringList []string
-	monthMap := make(map[string]interface{}, 12)
-	for i := 1; i <= 12; i++ {
-		m := date.AddDate(0, -i, 0)
-
-		monthTimeList = append(monthTimeList, m)
-	}
-
-	for n := 0; n <= len(monthTimeList); n++ {
-		for i := 1; i < len(monthTimeList)-n; i++ {
-			if monthTimeList[i].Before(monthTimeList[i-1]) {
-				monthTimeList[i], monthTimeList[i-1] = monthTimeList[i-1], monthTimeList[i]
-			}
+func getKeys(m map[string]interface{}) []string {
+	// 数组默认长度为map长度,后面append时,不需要重新申请内存和拷贝,效率很高
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		if strings.Contains(k, "/") {
+			keys = append(keys, k)
 		}
 	}
-	for _, i := range monthTimeList {
+	return keys
+}
+
+func CompareByMonth(date time.Time) map[string]interface{} {
+	var monthStringList []string
+	monthsList := GetFullMonths(date)
+	monthMap := make(map[string]interface{}, 12)
+	for _, i := range monthsList {
 		monthMap[i.Format("2006/01")] = "N/A"
 		monthStringList = append(monthStringList, i.Format("2006/01"))
 	}

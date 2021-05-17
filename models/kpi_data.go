@@ -2,13 +2,13 @@ package models
 
 import (
 	"errors"
-	"fmt"
+	"github.com/jinzhu/copier"
 	orm "go-admin/init/database"
 	"go-admin/internal/entity"
 	"go-admin/internal/schema"
 	"go-admin/utils"
 	"gorm.io/gorm"
-	"strings"
+	"strconv"
 	"time"
 )
 
@@ -86,9 +86,10 @@ func KpdDataPagingServer(pageParams KpiDataQueryParam, db *gorm.DB) {
 }
 
 func (k *KpiData) GetKpiData(params KpiDataQueryParam) (err error, kd []map[string]interface{}) {
+	// 获取当前服务器时间, 推算前11个月，用于数据库Between使用
 	var nowMonth = time.Now().Format("2006-01")
 	var beforeMonth = time.Now().AddDate(0, -11, 0).Format("2006-01")
-	var selectData = "kpi_data.id, group_kpi.dept, group_kpi.kpi, kpi.name, group_kpi.l_limit, group_kpi.t_limit, group_kpi.u_limit, kpi_data.r_value, kpi.unit, kpi_data.user, kpi_data.in_time"
+	var selectData = "kpi_data.id, group_kpi.dept, group_kpi.kpi, kpi.name, group_kpi.l_limit, group_kpi.t_limit, group_kpi.u_limit, kpi_data.r_value, kpi.unit, kpi_data.user, kpi_data.in_time, kpi.unit"
 	var joinData = "join group_kpi on kpi_data.group_kpi = group_kpi.uuid join kpi on group_kpi.kpi = kpi.uuid"
 	var orderData = "group_kpi.kpi desc, group_kpi.dept, kpi_data.in_time"
 	db := GetKpiDataDB(orm.DB).Select(selectData).Joins(joinData).Where("kpi_data.in_time BETWEEN ? AND ?", beforeMonth, nowMonth).Order(orderData)
@@ -116,23 +117,12 @@ func (k *KpiData) GetKpiData(params KpiDataQueryParam) (err error, kd []map[stri
 	return nil, kd
 }
 
-func getKeys(m map[string]interface{}) []string {
-	// 数组默认长度为map长度,后面append时,不需要重新申请内存和拷贝,效率很高
-	keys := make([]string, 0, len(m))
-	for k := range m {
-		if strings.Contains(k, "/") {
-			keys = append(keys, k)
-		}
-	}
-	return keys
-}
-
 func GroupBy(data []Result, date time.Time) []map[string]interface{} {
 	var kList = make([]map[string]interface{}, 0)
 	var monthList = make([]map[string]interface{}, 0)
 	var s []string
 	var temp = map[string]bool{}
-
+	//fmt.Println(monthTemp, "monthTemp") map[2020/05:N/A 2020/06:N/A 2020/07:N/A 2020/08:N/A 2020/09:N/A 2020/10:N/A 2020/11:N/A 2020/12:N/A 2021/01:N/A 2021/02:N/A 2021/03:N/A 2021/04:N/A] monthTemp
 	for i := 0; i < len(data); i++ {
 		if _, ok := temp[data[i].KPI]; ok {
 
@@ -146,30 +136,31 @@ func GroupBy(data []Result, date time.Time) []map[string]interface{} {
 	}
 	for i := 0; i < len(s); i++ {
 		var month = make(map[string]interface{})
-		var monthTemp = make(map[string]interface{})
+
 		for _, v := range data {
 			if s[i] == v.KPI {
 				month[utils.ChangeDate(v.InTime)] = v.RValue
 				month["id"] = v.ID
 				month["kpi"] = v.KPI
 				month["name"] = v.Name
-				month["lLimit"] = v.LLimit
-				month["uLimit"] = v.ULimit
-				month["tValue"] = v.TLimit
-				//month["className"] = SetClassName(v.LLimit, v.TLimit, v.RValue)
+				// 在Table中显示单位
+				month["lLimit"] = strconv.Itoa(v.LLimit) + v.Unit
+				month["uLimit"] = strconv.Itoa(v.ULimit) + v.Unit
+				month["tValue"] = strconv.Itoa(v.TLimit) + v.Unit
 			}
 		}
-
 		kList = append(kList, month)
+
 		if len(month) < 18 {
-			monthTemp = utils.CompareByMonth(date)
+			monthMap := utils.CompareByMonth(date)
 			for _, v := range kList {
-				for i, v := range v {
-					monthTemp[i] = v
+				//fmt.Println(v, "v") map[2021/01:200 2021/02:50 2021/03:40 id:4 kpi:324858517754216449 lLimit:30% name:主营业务利润达标率 tValue:40% uLimit:50%] v
+				for i, a := range v {
+					monthMap[i] = a
 				}
 			}
+			monthList = append(monthList, monthMap)
 		}
-		monthList = append(monthList, monthTemp)
 	}
 	return monthList
 }
@@ -205,22 +196,10 @@ func (k *KpiData) GetKPIDataForLine(params KpiDataQueryParam) (err error, r []Re
 }
 
 func GroupByLine(result []ResultLine, date time.Time) []ResultLine {
-	var monthTimeList []time.Time
 	var monthStringList []ResultLine
-
-	for i := 1; i <= 12; i++ {
-		m := date.AddDate(0, -i, 0)
-		monthTimeList = append(monthTimeList, m)
-	}
-	for n := 0; n <= len(monthTimeList); n++ {
-		for i := 1; i < len(monthTimeList)-n; i++ {
-			if monthTimeList[i].Before(monthTimeList[i-1]) {
-				monthTimeList[i], monthTimeList[i-1] = monthTimeList[i-1], monthTimeList[i]
-			}
-		}
-	}
+	monthsList := utils.GetFullMonths(date)
 	var a ResultLine
-	for _, i := range monthTimeList {
+	for _, i := range monthsList {
 		for _, v := range result {
 			if v.InTime != i.Format("2006/01") {
 				a.InTime = i.Format("2006/01")
@@ -248,7 +227,7 @@ func GroupByLine(result []ResultLine, date time.Time) []ResultLine {
 		temp[v.Name] = v.Name
 	}
 	for _, v := range temp {
-		for _, i := range monthTimeList {
+		for _, i := range monthsList {
 			b.InTime = i.Format("2006/01")
 			b.Name = v
 			b.LLimit = 0
@@ -262,18 +241,7 @@ func GroupByLine(result []ResultLine, date time.Time) []ResultLine {
 	for i, _ := range bList {
 		for _, v := range result {
 			if bList[i].Name == v.Name && bList[i].InTime == v.InTime {
-				bList[i].LLimit = v.LLimit
-				bList[i].TLimit = v.TLimit
-				bList[i].Unit = v.Unit
-				fmt.Println(234235)
-				bList[i].RValue = v.RValue
-				bList[i].ULimit = v.ULimit
-			} else if bList[i].Name == v.Name {
-				bList[i].LLimit = v.LLimit
-				bList[i].TLimit = v.TLimit
-				bList[i].Unit = v.Unit
-				bList[i].RValue = 0
-				bList[i].ULimit = v.ULimit
+				_ = copier.Copy(&bList[i], &v)
 			}
 		}
 	}
