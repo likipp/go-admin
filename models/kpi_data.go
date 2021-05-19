@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"fmt"
 	"github.com/jinzhu/copier"
 	orm "go-admin/init/database"
 	"go-admin/internal/entity"
@@ -69,6 +70,7 @@ func (k *KpiData) CreateKpiData() (err error, kd *KpiData) {
 	if !hasKpiDataResult {
 		return errors.New("KPI数据已经录入"), kd
 	}
+	fmt.Println(k, "前端获取的值")
 	err = db.Create(&k).Error
 	if err != nil {
 		return errors.New("创建KPI数据失败"), kd
@@ -122,7 +124,6 @@ func GroupBy(data []Result, date time.Time) []map[string]interface{} {
 	var monthList = make([]map[string]interface{}, 0)
 	var s []string
 	var temp = map[string]bool{}
-	//fmt.Println(monthTemp, "monthTemp") map[2020/05:N/A 2020/06:N/A 2020/07:N/A 2020/08:N/A 2020/09:N/A 2020/10:N/A 2020/11:N/A 2020/12:N/A 2021/01:N/A 2021/02:N/A 2021/03:N/A 2021/04:N/A] monthTemp
 	for i := 0; i < len(data); i++ {
 		if _, ok := temp[data[i].KPI]; ok {
 
@@ -136,7 +137,6 @@ func GroupBy(data []Result, date time.Time) []map[string]interface{} {
 	}
 	for i := 0; i < len(s); i++ {
 		var month = make(map[string]interface{})
-
 		for _, v := range data {
 			if s[i] == v.KPI {
 				month[utils.ChangeDate(v.InTime)] = v.RValue
@@ -150,17 +150,13 @@ func GroupBy(data []Result, date time.Time) []map[string]interface{} {
 			}
 		}
 		kList = append(kList, month)
-
-		if len(month) < 18 {
-			monthMap := utils.CompareByMonth(date)
-			for _, v := range kList {
-				//fmt.Println(v, "v") map[2021/01:200 2021/02:50 2021/03:40 id:4 kpi:324858517754216449 lLimit:30% name:主营业务利润达标率 tValue:40% uLimit:50%] v
-				for i, a := range v {
-					monthMap[i] = a
-				}
-			}
-			monthList = append(monthList, monthMap)
+	}
+	for _, v := range kList {
+		monthMap := utils.CompareByMonth(date)
+		for i, a := range v {
+			monthMap[i] = a
 		}
+		monthList = append(monthList, monthMap)
 	}
 	return monthList
 }
