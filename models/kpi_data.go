@@ -2,7 +2,6 @@ package models
 
 import (
 	"errors"
-	"fmt"
 	"github.com/jinzhu/copier"
 	orm "go-admin/init/database"
 	"go-admin/internal/entity"
@@ -70,7 +69,6 @@ func (k *KpiData) CreateKpiData() (err error, kd *KpiData) {
 	if !hasKpiDataResult {
 		return errors.New("KPI数据已经录入"), kd
 	}
-	fmt.Println(k, "前端获取的值")
 	err = db.Create(&k).Error
 	if err != nil {
 		return errors.New("创建KPI数据失败"), kd
@@ -223,14 +221,13 @@ func GroupByLine(result []ResultLine, date time.Time) []ResultLine {
 		temp[v.Name] = v.Name
 	}
 	for _, v := range temp {
-		for _, i := range monthsList {
-			b.InTime = i.Format("2006/01")
+		for _, i := range monthStringList {
+			b.InTime = i.InTime
 			b.Name = v
-			b.LLimit = 0
-			b.TLimit = 0
-			b.Unit = ""
-			b.RValue = 0
-			b.ULimit = 0
+			b.LLimit = i.LLimit
+			b.TLimit = i.TLimit
+			b.Unit = i.Unit
+			b.ULimit = i.ULimit
 			bList = append(bList, b)
 		}
 	}
