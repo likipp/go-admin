@@ -88,7 +88,7 @@ func KpdDataPagingServer(pageParams KpiDataQueryParam, db *gorm.DB) {
 func (k *KpiData) GetKpiData(params KpiDataQueryParam) (err error, kd []map[string]interface{}) {
 	// 获取当前服务器时间, 推算前11个月，用于数据库Between使用
 	var nowMonth = time.Now().Format("2006-01")
-	var beforeMonth = time.Now().AddDate(0, -11, 0).Format("2006-01")
+	var beforeMonth = time.Now().AddDate(0, -12, 0).Format("2006-01")
 	var selectData = "kpi_data.id, group_kpi.dept, group_kpi.kpi, kpi.name, group_kpi.l_limit, group_kpi.t_limit, group_kpi.u_limit, kpi_data.r_value, kpi.unit, kpi_data.user, kpi_data.in_time, kpi.unit"
 	var joinData = "join group_kpi on kpi_data.group_kpi = group_kpi.uuid join kpi on group_kpi.kpi = kpi.uuid"
 	var orderData = "group_kpi.kpi desc, group_kpi.dept, kpi_data.in_time"
@@ -202,6 +202,15 @@ func GroupByLine(result []ResultLine, date time.Time) []ResultLine {
 				a.TLimit = v.TLimit
 				a.Unit = v.Unit
 				a.RValue = 0
+				a.ULimit = v.ULimit
+			}
+			if v.InTime == i.Format("2006/01") {
+				a.InTime = i.Format("2006/01")
+				a.Name = v.Name
+				a.LLimit = v.LLimit
+				a.TLimit = v.TLimit
+				a.Unit = v.Unit
+				a.RValue = v.RValue
 				a.ULimit = v.ULimit
 			}
 		}
