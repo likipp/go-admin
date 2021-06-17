@@ -2,7 +2,6 @@ package models
 
 import (
 	"errors"
-	"fmt"
 	orm "go-admin/init/database"
 	initID "go-admin/init/globalID"
 	"go-admin/internal/entity"
@@ -128,7 +127,6 @@ func (g *GroupKPI) GetGroupKPIDept(params KPIDeptQueryParam) (err error, result 
 		db = db.Distinct("sys_dept.dept_id, sys_dept.dept_name").Select(selectDept).Scan(&result)
 	}
 	if params.Dept != "" {
-		fmt.Println(params, "params")
 		db = db.Distinct("sys_dept.dept_id, sys_dept.dept_name").Select("kpi.uuid, kpi.name").Where("group_kpi.dept = ? and kpi_data.in_time < ?", params.Dept, month).Scan(&result)
 	}
 	return nil, result
