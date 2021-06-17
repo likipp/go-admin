@@ -224,6 +224,7 @@ func GroupByLine(result []ResultLine, date time.Time) []ResultLine {
 		for _, i := range monthStringList {
 			b.InTime = i.InTime
 			b.Name = v
+
 			b.LLimit = i.LLimit
 			b.TLimit = i.TLimit
 			b.Unit = i.Unit

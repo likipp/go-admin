@@ -95,9 +95,7 @@ func (u *SysUser) CreateUser() (err error, userInter *SysUser) {
 			return
 		}
 		//u.Password = utils.MD5V([]byte(u.Password))
-		fmt.Println(u.Password, "u.Password")
 		u.Password = utils.PasswordHash(u.Password)
-		fmt.Println(u.Password, "password hash")
 		err = orm.DB.Create(u).Error
 	}
 	//orm.DB.Model(&u).Related(&u.SysDept)
@@ -105,7 +103,7 @@ func (u *SysUser) CreateUser() (err error, userInter *SysUser) {
 	return err, u
 }
 
-// 前端传递JSON格式的[]SysRole表时, 遍历获取到具体的SysRole {"roles": [{"id": 1}, {"id": 2}]}
+// GetRoleList 前端传递JSON格式的[]SysRole表时, 遍历获取到具体的SysRole {"roles": [{"id": 1}, {"id": 2}]}
 func (u *SysUser) GetRoleList() []SysRole {
 	var roles []SysRole
 	for index := range u.Roles {

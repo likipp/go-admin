@@ -46,7 +46,7 @@ type DeptLabel struct {
 	Children []DeptLabel `json:"children" gorm:"-"`
 }
 
-// 创建部门
+// Create 创建部门
 func (d *SysDept) Create() (*SysDept, error) {
 	var dept SysDept
 	result := orm.DB.Where("dept_name = ?", d.DeptName).First(&dept).Error
@@ -67,7 +67,7 @@ func (d *SysDept) Create() (*SysDept, error) {
 	return d, err
 }
 
-// 获取带分页的部门列表, GetInfoList
+// GetList 获取带分页的部门列表, GetInfoList
 func (d *SysDept) GetList(info page.InfoPage) (err error, list interface{}, total int64) {
 	err, db, total := server.PagingServer(d, info)
 	if err != nil {
@@ -88,7 +88,7 @@ func (d *SysDept) GetByUUID() (D SysDept, err error) {
 	return D, nil
 }
 
-// 获取部门的组织架构
+// DeptTree 获取部门的组织架构
 func (d *SysDept) DeptTree() ([]SysDeptInfo, error) {
 	var list []SysDept
 	err := orm.DB.Order("sort").Find(&list).Error
@@ -116,7 +116,7 @@ func (d *SysDept) DeptTreeByName() ([]SysDeptInfo, error) {
 	return m, err
 }
 
-//过滤重复的部门
+// DeptCompare 过滤重复的部门
 func DeptCompare(deptList []SysDeptInfo) []SysDeptInfo {
 	result := make([]SysDeptInfo, 0)
 	for i := 0; i < len(deptList); i++ {
@@ -133,7 +133,7 @@ func DeptCompare(deptList []SysDeptInfo) []SysDeptInfo {
 	return result
 }
 
-// 对部门的组织树进行排列
+// DeptOrder 对部门的组织树进行排列
 func DeptOrder(deptList *[]SysDept, dept SysDept) SysDeptInfo {
 	list := *deptList
 	min := make([]SysDeptInfo, 0)

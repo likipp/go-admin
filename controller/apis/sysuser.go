@@ -19,7 +19,6 @@ func CreateUser(c *gin.Context) {
 	//var R RegisterStruct
 	var U models.SysUser
 	var _ = c.ShouldBind(&U)
-	fmt.Println(&U, "ShouldBind")
 	_ = c.ShouldBindBodyWith(&U, binding.JSON).Error()
 	U.Password = "123456"
 	err, user := U.CreateUser()
