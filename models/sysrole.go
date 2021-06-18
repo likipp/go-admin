@@ -14,8 +14,8 @@ type SysRole struct {
 	RoleName string `json:"roleName"`
 	ParentId string `json:"parentId"`
 	//DataRoleId []SysRole `json:"dataRoleId" gorm:"many2many:sys_data_role_id;association_jointable_foreignkey:data_id"`
-	Children []SysRole `json:"children" gorm:"many2many:children_roles;association_jointable_foreignkey:role_id"`
-	//Users    []*SysUser `gorm:"many2many:role_user; association_foreignkey:userId;foreignkey:roleId"`
+	Children []SysRole  `json:"children" gorm:"many2many:children_roles;association_jointable_foreignkey:role_id"`
+	Users    []*SysUser `gorm:"many2many:user_role;"`
 	//UserID []string
 }
 
@@ -29,10 +29,11 @@ func (r *SysRole) CreateRole() (role *SysRole, err error) {
 }
 
 func (r *SysRole) GetList(info page.InfoPage) (err error, list interface{}, total int64) {
-	fmt.Println(r, "r", info)
+	var role SysRole
+	e := orm.DB.Model(&role).Association("Users").Count()
+	fmt.Println(e, "用户总数")
 	err, db, total := server.PagingServer(r, info)
 	var roles []SysRole
-	fmt.Println(total)
 	if err != nil {
 		return
 	} else {
