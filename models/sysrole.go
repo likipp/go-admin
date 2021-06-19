@@ -1,7 +1,6 @@
 package models
 
 import (
-	"fmt"
 	"github.com/jinzhu/gorm"
 	"go-admin/controller/server"
 	orm "go-admin/init/database"
@@ -29,15 +28,12 @@ func (r *SysRole) CreateRole() (role *SysRole, err error) {
 }
 
 func (r *SysRole) GetList(info page.InfoPage) (err error, list interface{}, total int64) {
-	var role SysRole
-	e := orm.DB.Model(&role).Association("Users").Count()
-	fmt.Println(e, "用户总数")
 	err, db, total := server.PagingServer(r, info)
 	var roles []SysRole
 	if err != nil {
 		return
 	} else {
-		err := db.Find(&roles).Error
+		err := db.Preload("Users").Find(&roles).Error
 		return err, roles, total
 	}
 }

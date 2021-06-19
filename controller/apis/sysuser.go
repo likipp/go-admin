@@ -20,6 +20,7 @@ func CreateUser(c *gin.Context) {
 	var U models.SysUser
 	var _ = c.ShouldBind(&U)
 	_ = c.ShouldBindBodyWith(&U, binding.JSON).Error()
+	fmt.Println(&U, "用户信息")
 	U.Password = "123456"
 	err, user := U.CreateUser()
 	if err != nil {

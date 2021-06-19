@@ -22,11 +22,7 @@ func CreateRole(c *gin.Context) {
 
 func GetRoleList(c *gin.Context) {
 	var pageInfo page.InfoPage
-
 	_ = c.BindQuery(&pageInfo)
-
-	fmt.Println(pageInfo, "pageInfo")
-
 	err, list, total := new(models.SysRole).GetList(pageInfo)
 	if err != nil {
 		errors.FailWithMessage(fmt.Sprintf("获取角色数据失败, %v", err), c)
