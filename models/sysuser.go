@@ -2,7 +2,6 @@ package models
 
 import (
 	"errors"
-	"fmt"
 	"github.com/jinzhu/copier"
 	orm "go-admin/init/database"
 	"go-admin/init/globalID"
@@ -63,11 +62,10 @@ func (SysUser) TableName() string {
 	return "sys_user"
 }
 
-func PagingTest(filter UserFilter, model interface{}) (err error, db *gorm.DB, total int64) {
+func Paging(filter UserFilter, model interface{}) (err error, db *gorm.DB, total int64) {
 	limit := filter.PageSize
 	offset := filter.PageSize * (filter.Page - 1)
 	var user SysUser
-	fmt.Println(limit, offset, filter.Page)
 	if filter.Status == 3 {
 		err = copier.Copy(&user, &filter)
 		user.Status = 0
@@ -135,7 +133,7 @@ func (u *SysUser) GetList(filters UserFilter) (err error, list interface{}, tota
 	// 获取用户关联的部门与角色
 	var userInfoList []UserInfo
 	var userInfo UserInfo
-	err, db, total := PagingTest(filters, &userList)
+	err, db, total := Paging(filters, &userList)
 	if err != nil {
 		return
 	} else {

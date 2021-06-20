@@ -139,7 +139,10 @@ func DeptOrder(deptList *[]SysDept, dept SysDept) SysDeptInfo {
 	min := make([]SysDeptInfo, 0)
 	deptInfo := SysDeptInfo{}
 	// copier可以拷贝相同类型的结构
-	copier.Copy(&deptInfo, &dept)
+	err := copier.Copy(&deptInfo, &dept)
+	if err != nil {
+		return SysDeptInfo{}
+	}
 	deptInfo.EnableUsersCount = int(orm.DB.Model(dept).Where("status = ?", 1).Association("Users").Count())
 	deptInfo.DisableUsersCount = int(orm.DB.Model(dept).Where("status = ?", 2).Association("Users").Count())
 	//deptInfo := SysDeptInfo{

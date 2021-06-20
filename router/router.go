@@ -38,7 +38,7 @@ func InitRouter() *gin.Engine {
 		// 角色设置router
 		baseRouter.GET("roles", apis.GetRoleList)
 		baseRouter.POST("roles", apis.CreateRole)
-
+		baseRouter.GET("roles/:id", apis.GetRoleByQuery)
 		// 部门设置router
 		baseRouter.POST("dept", apis.CreateDept)
 		baseRouter.GET("dept", apis.GetAll)

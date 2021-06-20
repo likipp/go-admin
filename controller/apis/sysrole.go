@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go-admin/models"
 	"go-admin/models/page"
+	"go-admin/utils"
 	"go-admin/utils/errors"
 	"net/http"
 )
@@ -36,4 +37,23 @@ func GetRoleList(c *gin.Context) {
 		})
 	}
 	//response.FailWithMessage(fmt.Sprintf("获取角色数据失败, %v", "eeee"), c)
+}
+
+func GetRoleByQuery(c *gin.Context) {
+	var r models.SysRole
+	var rq models.RoleQuery
+	r.ID = utils.StringConvUint(c.Param("id"))
+	_ = c.BindQuery(&rq)
+	result, total, err := r.GetRoleByQuery(rq)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "查询失败", "data": err.Error()})
+	} else {
+		c.JSON(http.StatusOK, gin.H{
+			"code":     200,
+			"data":     result,
+			"total":    total,
+			"page":     rq.Page,
+			"pageSize": rq.PageSize,
+		})
+	}
 }

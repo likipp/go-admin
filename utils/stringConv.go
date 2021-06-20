@@ -5,9 +5,9 @@ import (
 	"strings"
 )
 
-func StringConvUint(UuidS string) (UuidU uint64) {
-	UuidI, _ := strconv.Atoi(UuidS)
-	UuidU = uint64(UuidI)
+func StringConvUint(UuidS string) (UuidU uint) {
+	UuidI, _ := strconv.ParseUint(UuidS, 0, 64)
+	UuidU = uint(UuidI)
 	return
 }
 
