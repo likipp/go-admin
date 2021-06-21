@@ -28,11 +28,12 @@ type RoleList struct {
 }
 
 type RoleQuery struct {
-	Base     bool `form:"base"`
-	Perm     bool `form:"perm"`
-	Members  bool `form:"members"`
-	Page     int  `form:"current"`
-	PageSize int  `form:"pageSize"`
+	Base    bool `form:"base"`
+	Perm    bool `form:"perm"`
+	Members bool `form:"members"`
+	//Page     int  `form:"current"`
+	//PageSize int  `form:"pageSize"`
+	page.InfoPage
 }
 
 func (SysRole) TableName() string {
@@ -67,24 +68,31 @@ func (r *SysRole) GetList(info page.InfoPage) (err error, list interface{}, tota
 	return err, roleList, total
 }
 
-func (r *SysRole) GetRoleByQuery(rq RoleQuery) (result interface{}, total int, err error) {
+func (r *SysRole) GetRoleByQuery(rq RoleQuery) (err error, result interface{}, total int64) {
 	var role SysRole
 	var users []SysUser
+	var allUsers []SysUser
+	fmt.Println(rq, "rq数据")
 	//var db *gorm.DB
 	if err := orm.DB.Where("id = ?", r.ID).Find(&role).Error; err != nil {
-		return result, 0, errors.New("找不到该角色")
+		return errors.New("找不到该角色"), nil, 0
 	}
 
 	if rq.Base {
 		orm.DB.Select("roleId, roleName").Where("ID = ?", r.ID).Find(role)
 	}
+
 	if rq.Members {
-		orm.DB.Select("Users").Preload("Users").Where("ID = ?", r.ID).Find(&role)
-		err := orm.DB.Model(&role).Association("Users").Find(&users)
-		fmt.Println(&users)
+		err, g, _ := server.PagingServer(r, rq.InfoPage)
 		if err != nil {
-			return users, len(users), err
+			return err, nil, 0
+		}
+		orm.DB.Select("Users").Preload("Users").Where("ID = ?", r.ID).Find(&role)
+		orm.DB.Model(&role).Association("Users").Find(&allUsers)
+		err = g.Model(&role).Association("Users").Find(&users)
+		if err != nil {
+			return nil, users, int64(len(allUsers))
 		}
 	}
-	return users, 0, nil
+	return err, users, int64(len(allUsers))
 }

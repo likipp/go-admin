@@ -44,7 +44,7 @@ func GetRoleByQuery(c *gin.Context) {
 	var rq models.RoleQuery
 	r.ID = utils.StringConvUint(c.Param("id"))
 	_ = c.BindQuery(&rq)
-	result, total, err := r.GetRoleByQuery(rq)
+	err, result, total := r.GetRoleByQuery(rq)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "查询失败", "data": err.Error()})
 	} else {
