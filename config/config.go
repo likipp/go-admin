@@ -29,6 +29,11 @@ type JWT struct {
 var AdminConfig Config
 var VTool *viper.Viper
 
+type Server struct {
+	JWT    JWT    `mapstructure:"jwt" json:"jwt" yaml:"jwt"`
+	Casbin Casbin `mapstructure:"casbin" json:"casbin" yaml:"casbin"`
+}
+
 func init() {
 	v := viper.New()
 	v.SetConfigName("settings")

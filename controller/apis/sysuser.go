@@ -162,10 +162,11 @@ func EnableOrDisableUser(c *gin.Context) {
 	//}
 }
 
-// 用户登录
+// Login 用户登录
 func Login(c *gin.Context) {
 	var L models.Login
 	_ = c.ShouldBindJSON(&L)
+	fmt.Println(L, "用户")
 	if err, user := models.UserLogin(&L); err != nil {
 		errors.FailWithMessage(fmt.Sprintf("%v", err), c)
 	} else {
@@ -174,7 +175,7 @@ func Login(c *gin.Context) {
 
 }
 
-// 获取当前登录用户信息
+// GetCurrentUser 获取当前登录用户信息
 func GetCurrentUser(c *gin.Context) {
 	errors.OkWithMessage("获取成功", c)
 }
