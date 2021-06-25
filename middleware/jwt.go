@@ -2,9 +2,11 @@ package middleware
 
 import (
 	"errors"
+	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"go-admin/config"
+	"go-admin/models"
 	Errors "go-admin/utils/errors"
 	"net/http"
 	"strconv"
@@ -27,6 +29,7 @@ type CustomClaims struct {
 	ID         int
 	Username   string
 	NickName   string
+	RoleName   []models.SysRole
 	BufferTime int64
 	jwt.StandardClaims
 }
@@ -76,6 +79,7 @@ func NewJWT() *JWT {
 }
 
 func (j *JWT) CreateToken(claims CustomClaims) (string, error) {
+	fmt.Println(claims, "token")
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(j.SigningKey)
 }
