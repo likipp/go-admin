@@ -6,20 +6,22 @@ import (
 	"go-admin/models"
 	"go-admin/service"
 	"go-admin/utils/errors"
+	"reflect"
 )
 
 func CasbinHandler() gin.HandlerFunc {
 	return func(context *gin.Context) {
-		fmt.Println(context, "context")
 		claims, _ := context.Get("claims")
-		fmt.Println(claims, "claims")
-		waitUse := claims.(*models.CustomClaims)
+		waitUse, ok := claims.(*models.CustomClaims)
+		fmt.Println(claims, "claims", reflect.TypeOf(claims))
+		if !ok {
+			return
+		}
 		obj := context.Request.URL.RequestURI()
 		act := context.Request.Method
 		sub := waitUse.Roles
 		e := service.Casbin()
-		ok, err := e.Enforce(sub, obj, act)
-		fmt.Println(err, "错误信息")
+		ok, _ = e.Enforce(sub, obj, act)
 		if ok {
 			context.Next()
 		} else {
