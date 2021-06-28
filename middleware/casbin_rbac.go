@@ -17,7 +17,8 @@ func CasbinHandler() gin.HandlerFunc {
 		//}
 		obj := context.Request.URL.RequestURI()
 		act := context.Request.Method
-		sub := waitUse.Roles
+		fmt.Println(waitUse.Roles[0])
+		sub := waitUse.Roles[0].RoleName
 		fmt.Println(sub)
 		e := service.Casbin()
 		ok, _ = e.Enforce(sub, obj, act)
