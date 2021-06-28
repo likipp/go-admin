@@ -17,9 +17,9 @@ func CasbinHandler() gin.HandlerFunc {
 		//}
 		obj := context.Request.URL.RequestURI()
 		act := context.Request.Method
-		fmt.Println(waitUse.Roles[0])
-		sub := waitUse.Roles[0].RoleName
-		fmt.Println(sub)
+		fmt.Println(waitUse.Roles[1].RoleName, act)
+		sub := waitUse.Roles[1].RoleName
+		fmt.Println(sub, "sub", act, "测试")
 		e := service.Casbin()
 		ok, _ = e.Enforce(sub, obj, act)
 		if ok {
