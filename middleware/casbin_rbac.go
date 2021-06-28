@@ -29,6 +29,10 @@ func CasbinHandler() gin.HandlerFunc {
 		// 再循环用户所拥有的角色是否拥有权限
 		for _, v := range waitUse.Roles {
 			sub := v.RoleName
+			// 如果用户属于管理员组，则默认拥有所有权
+			if sub == "管理员组" {
+				sub = "root"
+			}
 			ok, _ = e.Enforce(sub, obj, act)
 		}
 		if ok {
