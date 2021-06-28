@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"go-admin/models"
 	"go-admin/service"
@@ -12,16 +11,26 @@ func CasbinHandler() gin.HandlerFunc {
 	return func(context *gin.Context) {
 		claims, _ := context.Get("claims")
 		waitUse, ok := claims.(*models.CustomClaims)
-		//if !ok {
-		//	return
-		//}
+		if !ok {
+			errors.FailWithMessage("获取用户失败", context)
+			context.Abort()
+			return
+		}
 		obj := context.Request.URL.RequestURI()
 		act := context.Request.Method
-		fmt.Println(waitUse.Roles[1].RoleName, act)
-		sub := waitUse.Roles[1].RoleName
-		fmt.Println(sub, "sub", act, "测试")
 		e := service.Casbin()
+		// 先查看用户是否拥有权限, 如果已经拥有了权限, 则不查看所属是否拥有权限
+		sub := waitUse.Username
 		ok, _ = e.Enforce(sub, obj, act)
+		if ok {
+			context.Next()
+			return
+		}
+		// 再循环用户所拥有的角色是否拥有权限
+		for _, v := range waitUse.Roles {
+			sub := v.RoleName
+			ok, _ = e.Enforce(sub, obj, act)
+		}
 		if ok {
 			context.Next()
 		} else {

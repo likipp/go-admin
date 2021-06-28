@@ -28,15 +28,11 @@ type JWT struct {
 }
 
 type Casbin struct {
-	ModelPath string `json:"modelPath" yaml:"model-path"`
+	ModelPath string `json:"modelPath"`
 }
 
 var AdminConfig Config
 var VTool *viper.Viper
-
-type Server struct {
-	JWT JWT `mapstructure:"jwt" json:"jwt" yaml:"jwt"`
-}
 
 func init() {
 	v := viper.New()

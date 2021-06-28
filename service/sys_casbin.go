@@ -3,15 +3,12 @@ package service
 import (
 	"github.com/casbin/casbin/v2"
 	"github.com/casbin/casbin/v2/util"
-	_ "github.com/casbin/casbin/v2/util"
 	gormadapter "github.com/casbin/gorm-adapter/v3"
 	_ "github.com/go-sql-driver/mysql"
-	_ "go-admin/init/database"
+	"go-admin/config"
 	orm "go-admin/init/database"
 	"strings"
-	_ "strings"
 	"sync"
-	_ "sync"
 )
 
 var (
@@ -22,7 +19,7 @@ var (
 func Casbin() *casbin.SyncedEnforcer {
 	once.Do(func() {
 		a, _ := gormadapter.NewAdapterByDB(orm.DB)
-		syncedEnforcer, _ = casbin.NewSyncedEnforcer("./resource/rbac_model.conf", a)
+		syncedEnforcer, _ = casbin.NewSyncedEnforcer(config.AdminConfig.Casbin.ModelPath, a)
 		syncedEnforcer.AddFunction("ParamsMatch", ParamsMatchFunc)
 	})
 	_ = syncedEnforcer.LoadPolicy()
