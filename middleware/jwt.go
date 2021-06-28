@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"errors"
-	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"go-admin/config"
@@ -24,15 +23,15 @@ type JWT struct {
 	SigningKey []byte
 }
 
-type CustomClaims struct {
-	UUID       string
-	ID         int
-	Username   string
-	NickName   string
-	RoleName   []models.SysRole
-	BufferTime int64
-	jwt.StandardClaims
-}
+//type CustomClaims struct {
+//	UUID       string
+//	ID         int
+//	Username   string
+//	NickName   string
+//	RoleName   []models.SysRole
+//	BufferTime int64
+//	jwt.StandardClaims
+//}
 
 func JWTAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -78,14 +77,13 @@ func NewJWT() *JWT {
 	}
 }
 
-func (j *JWT) CreateToken(claims CustomClaims) (string, error) {
-	fmt.Println(claims, "token")
+func (j *JWT) CreateToken(claims models.CustomClaims) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(j.SigningKey)
 }
 
-func (j *JWT) ParseToken(tokenString string) (*CustomClaims, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &CustomClaims{}, func(token *jwt.Token) (i interface{}, e error) {
+func (j *JWT) ParseToken(tokenString string) (*models.CustomClaims, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &models.CustomClaims{}, func(token *jwt.Token) (i interface{}, e error) {
 		return j.SigningKey, nil
 	})
 	if err != nil {
@@ -102,7 +100,7 @@ func (j *JWT) ParseToken(tokenString string) (*CustomClaims, error) {
 		}
 	}
 	if token != nil {
-		if claims, ok := token.Claims.(*CustomClaims); ok && token.Valid {
+		if claims, ok := token.Claims.(*models.CustomClaims); ok && token.Valid {
 			return claims, nil
 		}
 		return nil, TokenInvalid

@@ -20,7 +20,6 @@ func CreateUser(c *gin.Context) {
 	var U models.SysUser
 	var _ = c.ShouldBind(&U)
 	_ = c.ShouldBindBodyWith(&U, binding.JSON).Error()
-	fmt.Println(&U, "用户信息")
 	U.Password = "123456"
 	err, user := U.CreateUser()
 	if err != nil {
@@ -92,7 +91,6 @@ func UpdateUser(c *gin.Context) {
 	// N代表前端传递过来的用户修改信息
 	var N models.SysUser
 	_ = c.ShouldBindJSON(&N)
-	fmt.Println(N.Roles, "roles", N.NickName)
 	uid := c.Param("uuid")
 	//U.UUID, _ = uuid.FromString(uid)
 	U.UUID = uid
@@ -166,7 +164,6 @@ func EnableOrDisableUser(c *gin.Context) {
 func Login(c *gin.Context) {
 	var L models.Login
 	_ = c.ShouldBindJSON(&L)
-	fmt.Println(L, "用户")
 	if err, user := models.UserLogin(&L); err != nil {
 		errors.FailWithMessage(fmt.Sprintf("%v", err), c)
 	} else {
@@ -184,12 +181,12 @@ func GetToken(c *gin.Context, user models.SysUser) {
 	j := &middleware.JWT{
 		SigningKey: []byte(config.AdminConfig.JWT.SigningKey),
 	}
-	clams := middleware.CustomClaims{
+	clams := models.CustomClaims{
 		UUID:       user.UUID,
 		ID:         user.ID,
 		NickName:   user.NickName,
 		Username:   user.Username,
-		RoleName:   user.Roles,
+		Roles:      user.Roles,
 		BufferTime: 60 * 60 * 24, // 缓冲时间1天 缓冲时间内会获得新的token刷新令牌 此时一个用户会存在两个有效令牌 但是前端只留一个 另一个会丢失
 		StandardClaims: jwt.StandardClaims{
 			NotBefore: time.Now().Unix() - 1000,       // 签名生效时间

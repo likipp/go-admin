@@ -6,9 +6,10 @@ import (
 )
 
 type Config struct {
-	MysqlAdmin MySQL `json:"mysqlAdmin"`
-	RedisAdmin Redis `json:"redisAdmin"`
-	JWT        JWT   `json:"jwt"`
+	MysqlAdmin MySQL  `json:"mysqlAdmin"`
+	RedisAdmin Redis  `json:"redisAdmin"`
+	JWT        JWT    `json:"jwt"`
+	Casbin     Casbin `json:"casbin"`
 }
 
 type MySQL struct {
@@ -26,12 +27,15 @@ type JWT struct {
 	SigningKey string `mapstructure:"signing-key" json:"signingKey" yaml:"signing-key"`
 }
 
+type Casbin struct {
+	ModelPath string `json:"modelPath" yaml:"model-path"`
+}
+
 var AdminConfig Config
 var VTool *viper.Viper
 
 type Server struct {
-	JWT    JWT    `mapstructure:"jwt" json:"jwt" yaml:"jwt"`
-	Casbin Casbin `mapstructure:"casbin" json:"casbin" yaml:"casbin"`
+	JWT JWT `mapstructure:"jwt" json:"jwt" yaml:"jwt"`
 }
 
 func init() {

@@ -33,5 +33,6 @@ func UserLogin(l *Login) (err error, userInter *SysUser) {
 	if utils.PasswordVerify(user.Password, l.Password) != true {
 		return errors.New("密码不正确"), &user
 	}
+	orm.DB.Model(&user).Association("Roles").Find(&user.Roles)
 	return err, &user
 }

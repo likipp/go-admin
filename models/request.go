@@ -4,7 +4,7 @@ import "github.com/dgrijalva/jwt-go"
 
 type CustomClaims struct {
 	UUID       string `json:"uuid"`
-	ID         uint
+	ID         int
 	Username   string
 	NickName   string
 	Roles      []SysRole
