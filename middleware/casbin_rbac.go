@@ -21,18 +21,19 @@ func CasbinHandler() gin.HandlerFunc {
 		e := service.Casbin()
 		// 先查看用户是否拥有权限, 如果已经拥有了权限, 则不查看所属是否拥有权限
 		sub := waitUse.Username
-		ok, _ = e.Enforce(sub, obj, act)
+		ok, err := e.Enforce(sub, obj, act)
+		if err != nil {
+			errors.FailWithMessage("权限认证失败", context)
+			context.Abort()
+			return
+		}
 		if ok {
 			context.Next()
 			return
 		}
-		// 再循环用户所拥有的角色是否拥有权限
+		// 再循环用户所拥有的角色是否拥有权限, 如果用户属于管理员组，则默认拥有所有权
 		for _, v := range waitUse.Roles {
 			sub := v.RoleName
-			// 如果用户属于管理员组，则默认拥有所有权
-			if sub == "管理员组" {
-				sub = "root"
-			}
 			ok, _ = e.Enforce(sub, obj, act)
 		}
 		if ok {
