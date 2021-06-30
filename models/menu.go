@@ -1,5 +1,7 @@
 package models
 
+import orm "go-admin/init/database"
+
 type BaseMenu struct {
 	BaseModel
 	Icon       string  `json:"icon" gorm:"column:icon"`
@@ -15,4 +17,10 @@ type BaseMenu struct {
 	Memo       *string `json:"memo" gorm:"column:memo;size:1024;"`
 	Component  string  `json:"component" gorm:"comment:对应前端文件路径;index"`
 	//SysRoles     []SysRole     `json:"roles" gorm:"many2many:sys_authority_menus;"`
+}
+
+func (m *BaseMenu) CreateMenu() (err error, menu *BaseMenu) {
+	//var menu BaseMenu
+	err = orm.DB.Create(menu).Error
+	return err, menu
 }
