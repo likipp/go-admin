@@ -7,14 +7,14 @@ import (
 	"go-admin/utils/errors"
 )
 
-func Create(c *gin.Context) {
+func CreateBaseMenu(c *gin.Context) {
 	var M models.BaseMenu
 	errs := c.ShouldBindBodyWith(&M, binding.JSON).Error()
 	if errs != "" {
-		errors.FailWithMessage(errs, c)
+		errors.FailWithMessage("获取前段信息失败", c)
 		return
 	}
-	err, menu := M.CreateMenu()
+	err, menu := M.CreateBaseMenu()
 	if err != nil {
 		errors.FailWithMessage("创建菜单失败", c)
 	} else {

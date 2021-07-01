@@ -12,8 +12,8 @@ func InitTableStruct(db *gorm.DB) {
 		models.SysRole{},
 		models.GroupKPI{},
 		models.KpiData{},
-		models.KPI{})
-	//models.Menu{},
+		models.KPI{},
+		models.BaseMenu{})
 	//models.MenuResource{},
 	//models.MenuMethod{})
 }

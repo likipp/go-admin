@@ -64,6 +64,9 @@ func InitRouter() *gin.Engine {
 		baseRouter.POST("kpi-data", apis.CreateKPIData)
 		baseRouter.GET("kpi-data", apis.GetKpiDataList)
 		baseRouter.GET("kpi-line", apis.GetKpiDateLine)
+
+		// Menu
+		baseRouter.POST("menus", apis.CreateBaseMenu)
 	}
 
 	return r
