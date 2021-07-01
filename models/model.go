@@ -7,5 +7,5 @@ type BaseModel struct {
 	UpdatedAt *time.Time `gorm:"updated_at" json:"updatedAt"`
 	CreateBy  string     `gorm:"create_by" json:"createBy"`
 	UpdateBy  string     `gorm:"update_by" json:"updateBy"`
-	ID        int        `json:"id" gorm:"primary_key;AUTO_INCREMENT"`
+	ID        int        `json:"id" gorm:"primaryKey;autoIncrement"`
 }

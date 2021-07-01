@@ -9,9 +9,13 @@ import (
 
 func CreateBaseMenu(c *gin.Context) {
 	var M models.BaseMenu
-	errs := c.ShouldBindBodyWith(&M, binding.JSON).Error()
-	if errs != "" {
-		errors.FailWithMessage("获取前段信息失败", c)
+	//if err := c.ShouldBind(&M); err != nil {
+	//	errors.FailWithMessage("获取前段数据失败", c)
+	//	return
+	//}
+	err := c.ShouldBindBodyWith(&M, binding.JSON)
+	if err != nil {
+		errors.FailWithMessage(err.Error(), c)
 		return
 	}
 	err, menu := M.CreateBaseMenu()

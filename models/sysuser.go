@@ -21,9 +21,7 @@ type SysUser struct {
 	Roles    []SysRole `json:"roles" gorm:"many2many:user_role;"`
 	DeptID   string    `json:"deptID"`
 	PostID   int       `json:"postID"`
-	//SysDept   SysDept   `json:"dept"`
-	//SysDeptId string    `json:"deptID"`
-	Sex      int `json:"sex"`
+	Sex      int       `json:"sex"`
 	LeaderId string
 	Remark   string `json:"remark"`
 	Status   int    `json:"status" gorm:"type:int(1);default:1"`
