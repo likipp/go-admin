@@ -7,13 +7,13 @@ import (
 
 func InitTableStruct(db *gorm.DB) {
 	_ = db.AutoMigrate(
-		models.SysUser{},
-		models.SysDept{},
+		models.BaseMenu{},
 		models.SysRole{},
 		models.GroupKPI{},
 		models.KpiData{},
 		models.KPI{},
-		models.BaseMenu{})
+		models.SysUser{},
+		models.SysDept{})
 	//models.MenuResource{},
 	//models.MenuMethod{})
 }
