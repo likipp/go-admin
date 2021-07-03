@@ -6,7 +6,7 @@ import (
 	"go-admin/models"
 	"go-admin/models/page"
 	"go-admin/utils"
-	"go-admin/utils/errors"
+	"go-admin/utils/response"
 	"net/http"
 )
 
@@ -26,7 +26,7 @@ func GetRoleList(c *gin.Context) {
 	_ = c.BindQuery(&pageInfo)
 	err, list, total := new(models.SysRole).GetList(pageInfo)
 	if err != nil {
-		errors.FailWithMessage(fmt.Sprintf("获取角色数据失败, %v", err), c)
+		response.FailWithMessage(fmt.Sprintf("获取角色数据失败, %v", err), c)
 	} else {
 		c.JSON(http.StatusOK, gin.H{
 			"code":     200,

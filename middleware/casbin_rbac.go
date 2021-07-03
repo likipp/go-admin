@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go-admin/models"
 	"go-admin/service"
-	"go-admin/utils/errors"
+	"go-admin/utils/response"
 )
 
 func CasbinHandler() gin.HandlerFunc {
@@ -12,7 +12,7 @@ func CasbinHandler() gin.HandlerFunc {
 		claims, _ := context.Get("claims")
 		waitUse, ok := claims.(*models.CustomClaims)
 		if !ok {
-			errors.FailWithMessage("获取用户失败", context)
+			response.FailWithMessage("获取用户失败", context)
 			context.Abort()
 			return
 		}
@@ -23,7 +23,7 @@ func CasbinHandler() gin.HandlerFunc {
 		sub := waitUse.Username
 		ok, err := e.Enforce(sub, obj, act)
 		if err != nil {
-			errors.FailWithMessage("权限认证失败", context)
+			response.FailWithMessage("权限认证失败", context)
 			context.Abort()
 			return
 		}
@@ -39,7 +39,7 @@ func CasbinHandler() gin.HandlerFunc {
 		if ok {
 			context.Next()
 		} else {
-			errors.FailWithMessage("权限不足", context)
+			response.FailWithMessage("权限不足", context)
 			context.Abort()
 			return
 		}

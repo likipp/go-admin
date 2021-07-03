@@ -84,7 +84,7 @@ func (k *KPI) GetKPIByUUID() (KPI KPI, err error) {
 //	db := GetKpiDB(orm.DB)
 //	hasKPI := db.Where("uuid = ?", k.UUID).First(&kpi).RecordNotFound()
 //	if !hasKPI {
-//		return KPIName, errors.New("未找到此KPI")
+//		return KPIName, response.New("未找到此KPI")
 //	}
 //	return kpi.Name, nil
 //}

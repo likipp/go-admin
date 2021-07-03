@@ -4,7 +4,6 @@ import (
 	"errors"
 	orm "go-admin/init/database"
 	"go-admin/utils"
-	"log"
 )
 
 type Login struct {
@@ -15,7 +14,6 @@ type Login struct {
 func (l *Login) GetUser() (user SysUser, role SysRole, err error) {
 	err = orm.DB.Table("sys_user").Where("username = ?", l.Username).Find(&user).Error
 	if err != nil {
-		log.Println(err)
 		return
 	}
 	if utils.PasswordVerify(user.Password, l.Password) {

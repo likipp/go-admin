@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go-admin/internal/gins"
 	"go-admin/models"
-	"go-admin/utils/errors"
+	"go-admin/utils/response"
 	"net/http"
 )
 
@@ -13,10 +13,10 @@ func CreateKPIData(c *gin.Context) {
 	var _ = c.ShouldBind(&KD)
 	err, kpiData := KD.CreateKpiData()
 	if err != nil {
-		errors.FailWithMessage("创建KPI数据失败", c)
+		response.FailWithMessage("创建KPI数据失败", c)
 		return
 	} else {
-		errors.OkWithData(kpiData, c)
+		response.OkWithData(kpiData, c)
 	}
 }
 
@@ -25,7 +25,7 @@ func GetKpiDataList(c *gin.Context) {
 	gins.ParseQuery(c, &params)
 	err, kpiDataList := new(models.KpiData).GetKpiData(params)
 	if err != nil {
-		errors.FailWithMessage("获取KPI数据失败", c)
+		response.FailWithMessage("获取KPI数据失败", c)
 		return
 	} else {
 		c.JSON(http.StatusOK, gin.H{
@@ -43,7 +43,7 @@ func GetKpiDateLine(c *gin.Context) {
 	gins.ParseQuery(c, &params)
 	err, kpiDataList := new(models.KpiData).GetKPIDataForLine(params)
 	if err != nil {
-		errors.FailWithMessage("获取KPI Line数据失败", c)
+		response.FailWithMessage("获取KPI Line数据失败", c)
 		return
 	} else {
 		c.JSON(http.StatusOK, gin.H{

@@ -5,7 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go-admin/internal/gins"
 	"go-admin/models"
-	"go-admin/utils/errors"
+	"go-admin/utils/response"
 	"net/http"
 )
 
@@ -15,10 +15,10 @@ func CreateKPI(c *gin.Context) {
 	fmt.Println(K, "K")
 	err, kpi := K.CreateKPI()
 	if err != nil {
-		errors.FailWithMessage("KPI创建失败", c)
+		response.FailWithMessage("KPI创建失败", c)
 		return
 	} else {
-		errors.OkWithData(kpi, c)
+		response.OkWithData(kpi, c)
 	}
 }
 
@@ -28,7 +28,7 @@ func GetKPIList(c *gin.Context) {
 	gins.ParseQuery(c, &params)
 	err, kpiList := new(models.KPI).GetKPIList(params)
 	if err != nil {
-		errors.FailWithMessage("KPI查询失败", c)
+		response.FailWithMessage("KPI查询失败", c)
 	} else {
 		c.JSON(http.StatusOK, gin.H{
 			"code":     200,
@@ -45,10 +45,10 @@ func GetKPIByUUID(c *gin.Context) {
 	K.UUID = c.Param("uuid")
 	kpi, err := K.GetKPIByUUID()
 	if err != nil {
-		errors.FailWithMessage("KPI查询失败", c)
+		response.FailWithMessage("KPI查询失败", c)
 		return
 	} else {
-		errors.OkWithData(kpi, c)
+		response.OkWithData(kpi, c)
 	}
 }
 
@@ -57,9 +57,9 @@ func UpdateKPIByUUID(c *gin.Context) {
 	gins.ParseJSON(c, &K)
 	kpi, err := K.UpdateKPIByUUID()
 	if err != nil {
-		errors.FailWithMessage("KPI修改失败", c)
+		response.FailWithMessage("KPI修改失败", c)
 		return
 	} else {
-		errors.OkWithData(kpi, c)
+		response.OkWithData(kpi, c)
 	}
 }

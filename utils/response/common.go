@@ -1,4 +1,4 @@
-package errors
+package response
 
 type PageResult struct {
 	Data     interface{} `json:"data"`

@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go-admin/config"
 	"go-admin/models"
-	Errors "go-admin/utils/errors"
+	Errors "go-admin/utils/response"
 	"net/http"
 	"strconv"
 	"time"
