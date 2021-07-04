@@ -33,7 +33,7 @@ func (k *KPI) CreateKPI() (err error, KPI *KPI) {
 	if hasKPIResult {
 		return errors.New("KPI名称重复,请检查"), nil
 	} else {
-		k.UUID, err = initID.GetID()
+		k.UUID, err = initID.NewID()
 		if err != nil {
 			return
 		}

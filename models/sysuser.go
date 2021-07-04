@@ -86,7 +86,7 @@ func (u *SysUser) CreateUser() (err error, userInter *SysUser) {
 		return errors.New("用户名已经注册"), nil
 	} else {
 		u.Roles = u.GetRoleList()
-		u.UUID, err = initID.GetID()
+		u.UUID, err = initID.NewID()
 		if err != nil {
 			return
 		}

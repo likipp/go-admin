@@ -55,7 +55,7 @@ func (d *SysDept) Create() (*SysDept, error) {
 		err := errors.New("部门已存在")
 		return d, err
 	} else {
-		d.DeptID, _ = initID.GetID()
+		d.DeptID, _ = initID.NewID()
 	}
 	if d.DeptID != "" {
 		var ParDept SysDept

@@ -3,7 +3,6 @@ module go-admin
 go 1.14
 
 require (
-	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/casbin/casbin/v2 v2.31.5
 	github.com/casbin/gorm-adapter/v3 v3.3.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -32,7 +31,7 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.6.2
 	github.com/swaggo/gin-swagger v1.2.0
-	github.com/swaggo/swag v1.6.7
+	github.com/swaggo/swag v1.6.7 // indirect
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 	golang.org/x/net v0.0.0-20200904194848-62affa334b73 // indirect
 	golang.org/x/sys v0.0.0-20200905004654-be1d3432aa8f // indirect

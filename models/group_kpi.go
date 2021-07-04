@@ -81,7 +81,7 @@ func (g *GroupKPI) CreateGroupKPI() (err error, gK *GroupKPI) {
 	if !hasGroupKpiResult {
 		return errors.New("部门KPI已经关联"), nil
 	}
-	g.UUID, err = initID.GetID()
+	g.UUID, err = initID.NewID()
 	if err != nil {
 		return
 	}

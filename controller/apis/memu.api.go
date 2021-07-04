@@ -1,7 +1,6 @@
 package apis
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"go-admin/models"
@@ -15,8 +14,7 @@ func CreateBaseMenu(c *gin.Context) {
 	//	return
 	//}
 	err := c.ShouldBindBodyWith(&M, binding.JSON)
-	user := getUserUUID(c)
-	fmt.Println(user, "当前用户UUID")
+	M.CreateBy = getUserUUID(c)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return

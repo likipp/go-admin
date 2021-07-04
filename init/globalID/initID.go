@@ -23,7 +23,7 @@ func Init(machineID uint16) (err error) {
 	return
 }
 
-func GetID() (id string, err error) {
+func NewID() (id string, err error) {
 	if sonyFlake == nil {
 		err = fmt.Errorf("sonyFlake未初始化")
 		return
