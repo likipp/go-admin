@@ -26,6 +26,21 @@ type BaseMenu struct {
 	//SysRoles     []SysRole     `json:"roles" gorm:"many2many:sys_authority_menus;"`
 }
 
+type MenuTrees []*MenuTree
+
+type MenuTree struct {
+	UUID       string     `yaml:"-" json:"uuid"`
+	Name       string     `yaml:"name" json:"name"`
+	Icon       string     `yaml:"icon" json:"icon"`
+	Router     string     `yaml:"router,omitempty" json:"router"`
+	ParentID   string     `yaml:"-" json:"parent_id"`
+	ParentPath string     `yaml:"-" json:"parent_path"`
+	Sequence   int        `yaml:"sequence" json:"sequence"`
+	ShowStatus int        `yaml:"-" json:"show_status"`
+	Status     int        `yaml:"-" json:"status"`
+	Children   *MenuTrees `yaml:"children,omitempty" json:"children,omitempty"`
+}
+
 func (BaseMenu) TableName() string {
 	return "base_menu"
 }
@@ -37,4 +52,28 @@ func (m *BaseMenu) CreateBaseMenu() (err error, menu *BaseMenu) {
 	}
 	err = orm.DB.Create(m).Error
 	return err, m
+}
+
+func (m MenuTrees) MenuToTree() MenuTrees {
+	mi := make(map[string]*MenuTree)
+	for _, item := range m {
+		mi[item.UUID] = item
+	}
+
+	var list MenuTrees
+	for _, item := range m {
+		if item.ParentID == "" {
+			list = append(list, item)
+			continue
+		}
+		if pitem, ok := mi[item.ParentID]; ok {
+			if pitem.Children == nil {
+				children := MenuTrees{item}
+				pitem.Children = &children
+				continue
+			}
+			*pitem.Children = append(*pitem.Children, item)
+		}
+	}
+	return list
 }
