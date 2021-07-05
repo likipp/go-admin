@@ -67,6 +67,7 @@ func InitRouter() *gin.Engine {
 
 		// Menu
 		baseRouter.POST("menus", apis.CreateBaseMenu)
+		baseRouter.GET("menus", apis.GetMenusTree)
 	}
 
 	return r

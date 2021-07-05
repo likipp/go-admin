@@ -26,3 +26,8 @@ func CreateBaseMenu(c *gin.Context) {
 		response.OkWithData(menu, c)
 	}
 }
+
+func GetMenusTree(c *gin.Context) {
+	var M models.BaseMenu
+	response.OkWithData(M, c)
+}
