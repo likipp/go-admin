@@ -1,6 +1,9 @@
 package models
 
 import (
+	"errors"
+	"fmt"
+	"github.com/jinzhu/copier"
 	orm "go-admin/init/database"
 	initID "go-admin/init/globalID"
 )
@@ -9,7 +12,7 @@ type BaseMenu struct {
 	BaseModel
 	//gorm.Model
 	//gorm:"size:256;not null;unique"
-	UUID       string `json:"uuid" `
+	UUID       string `json:"uuid"`
 	Icon       string `json:"icon" gorm:"column:icon"`
 	MenuLevel  uint   `json:"menu_level"`
 	Sequence   int    `json:"sequence" gorm:"column:sequence;index;default:0;not null;"`
@@ -32,7 +35,7 @@ type MenuTree struct {
 	UUID       string     `yaml:"-" json:"uuid"`
 	Name       string     `yaml:"name" json:"name"`
 	Icon       string     `yaml:"icon" json:"icon"`
-	Router     string     `yaml:"router,omitempty" json:"router"`
+	Path       string     `yaml:"path,omitempty" json:"path"`
 	ParentID   string     `yaml:"-" json:"parent_id"`
 	ParentPath string     `yaml:"-" json:"parent_path"`
 	Sequence   int        `yaml:"sequence" json:"sequence"`
@@ -54,7 +57,7 @@ func (m *BaseMenu) CreateBaseMenu() (err error, menu *BaseMenu) {
 	return err, m
 }
 
-func (m MenuTrees) MenuToTree() MenuTrees {
+func MenuToTree(m MenuTrees) MenuTrees {
 	mi := make(map[string]*MenuTree)
 	for _, item := range m {
 		mi[item.UUID] = item
@@ -76,4 +79,32 @@ func (m MenuTrees) MenuToTree() MenuTrees {
 		}
 	}
 	return list
+}
+
+func MenusAddChildren(ms []BaseMenu) (err error, mts MenuTrees) {
+	var mt MenuTree
+	for _, item := range ms {
+		err = copier.Copy(&item, &mt)
+		if err != nil {
+			return errors.New("转换失败"), nil
+		}
+		mts = append(mts, &mt)
+	}
+	fmt.Println(mts, "菜单列表")
+	return nil, mts
+}
+
+func (m *BaseMenu) GetBaseMenu() (err error, trees MenuTree) {
+	var menus []BaseMenu
+	err = orm.DB.Find(&menus).Error
+	if err != nil {
+		return err, trees
+	}
+	err, list := MenusAddChildren(menus)
+	if err != nil {
+		return err, MenuTree{}
+	}
+	list2 := MenuToTree(list)
+	fmt.Println(list2, "菜单列表转换后")
+	return err, trees
 }
