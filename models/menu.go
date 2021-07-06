@@ -2,7 +2,6 @@ package models
 
 import (
 	"errors"
-	"fmt"
 	"github.com/jinzhu/copier"
 	orm "go-admin/init/database"
 	initID "go-admin/init/globalID"
@@ -29,7 +28,7 @@ type BaseMenu struct {
 	//SysRoles     []SysRole     `json:"roles" gorm:"many2many:sys_authority_menus;"`
 }
 
-type MenuTrees []MenuTree
+type MenuTrees []*MenuTree
 
 type MenuTree struct {
 	UUID       string     `yaml:"-" json:"uuid"`
@@ -41,7 +40,7 @@ type MenuTree struct {
 	Sequence   int        `yaml:"sequence" json:"sequence"`
 	ShowStatus int        `yaml:"-" json:"show_status"`
 	Status     int        `yaml:"-" json:"status"`
-	Children   *MenuTrees `yaml:"children,omitempty" json:"children,omitempty"`
+	Children   *MenuTrees `yaml:"children,omitempty" json:"children"`
 }
 
 func (BaseMenu) TableName() string {
@@ -57,21 +56,31 @@ func (m *BaseMenu) CreateBaseMenu() (err error, menu *BaseMenu) {
 	return err, m
 }
 
+func MenusAddChildren(ms []BaseMenu) (err error, mts MenuTrees) {
+
+	for _, item := range ms {
+		mt := new(MenuTree)
+		err = copier.Copy(mt, item)
+		if err != nil {
+			return errors.New("转换失败"), nil
+		}
+		mts = append(mts, mt)
+	}
+	return nil, mts
+}
+
 func MenuToTree(m MenuTrees) MenuTrees {
-	mi := make(map[string]MenuTree)
+	mi := make(map[string]*MenuTree)
 	for _, item := range m {
 		mi[item.UUID] = item
 	}
 	var list MenuTrees
-	for _, item := range mi {
+	for _, item := range m {
 		if item.ParentID == "" {
 			list = append(list, item)
 			continue
 		}
-		//fmt.Println(mi[item.ParentID], item.ParentID)
 		if pitem, ok := mi[item.ParentID]; ok {
-			fmt.Println(pitem, "pitem")
-			fmt.Println(mi, "mi")
 			if pitem.Children == nil {
 				children := MenuTrees{item}
 				pitem.Children = &children
@@ -83,19 +92,7 @@ func MenuToTree(m MenuTrees) MenuTrees {
 	return list
 }
 
-func MenusAddChildren(ms []BaseMenu) (err error, mts MenuTrees) {
-	var mt MenuTree
-	for _, item := range ms {
-		err = copier.Copy(&mt, &item)
-		if err != nil {
-			return errors.New("转换失败"), nil
-		}
-		mts = append(mts, mt)
-	}
-	return nil, mts
-}
-
-func (m *BaseMenu) GetBaseMenu() (err error, trees MenuTree) {
+func (m *BaseMenu) GetBaseMenu() (err error, trees MenuTrees) {
 	var menus []BaseMenu
 	err = orm.DB.Find(&menus).Error
 	if err != nil {
@@ -103,8 +100,8 @@ func (m *BaseMenu) GetBaseMenu() (err error, trees MenuTree) {
 	}
 	err, list := MenusAddChildren(menus)
 	if err != nil {
-		return err, MenuTree{}
+		return err, nil
 	}
-	_ = MenuToTree(list)
-	return err, trees
+	list2 := MenuToTree(list)
+	return err, list2
 }
