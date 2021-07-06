@@ -17,7 +17,7 @@ type BaseMenu struct {
 	MenuLevel  uint   `json:"menu_level"`
 	Sequence   int    `json:"sequence" gorm:"column:sequence;index;default:0;not null;"`
 	Path       string `json:"path" gorm:"column:path;"`
-	ParentId   string `json:"parent_id" gorm:"comment:父菜单ID;index"`
+	ParentID   string `json:"parent_id" gorm:"comment:父菜单ID;index"`
 	ParentPath string `json:"parent_path" gorm:"comment:路由path;index"`
 	//Routers    []BaseMenu `json:"routers" gorm:"foreignKey:UUID"`
 	Name       string  `json:"name" gorm:"comment:路由name;index"`
@@ -29,7 +29,7 @@ type BaseMenu struct {
 	//SysRoles     []SysRole     `json:"roles" gorm:"many2many:sys_authority_menus;"`
 }
 
-type MenuTrees []*MenuTree
+type MenuTrees []MenuTree
 
 type MenuTree struct {
 	UUID       string     `yaml:"-" json:"uuid"`
@@ -58,18 +58,20 @@ func (m *BaseMenu) CreateBaseMenu() (err error, menu *BaseMenu) {
 }
 
 func MenuToTree(m MenuTrees) MenuTrees {
-	mi := make(map[string]*MenuTree)
+	mi := make(map[string]MenuTree)
 	for _, item := range m {
 		mi[item.UUID] = item
 	}
-
 	var list MenuTrees
-	for _, item := range m {
+	for _, item := range mi {
 		if item.ParentID == "" {
 			list = append(list, item)
 			continue
 		}
+		//fmt.Println(mi[item.ParentID], item.ParentID)
 		if pitem, ok := mi[item.ParentID]; ok {
+			fmt.Println(pitem, "pitem")
+			fmt.Println(mi, "mi")
 			if pitem.Children == nil {
 				children := MenuTrees{item}
 				pitem.Children = &children
@@ -84,13 +86,12 @@ func MenuToTree(m MenuTrees) MenuTrees {
 func MenusAddChildren(ms []BaseMenu) (err error, mts MenuTrees) {
 	var mt MenuTree
 	for _, item := range ms {
-		err = copier.Copy(&item, &mt)
+		err = copier.Copy(&mt, &item)
 		if err != nil {
 			return errors.New("转换失败"), nil
 		}
-		mts = append(mts, &mt)
+		mts = append(mts, mt)
 	}
-	fmt.Println(mts, "菜单列表")
 	return nil, mts
 }
 
@@ -104,7 +105,6 @@ func (m *BaseMenu) GetBaseMenu() (err error, trees MenuTree) {
 	if err != nil {
 		return err, MenuTree{}
 	}
-	list2 := MenuToTree(list)
-	fmt.Println(list2, "菜单列表转换后")
+	_ = MenuToTree(list)
 	return err, trees
 }
