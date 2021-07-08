@@ -40,7 +40,8 @@ type MenuTree struct {
 	Sequence   int        `yaml:"sequence" json:"sequence"`
 	ShowStatus int        `yaml:"-" json:"show_status"`
 	Status     int        `yaml:"-" json:"status"`
-	Children   *MenuTrees `yaml:"children,omitempty" json:"children"`
+	Component  string     `json:"component"`
+	Routes     *MenuTrees `yaml:"routes,omitempty" json:"routes"`
 }
 
 func (BaseMenu) TableName() string {
@@ -81,12 +82,12 @@ func MenuToTree(m MenuTrees) MenuTrees {
 			continue
 		}
 		if pitem, ok := mi[item.ParentID]; ok {
-			if pitem.Children == nil {
+			if pitem.Routes == nil {
 				children := MenuTrees{item}
-				pitem.Children = &children
+				pitem.Routes = &children
 				continue
 			}
-			*pitem.Children = append(*pitem.Children, item)
+			*pitem.Routes = append(*pitem.Routes, item)
 		}
 	}
 	return list
