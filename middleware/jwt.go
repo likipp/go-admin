@@ -35,7 +35,7 @@ type JWT struct {
 
 func JWTAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		token := c.Request.Header.Get("x-token")
+		token := c.Request.Header.Get("Authorization")[7:]
 		if token == "" {
 			Errors.Result(http.StatusNonAuthoritativeInfo, gin.H{
 				"reload": true,
