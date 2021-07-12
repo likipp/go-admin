@@ -12,33 +12,27 @@ import (
 //)
 
 type Response struct {
-	Code      int         `json:"code"`
-	Success   bool        `json:"success"`
-	Msg       string      `json:"msg"`
-	Timestamp int64       `json:"timestamp"`
-	Result    interface{} `json:"result"`
+	ErrorCode    int         `json:"errorCode"`
+	Success      bool        `json:"success"`
+	ErrorMessage string      `json:"errorMessage"`
+	Timestamp    int64       `json:"timestamp"`
+	ShowType     int         `json:"showType"`
+	Data         interface{} `json:"data"`
+	Host         string      `json:"host"`
 }
 
 func (r *Response) Error() string {
-	return r.Msg
+	return r.ErrorMessage
 }
 
 func Result(code int, data interface{}, msg string, success bool, c *gin.Context) {
-	// 开始时间
-	//c.JSON(http.StatusOK, Response{
-	//	Code:      code,
-	//	Success:   success,
-	//	Msg:       msg,
-	//	Timestamp: time.Now().Unix(),
-	//	Result:    data,
-	//})
-	//time.Now().Format("2006-01-02 15:04:05")
 	c.JSON(code, &Response{
-		Code:      code,
-		Success:   success,
-		Msg:       msg,
-		Timestamp: time.Now().Unix(),
-		Result:    data,
+		ErrorCode:    code,
+		Success:      success,
+		ErrorMessage: msg,
+		Timestamp:    time.Now().Unix(),
+		Data:         data,
+		Host:         c.ClientIP(),
 	})
 }
 
