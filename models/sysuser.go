@@ -56,6 +56,14 @@ type UserFilterNoPage struct {
 	Sex      int    `json:"sex"`
 }
 
+type CurrentUser struct {
+	Avatar   string `json:"avatar"`
+	Nickname string `json:"nickname"`
+	Title    string `json:"title"`
+	UUID     string `json:"uuid"`
+	Access   string `json:"access"`
+}
+
 func (SysUser) TableName() string {
 	return "sys_user"
 }

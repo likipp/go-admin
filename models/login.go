@@ -14,10 +14,10 @@ type Login struct {
 func (l *Login) GetUser() (user SysUser, role SysRole, err error) {
 	err = orm.DB.Table("sys_user").Where("username = ?", l.Username).Find(&user).Error
 	if err != nil {
-		return
+		return user, role, errors.New("查找用户失败")
 	}
 	if utils.PasswordVerify(user.Password, l.Password) {
-		return
+		return user, role, errors.New("密码不匹配")
 	}
 	return
 }
@@ -31,6 +31,9 @@ func UserLogin(l *Login) (err error, userInter *SysUser) {
 	if utils.PasswordVerify(user.Password, l.Password) != true {
 		return errors.New("密码不正确"), &user
 	}
-	orm.DB.Model(&user).Association("Roles").Find(&user.Roles)
+	err = orm.DB.Model(&user).Association("Roles").Find(&user.Roles)
+	if err != nil {
+		return errors.New("查找关联角色失败"), nil
+	}
 	return err, &user
 }

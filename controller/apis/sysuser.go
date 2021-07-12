@@ -143,26 +143,6 @@ func EnableOrDisableUser(c *gin.Context) {
 	} else {
 		response.FailWithMessage("未知状态", c)
 	}
-
-	//if status == 2 {
-	//	if err != nil {
-	//		//c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "禁用失败", "data": err.Error()})
-	//		response.FailWithMessage("禁用失败", c)
-	//		return
-	//	} else {
-	//		//c.JSON(http.StatusOK, gin.H{"code": 200, "msg": "禁用成功"})
-	//		response.OkWithMessage("禁用成功", c)
-	//	}
-	//} else if status == 1 {
-	//	if err != nil {
-	//		response.FailWithMessage("启用失败", c)
-	//		return
-	//	} else {
-	//		response.OkWithMessage("启用成功", c)
-	//	}
-	//} else {
-	//	response.FailWithMessage("未知状态", c)
-	//}
 }
 
 // Login 用户登录
@@ -179,7 +159,18 @@ func Login(c *gin.Context) {
 
 // GetCurrentUser 获取当前登录用户信息
 func GetCurrentUser(c *gin.Context) {
-	response.OkWithMessage("获取成功", c)
+	var user models.CurrentUser
+	if claims, exists := c.Get("claims"); !exists {
+		response.FailWithMessage("获取Token失败", c)
+	} else {
+		waitUse := claims.(*models.CustomClaims)
+		user.Avatar = ""
+		user.UUID = waitUse.UUID
+		user.Nickname = waitUse.NickName
+		user.Access = "admin"
+	}
+	fmt.Println(user, "打印用户")
+	response.OkWithData(user, c)
 }
 
 func GetToken(c *gin.Context, user models.SysUser) {
