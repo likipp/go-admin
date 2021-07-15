@@ -22,7 +22,7 @@ func CreateGroupKPI(c *gin.Context) {
 func GetGroupKPI(c *gin.Context) {
 	err, results := new(models.GroupKPI).GetGroupKPI()
 	if err != nil {
-		response.FailWithMessage("成功获取列表", c)
+		response.FailWithMessage("获取列表成功", c)
 		return
 	} else {
 		response.OkWithData(results, c)
@@ -34,7 +34,7 @@ func GetGroupKPIDept(c *gin.Context) {
 	gins.ParseQuery(c, &params)
 	err, results := new(models.GroupKPI).GetGroupKPIDept(params)
 	if err != nil {
-		response.FailWithMessage("成功部门列表", c)
+		response.FailWithMessage("获取列表失败", c)
 		return
 	} else {
 		response.OkWithData(results, c)

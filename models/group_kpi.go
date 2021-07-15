@@ -124,10 +124,16 @@ func (g *GroupKPI) GetGroupKPIDept(params KPIDeptQueryParam) (err error, result 
 	var joinQuery = "join sys_dept on sys_dept.dept_id = group_kpi.dept join kpi on group_kpi.kpi = kpi.uuid join kpi_data on group_kpi.uuid = kpi_data.group_kpi"
 	db := GetGroupKpiDB(orm.DB).Distinct("sys_dept.dept_id, sys_dept.dept_name").Joins(joinQuery)
 	if params.Dept == "" && params.KPI == "" {
-		db = db.Distinct("sys_dept.dept_id, sys_dept.dept_name").Select(selectDept).Scan(&result)
+		err := db.Distinct("sys_dept.dept_id, sys_dept.dept_name").Select(selectDept).Scan(&result).Error
+		if err != nil {
+			return err, result
+		}
 	}
 	if params.Dept != "" {
-		db = db.Distinct("sys_dept.dept_id, sys_dept.dept_name").Select("kpi.uuid, kpi.name").Where("group_kpi.dept = ? and kpi_data.in_time < ?", params.Dept, month).Scan(&result)
+		err := db.Distinct("sys_dept.dept_id, sys_dept.dept_name").Select("kpi.uuid, kpi.name").Where("group_kpi.dept = ? and kpi_data.in_time < ?", params.Dept, month).Scan(&result).Error
+		if err != nil {
+			return err, result
+		}
 	}
 	return nil, result
 }
