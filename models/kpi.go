@@ -89,17 +89,19 @@ func (k *KPI) GetKPIByUUID() (KPI KPI, err error) {
 //	return kpi.Name, nil
 //}
 
-func (k *KPI) UpdateKPIByUUID() (KPI KPI, err error) {
+func (k *KPI) UpdateKPIByUUID() (KR KPI, err error) {
+	var kt KPI
 	db := GetKpiDB(orm.DB)
-	result := db.Where("uuid = ?", k.UUID)
-	if result.Error != nil {
-		return KPI, errors.New("KPI不存在")
+	err = db.Model(&KPI{}).Where("uuid = ?", k.UUID).First(&kt).Error
+	if err != nil {
+		return KR, errors.New("KPI不存在")
 	}
-	result = db.Where("uuid = ?", k.UUID).Updates(k)
-	if result.Error != nil {
-		return KPI, result.Error
+	//result = db.Where("uuid = ?", k.UUID).Updates(&k)
+	err = db.Where("uuid = ?", k.UUID).Model(&KPI{}).Updates(k).Error
+	if err != nil {
+		return KR, errors.New("KPI修改失败")
 	}
-	return KPI, nil
+	return KR, nil
 }
 
 func (k *KPI) DeleteKPIByUUID(uuid string) error {

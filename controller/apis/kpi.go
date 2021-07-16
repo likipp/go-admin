@@ -55,9 +55,15 @@ func GetKPIByUUID(c *gin.Context) {
 func UpdateKPIByUUID(c *gin.Context) {
 	var K models.KPI
 	gins.ParseJSON(c, &K)
+	// 获取到UUID, 只有uuid有值时才能更新成功
+	uid := c.Param("uuid")
+	K.UUID = uid
+	// 获取当前登录用户uuid, 操作后写入数据库
+	user := getUserUUID(c)
+	K.UpdateBy = user
 	kpi, err := K.UpdateKPIByUUID()
 	if err != nil {
-		response.FailWithMessage("KPI修改失败", c)
+		response.FailWithMessage(err.Error(), c)
 		return
 	} else {
 		response.OkWithData(kpi, c)
