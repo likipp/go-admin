@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"github.com/pkg/errors"
 	orm "go-admin/init/database"
 	"go-admin/init/globalID"
@@ -89,15 +90,17 @@ func (k *KPI) GetKPIByUUID() (KPI KPI, err error) {
 //	return kpi.Name, nil
 //}
 
+//func (k *KPI) BeforeUpdate(tx *gorm.DB) (err error) {
+//	if tx.Statement.Changed("Name") {
+//		tx.Statement.SetColumn("Name", k.Name)
+//	}
+//	return nil
+//}
+
 func (k *KPI) UpdateKPIByUUID() (KR KPI, err error) {
-	var kt KPI
 	db := GetKpiDB(orm.DB)
-	err = db.Model(&KPI{}).Where("uuid = ?", k.UUID).First(&kt).Error
-	if err != nil {
-		return KR, errors.New("KPI不存在")
-	}
-	//result = db.Where("uuid = ?", k.UUID).Updates(&k)
-	err = db.Where("uuid = ?", k.UUID).Model(&KPI{}).Updates(k).Error
+	fmt.Println(k, "k")
+	err = db.Where("uuid", k.UUID).Model(&KPI{}).Updates(k).Error
 	if err != nil {
 		return KR, errors.New("KPI修改失败")
 	}

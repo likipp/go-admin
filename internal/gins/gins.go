@@ -1,6 +1,7 @@
 package gins
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"go-admin/utils/response"
@@ -15,6 +16,7 @@ func ParseJSON(c *gin.Context, obj interface{}) {
 		response.FailWithMessage("解析请求参数发生错误", c)
 		return
 	}
+	fmt.Println(obj, "前端数据")
 	//response.OkWithMessage("获取数据成功", c)
 }
 

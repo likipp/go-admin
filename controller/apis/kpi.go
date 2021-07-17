@@ -53,19 +53,23 @@ func GetKPIByUUID(c *gin.Context) {
 }
 
 func UpdateKPIByUUID(c *gin.Context) {
-	var K models.KPI
-	gins.ParseJSON(c, &K)
+	var newK models.KPI
+	gins.ParseJSON(c, &newK)
 	// 获取到UUID, 只有uuid有值时才能更新成功
 	uid := c.Param("uuid")
-	K.UUID = uid
+	newK.UUID = uid
+	_, err := newK.GetKPIByUUID()
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+	}
 	// 获取当前登录用户uuid, 操作后写入数据库
 	user := getUserUUID(c)
-	K.UpdateBy = user
-	kpi, err := K.UpdateKPIByUUID()
+	newK.UpdateBy = user
+	_, err = newK.UpdateKPIByUUID()
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
 	} else {
-		response.OkWithData(kpi, c)
+		response.OkWithMessage("操作成功", c)
 	}
 }
