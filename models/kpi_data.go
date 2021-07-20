@@ -15,10 +15,10 @@ import (
 type KpiData struct {
 	BaseModel
 	UUID     string `gorm:"column:uuid"       json:"uuid"`
-	RValue   int    `gorm:"column:r_value"    json:"r_value"`
-	InTime   string `gorm:"column:in_time"    json:"in_time"`
-	User     string `gorm:"column:user"       json:"user"`
-	GroupKPI string `gorm:"column:group_kpi"  json:"group_kpi"`
+	RValue   int    `gorm:"column:r_value"    json:"r_value"   binding:"required"`
+	InTime   string `gorm:"column:in_time"    json:"in_time"   binding:"required"`
+	User     string `gorm:"column:user"       json:"user"      binding:"required"`
+	GroupKPI string `gorm:"column:group_kpi"  json:"group_kpi" binding:"required"`
 }
 
 type Result struct {
@@ -67,9 +67,9 @@ func (k *KpiData) CreateKpiData() (err error, kd *KpiData) {
 	hasKpiData := db.Where("group_kpi = ? AND in_time = ?", k.GroupKPI, k.InTime).First(&result).Error
 	hasKpiDataResult := errors.Is(hasKpiData, gorm.ErrRecordNotFound)
 	if !hasKpiDataResult {
-		return errors.New("KPI数据已经录入"), kd
+		return errors.New("当月KPI数据已经录入, 请检查"), kd
 	}
-	err = db.Create(&k).Error
+	err = orm.DB.Create(&k).Error
 	if err != nil {
 		return errors.New("创建KPI数据失败"), kd
 	}

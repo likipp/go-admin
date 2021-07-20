@@ -1,7 +1,7 @@
 package initTableStruct
 
 import (
-	models "go-admin/models"
+	"go-admin/models"
 	"gorm.io/gorm"
 )
 

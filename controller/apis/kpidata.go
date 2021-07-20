@@ -10,10 +10,15 @@ import (
 
 func CreateKPIData(c *gin.Context) {
 	var KD models.KpiData
-	var _ = c.ShouldBind(&KD)
+	var err = c.ShouldBindJSON(&KD)
+	if err != nil {
+		response.FailWithMessage("获取前端KPI数据失败", c)
+		return
+	}
+	KD.CreateBy = getUserUUID(c)
 	err, kpiData := KD.CreateKpiData()
 	if err != nil {
-		response.FailWithMessage("创建KPI数据失败", c)
+		response.FailWithMessage(err.Error(), c)
 		return
 	} else {
 		response.OkWithData(kpiData, c)

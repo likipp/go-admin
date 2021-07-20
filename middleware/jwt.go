@@ -39,7 +39,7 @@ func JWTAuth() gin.HandlerFunc {
 		if token == "" {
 			Errors.Result(http.StatusNonAuthoritativeInfo, gin.H{
 				"reload": true,
-			}, "未登录或非法访问", false, c)
+			}, "未登录或非法访问", 2, false, c)
 			c.Abort()
 			return
 		}
@@ -49,13 +49,13 @@ func JWTAuth() gin.HandlerFunc {
 			if err == TokenExpired {
 				Errors.Result(http.StatusExpectationFailed, gin.H{
 					"reload": true,
-				}, "授权已过期", false, c)
+				}, "授权已过期", 2, false, c)
 				c.Abort()
 				return
 			}
 			Errors.Result(http.StatusExpectationFailed, gin.H{
 				"reload": true,
-			}, err.Error(), false, c)
+			}, err.Error(), 2, false, c)
 			c.Abort()
 			return
 		}
