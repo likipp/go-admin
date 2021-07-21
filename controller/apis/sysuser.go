@@ -164,13 +164,15 @@ func GetCurrentUser(c *gin.Context) {
 		response.FailWithMessage("获取Token失败", c)
 	} else {
 		waitUse := claims.(*models.CustomClaims)
-		user.Avatar = ""
+		user.Avatar = "https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png"
 		user.UUID = waitUse.UUID
 		user.Nickname = waitUse.NickName
 		user.Access = "admin"
 	}
 	fmt.Println(user, "打印用户")
-	response.OkWithData(user, c)
+	//response.OkWithData(user, c)
+	//c.JSON(200, gin.H{"data": user})
+	c.JSONP(http.StatusOK, user)
 }
 
 func GetToken(c *gin.Context, user models.SysUser) {
