@@ -166,10 +166,11 @@ func GetCurrentUser(c *gin.Context) {
 		waitUse := claims.(*models.CustomClaims)
 		user.Avatar = "https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png"
 		user.UUID = waitUse.UUID
-		user.Nickname = waitUse.NickName
+		user.Nickname = waitUse.Username
 		user.Access = "admin"
+		user.Name = waitUse.NickName
 	}
-	fmt.Println(user, "打印用户")
+	//fmt.Println(user, "打印用户")
 	//response.OkWithData(user, c)
 	//c.JSON(200, gin.H{"data": user})
 	c.JSONP(http.StatusOK, user)

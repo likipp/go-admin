@@ -59,6 +59,7 @@ type UserFilterNoPage struct {
 type CurrentUser struct {
 	Avatar   string `json:"avatar"`
 	Nickname string `json:"nickname"`
+	Name     string `json:"name"`
 	Title    string `json:"title"`
 	UUID     string `json:"uuid"`
 	Access   string `json:"access"`
