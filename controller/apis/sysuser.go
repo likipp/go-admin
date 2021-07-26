@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"go-admin/config"
+	orm "go-admin/init/database"
 	"go-admin/middleware"
 	"go-admin/models"
 	"go-admin/utils"
@@ -152,6 +153,16 @@ func Login(c *gin.Context) {
 	if err, user := models.UserLogin(&L); err != nil {
 		response.FailWithMessage(fmt.Sprintf("%v", err), c)
 	} else {
+		session, err := orm.Store.Get(c.Request, "session")
+		if err != nil {
+			fmt.Println("初始化session成功")
+		}
+		session.Values["username"] = user.Username
+		session.Values["nickname"] = user.NickName
+		session.Values["avatar"] = user.Avatar
+		session.Values["uuid"] = user.UUID
+		orm.Store.Save(c.Request, c.Writer, session)
+		http.Error(c.Writer, "", http.StatusOK)
 		GetToken(c, *user)
 	}
 

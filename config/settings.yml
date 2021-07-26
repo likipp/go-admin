@@ -10,5 +10,8 @@ mysqladmin:
 jwt:
   JwtKey: eva0209
 
+sessions:
+  SecretKey: ses9090
+
 casbin:
   modelPath: "./resource/rbac_model.conf"
