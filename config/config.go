@@ -21,6 +21,7 @@ type MySQL struct {
 }
 
 type Redis struct {
+	Path string `json:"path"`
 }
 
 type JWT struct {

@@ -2,11 +2,10 @@ package middleware
 
 import (
 	"errors"
-	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"go-admin/config"
-	orm "go-admin/init/database"
+	"go-admin/init/cookies"
 	"go-admin/models"
 	"go-admin/utils/response"
 	"net/http"
@@ -37,8 +36,7 @@ type JWT struct {
 
 func JWTAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		session, e := orm.Store.Get(c.Request, "session")
-		fmt.Println(session, "session")
+		session, e := cookies.RS.Get(c.Request, "session")
 		token := session.Values["token"].(string)
 		if e != nil {
 			response.FailWithMessage("获取用户信息失败, 请检查session是否存在.", c)

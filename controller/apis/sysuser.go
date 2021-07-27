@@ -5,8 +5,9 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
+	"github.com/gorilla/sessions"
 	"go-admin/config"
-	orm "go-admin/init/database"
+	"go-admin/init/cookies"
 	"go-admin/middleware"
 	"go-admin/models"
 	"go-admin/utils"
@@ -153,13 +154,14 @@ func Login(c *gin.Context) {
 	if err, user := models.UserLogin(&L); err != nil {
 		response.FailWithMessage(fmt.Sprintf("%v", err), c)
 	} else {
-		session, err := orm.Store.Get(c.Request, "session")
+		//session, err := orm.Store.Get(c.Request, "session")
+		session, err := cookies.RS.Get(c.Request, "session")
 		if err != nil {
-			response.FailWithMessage("初始化session成功", c)
+			response.FailWithMessage("获取session失败", c)
 		}
-		if err != nil {
-			response.FailWithMessage("保存session失败", c)
-		}
+		//if err != nil {
+		//	response.FailWithMessage("保存session失败", c)
+		//}
 		token := GetToken(c, *user)
 		session.Values["nickname"] = user.Username
 		session.Values["name"] = user.NickName
@@ -167,7 +169,11 @@ func Login(c *gin.Context) {
 		session.Values["uuid"] = user.UUID
 		session.Values["access"] = "admin"
 		session.Values["token"] = token
-		err = orm.Store.Save(c.Request, c.Writer, session)
+		//err = orm.Store.Save(c.Request, c.Writer, session)
+		err = sessions.Save(c.Request, c.Writer)
+		if err = sessions.Save(c.Request, c.Writer); err != nil {
+			response.FailWithMessage("保存session失败!", c)
+		}
 		response.OkWithData(user, c)
 	}
 
@@ -176,19 +182,7 @@ func Login(c *gin.Context) {
 // GetCurrentUser 获取当前登录用户信息
 func GetCurrentUser(c *gin.Context) {
 	var user models.CurrentUser
-	//if claims, exists := c.Get("claims"); !exists {
-	//	response.FailWithMessage("获取Token失败", c)
-	//} else {
-	//	waitUse := claims.(*models.CustomClaims)
-	//	user.Avatar = "https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png"
-	//	user.UUID = waitUse.UUID
-	//	user.Nickname = waitUse.Username
-	//	user.Access = "admin"
-	//	user.Name = waitUse.NickName
-	//}
-	//response.OkWithData(user, c)
-	//c.JSON(200, gin.H{"data": user})
-	session, e := orm.Store.Get(c.Request, "session")
+	session, e := cookies.RS.Get(c.Request, "session")
 	if e != nil {
 		response.FailWithMessage("获取用户信息失败, 请检查session是否存在.", c)
 	}
@@ -198,6 +192,16 @@ func GetCurrentUser(c *gin.Context) {
 	user.Access = "admin"
 	user.Name = session.Values["name"].(string)
 	c.JSONP(http.StatusOK, user)
+}
+
+func Logout(c *gin.Context) {
+	session, e := cookies.RS.Get(c.Request, "session")
+	if e != nil {
+		response.FailWithMessage("获取用户信息失败, 请检查session是否存在.", c)
+	}
+	fmt.Println("退出登录")
+	session.Options.MaxAge = -1
+	response.OkWithMessage("退出成功", c)
 }
 
 func GetToken(c *gin.Context, user models.SysUser) (token string) {
@@ -231,11 +235,16 @@ func GetToken(c *gin.Context, user models.SysUser) (token string) {
 }
 
 func getUserUUID(c *gin.Context) string {
-	if claims, exists := c.Get("claims"); !exists {
-		response.FailWithMessage("获取Token失败", c)
-		return ""
-	} else {
-		waitUse := claims.(*models.CustomClaims)
-		return waitUse.UUID
+	//if claims, exists := c.Get("claims"); !exists {
+	//	response.FailWithMessage("获取Token失败", c)
+	//	return ""
+	//} else {
+	//	waitUse := claims.(*models.CustomClaims)
+	//	return waitUse.UUID
+	//}
+	session, e := cookies.RS.Get(c.Request, "session")
+	if e != nil {
+		response.FailWithMessage("获取用户信息失败, 请检查session是否存在.", c)
 	}
+	return session.Values["uuid"].(string)
 }

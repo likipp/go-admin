@@ -15,12 +15,11 @@ func getMachineID() (uint16, error) {
 	return sonyMachineID, nil
 }
 
-func Init(machineID uint16) (err error) {
+func Init(machineID uint16) {
 	sonyMachineID = machineID
 	settings := sonyflake.Settings{}
 	settings.MachineID = getMachineID
 	sonyFlake = sonyflake.NewSonyflake(settings)
-	return
 }
 
 func NewID() (id string, err error) {
@@ -28,7 +27,6 @@ func NewID() (id string, err error) {
 		err = fmt.Errorf("sonyFlake未初始化")
 		return
 	}
-	//var tempID uint64
 	tempID, _ := sonyFlake.NextID()
 	id = strconv.FormatUint(tempID, 10)
 	return

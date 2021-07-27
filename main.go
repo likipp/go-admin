@@ -2,6 +2,7 @@ package main
 
 import (
 	"go-admin/config"
+	"go-admin/init/cookies"
 	orm "go-admin/init/database"
 	globalID "go-admin/init/globalID"
 	initTableStruct "go-admin/init/tableStruct"
@@ -9,13 +10,11 @@ import (
 )
 
 func main() {
-	db, _ := orm.InitMySQL(config.AdminConfig.MysqlAdmin)
+	db := orm.InitMySQL(config.AdminConfig.MysqlAdmin)
 	sqlDB, _ := db.DB()
 	defer sqlDB.Close()
-	err := globalID.Init(1)
-	if err != nil {
-		panic("ID生成器初始化失败")
-	}
+	globalID.Init(1)
+	cookies.InitSession(config.AdminConfig.RedisAdmin)
 	initTableStruct.InitTableStruct(db)
 	_ = router.InitRouter().Run()
 	//defer store.Close()
