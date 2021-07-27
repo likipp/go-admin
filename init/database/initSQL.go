@@ -1,7 +1,6 @@
 package database
 
 import (
-	"fmt"
 	"github.com/wader/gormstore/v2"
 	"go-admin/config"
 	"gorm.io/driver/mysql"
@@ -15,7 +14,6 @@ var DB *gorm.DB
 var Store *gormstore.Store
 
 func InitMySQL(admin config.MySQL) (*gorm.DB, *gormstore.Store) {
-	//var store *gormstore.Store
 	if db, err := gorm.Open(mysql.Open(admin.Username+":"+admin.Password+"@("+admin.Path+")/"+admin.DBName+"?"+admin.Config), &gorm.Config{}); err != nil {
 		log.Printf("DEFAULTDB数据库启动异常%v", err)
 	} else {
@@ -31,6 +29,5 @@ func InitMySQL(admin config.MySQL) (*gorm.DB, *gormstore.Store) {
 		sqlDb.SetMaxIdleConns(10)
 		sqlDb.SetMaxOpenConns(100)
 	}
-	fmt.Println(Store, "store")
 	return DB, Store
 }

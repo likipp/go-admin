@@ -2,11 +2,13 @@ package middleware
 
 import (
 	"errors"
+	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"go-admin/config"
+	orm "go-admin/init/database"
 	"go-admin/models"
-	Errors "go-admin/utils/response"
+	"go-admin/utils/response"
 	"net/http"
 	"strconv"
 	"time"
@@ -35,9 +37,14 @@ type JWT struct {
 
 func JWTAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		token := c.Request.Header.Get("Authorization")[7:]
+		session, e := orm.Store.Get(c.Request, "session")
+		fmt.Println(session, "session")
+		token := session.Values["token"].(string)
+		if e != nil {
+			response.FailWithMessage("获取用户信息失败, 请检查session是否存在.", c)
+		}
 		if token == "" {
-			Errors.Result(http.StatusNonAuthoritativeInfo, gin.H{
+			response.Result(http.StatusNonAuthoritativeInfo, gin.H{
 				"reload": true,
 			}, "未登录或非法访问", 2, false, c)
 			c.Abort()
@@ -47,13 +54,13 @@ func JWTAuth() gin.HandlerFunc {
 		claims, err := j.ParseToken(token)
 		if err != nil {
 			if err == TokenExpired {
-				Errors.Result(http.StatusExpectationFailed, gin.H{
+				response.Result(http.StatusExpectationFailed, gin.H{
 					"reload": true,
 				}, "授权已过期", 2, false, c)
 				c.Abort()
 				return
 			}
-			Errors.Result(http.StatusExpectationFailed, gin.H{
+			response.Result(http.StatusExpectationFailed, gin.H{
 				"reload": true,
 			}, err.Error(), 2, false, c)
 			c.Abort()

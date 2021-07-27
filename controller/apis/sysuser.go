@@ -155,15 +155,20 @@ func Login(c *gin.Context) {
 	} else {
 		session, err := orm.Store.Get(c.Request, "session")
 		if err != nil {
-			fmt.Println("初始化session成功")
+			response.FailWithMessage("初始化session成功", c)
 		}
-		session.Values["username"] = user.Username
-		session.Values["nickname"] = user.NickName
-		session.Values["avatar"] = user.Avatar
+		if err != nil {
+			response.FailWithMessage("保存session失败", c)
+		}
+		token := GetToken(c, *user)
+		session.Values["nickname"] = user.Username
+		session.Values["name"] = user.NickName
+		session.Values["avatar"] = "https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png"
 		session.Values["uuid"] = user.UUID
-		orm.Store.Save(c.Request, c.Writer, session)
-		http.Error(c.Writer, "", http.StatusOK)
-		GetToken(c, *user)
+		session.Values["access"] = "admin"
+		session.Values["token"] = token
+		err = orm.Store.Save(c.Request, c.Writer, session)
+		response.OkWithData(user, c)
 	}
 
 }
@@ -171,23 +176,31 @@ func Login(c *gin.Context) {
 // GetCurrentUser 获取当前登录用户信息
 func GetCurrentUser(c *gin.Context) {
 	var user models.CurrentUser
-	if claims, exists := c.Get("claims"); !exists {
-		response.FailWithMessage("获取Token失败", c)
-	} else {
-		waitUse := claims.(*models.CustomClaims)
-		user.Avatar = "https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png"
-		user.UUID = waitUse.UUID
-		user.Nickname = waitUse.Username
-		user.Access = "admin"
-		user.Name = waitUse.NickName
-	}
-	//fmt.Println(user, "打印用户")
+	//if claims, exists := c.Get("claims"); !exists {
+	//	response.FailWithMessage("获取Token失败", c)
+	//} else {
+	//	waitUse := claims.(*models.CustomClaims)
+	//	user.Avatar = "https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png"
+	//	user.UUID = waitUse.UUID
+	//	user.Nickname = waitUse.Username
+	//	user.Access = "admin"
+	//	user.Name = waitUse.NickName
+	//}
 	//response.OkWithData(user, c)
 	//c.JSON(200, gin.H{"data": user})
+	session, e := orm.Store.Get(c.Request, "session")
+	if e != nil {
+		response.FailWithMessage("获取用户信息失败, 请检查session是否存在.", c)
+	}
+	user.Avatar = session.Values["avatar"].(string)
+	user.UUID = session.Values["uuid"].(string)
+	user.Nickname = session.Values["nickname"].(string)
+	user.Access = "admin"
+	user.Name = session.Values["name"].(string)
 	c.JSONP(http.StatusOK, user)
 }
 
-func GetToken(c *gin.Context, user models.SysUser) {
+func GetToken(c *gin.Context, user models.SysUser) (token string) {
 	j := &middleware.JWT{
 		SigningKey: []byte(config.AdminConfig.JWT.SigningKey),
 	}
@@ -209,11 +222,12 @@ func GetToken(c *gin.Context, user models.SysUser) {
 		response.FailWithMessage("获取Token失败", c)
 		return
 	}
-	response.OkWithData(models.LoginResponse{
-		User:      user,
-		Token:     token,
-		ExpiresAt: clams.StandardClaims.ExpiresAt * 1000,
-	}, c)
+	return token
+	//response.OkWithData(models.LoginResponse{
+	//	User:      user,
+	//	Token:     token,
+	//	ExpiresAt: clams.StandardClaims.ExpiresAt * 1000,
+	//}, c)
 }
 
 func getUserUUID(c *gin.Context) string {

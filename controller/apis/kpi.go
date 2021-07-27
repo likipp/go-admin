@@ -3,6 +3,7 @@ package apis
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	orm "go-admin/init/database"
 	"go-admin/internal/gins"
 	"go-admin/models"
 	"go-admin/utils/response"
@@ -23,6 +24,12 @@ func CreateKPI(c *gin.Context) {
 }
 
 func GetKPIList(c *gin.Context) {
+	//fmt.Println(c.Request.Header.Get("Cookie"), "header")
+	session, e := orm.Store.Get(c.Request, "session")
+	if e != nil {
+		fmt.Println("获取session失败")
+	}
+	fmt.Println(session, "session")
 	var kpiList []models.KPI
 	var params models.KPIQueryParam
 	gins.ParseQuery(c, &params)
