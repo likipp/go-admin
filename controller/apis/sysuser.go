@@ -198,9 +198,15 @@ func Logout(c *gin.Context) {
 	session, e := cookies.RS.Get(c.Request, "session")
 	if e != nil {
 		response.FailWithMessage("获取用户信息失败, 请检查session是否存在.", c)
+		c.Abort()
+		return
 	}
-	fmt.Println("退出登录")
 	session.Options.MaxAge = -1
+	if e = sessions.Save(c.Request, c.Writer); e != nil {
+		response.FailWithMessage("清除session失败.", c)
+		c.Abort()
+		return
+	}
 	response.OkWithMessage("退出成功", c)
 }
 

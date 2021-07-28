@@ -27,7 +27,7 @@ func InitRouter() *gin.Engine {
 		// 用户登录
 		//baseRouter.POST("login", apis.Login)
 		baseRouter.GET("currentUser", apis.GetCurrentUser)
-		baseRouter.GET("logout", apis.Logout)
+		baseRouter.POST("logout", apis.Logout)
 		// 用户设置router
 		baseRouter.POST("users", apis.CreateUser)
 		baseRouter.GET("users/:uuid", apis.GetUserByUUID)

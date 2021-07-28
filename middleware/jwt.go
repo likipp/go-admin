@@ -37,9 +37,21 @@ type JWT struct {
 func JWTAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		session, e := cookies.RS.Get(c.Request, "session")
-		token := session.Values["token"].(string)
+		if session.Options.MaxAge < 0 {
+			response.FailWithMessage("session已过期, 请重新登录.", c)
+			c.Abort()
+			return
+		}
 		if e != nil {
 			response.FailWithMessage("获取用户信息失败, 请检查session是否存在.", c)
+			c.Abort()
+			return
+		}
+		token, ok := session.Values["token"].(string)
+		if !ok {
+			response.FailWithMessage("获取用户token失败, 请检查登录状态或session是否存在", c)
+			c.Abort()
+			return
 		}
 		if token == "" {
 			response.Result(http.StatusNonAuthoritativeInfo, gin.H{
