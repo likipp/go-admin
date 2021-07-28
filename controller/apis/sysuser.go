@@ -5,7 +5,6 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
-	"github.com/gorilla/sessions"
 	"go-admin/config"
 	"go-admin/init/cookies"
 	"go-admin/middleware"
@@ -18,7 +17,6 @@ import (
 )
 
 func CreateUser(c *gin.Context) {
-	//var R RegisterStruct
 	var U models.SysUser
 	var _ = c.ShouldBind(&U)
 	err := c.ShouldBindBodyWith(&U, binding.JSON)
@@ -154,14 +152,7 @@ func Login(c *gin.Context) {
 	if err, user := models.UserLogin(&L); err != nil {
 		response.FailWithMessage(fmt.Sprintf("%v", err), c)
 	} else {
-		//session, err := orm.Store.Get(c.Request, "session")
-		session, err := cookies.RS.Get(c.Request, "session")
-		if err != nil {
-			response.FailWithMessage("获取session失败", c)
-		}
-		//if err != nil {
-		//	response.FailWithMessage("保存session失败", c)
-		//}
+		session := cookies.GetSession(c)
 		token := GetToken(c, *user)
 		session.Values["nickname"] = user.Username
 		session.Values["name"] = user.NickName
@@ -169,11 +160,7 @@ func Login(c *gin.Context) {
 		session.Values["uuid"] = user.UUID
 		session.Values["access"] = "admin"
 		session.Values["token"] = token
-		//err = orm.Store.Save(c.Request, c.Writer, session)
-		err = sessions.Save(c.Request, c.Writer)
-		if err = sessions.Save(c.Request, c.Writer); err != nil {
-			response.FailWithMessage("保存session失败!", c)
-		}
+		cookies.SaveSession(c)
 		response.OkWithData(user, c)
 	}
 
@@ -182,10 +169,7 @@ func Login(c *gin.Context) {
 // GetCurrentUser 获取当前登录用户信息
 func GetCurrentUser(c *gin.Context) {
 	var user models.CurrentUser
-	session, e := cookies.RS.Get(c.Request, "session")
-	if e != nil {
-		response.FailWithMessage("获取用户信息失败, 请检查session是否存在.", c)
-	}
+	session := cookies.GetSession(c)
 	user.Avatar = session.Values["avatar"].(string)
 	user.UUID = session.Values["uuid"].(string)
 	user.Nickname = session.Values["nickname"].(string)
@@ -195,19 +179,7 @@ func GetCurrentUser(c *gin.Context) {
 }
 
 func Logout(c *gin.Context) {
-	session, e := cookies.RS.Get(c.Request, "session")
-	if e != nil {
-		response.FailWithMessage("获取用户信息失败, 请检查session是否存在.", c)
-		c.Abort()
-		return
-	}
-	session.Options.MaxAge = -1
-	if e = sessions.Save(c.Request, c.Writer); e != nil {
-		response.FailWithMessage("清除session失败.", c)
-		c.Abort()
-		return
-	}
-	response.OkWithMessage("退出成功", c)
+	cookies.DeleteSession(c)
 }
 
 func GetToken(c *gin.Context, user models.SysUser) (token string) {
@@ -241,16 +213,6 @@ func GetToken(c *gin.Context, user models.SysUser) (token string) {
 }
 
 func getUserUUID(c *gin.Context) string {
-	//if claims, exists := c.Get("claims"); !exists {
-	//	response.FailWithMessage("获取Token失败", c)
-	//	return ""
-	//} else {
-	//	waitUse := claims.(*models.CustomClaims)
-	//	return waitUse.UUID
-	//}
-	session, e := cookies.RS.Get(c.Request, "session")
-	if e != nil {
-		response.FailWithMessage("获取用户信息失败, 请检查session是否存在.", c)
-	}
+	session := cookies.GetSession(c)
 	return session.Values["uuid"].(string)
 }

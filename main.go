@@ -14,8 +14,8 @@ func main() {
 	sqlDB, _ := db.DB()
 	defer sqlDB.Close()
 	globalID.Init(1)
-	cookies.InitSession(config.AdminConfig.RedisAdmin)
 	initTableStruct.InitTableStruct(db)
+	cookies.InitSession(config.AdminConfig.RedisAdmin)
 	_ = router.InitRouter().Run()
 	//defer store.Close()
 }
