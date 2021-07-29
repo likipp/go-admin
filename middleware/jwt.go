@@ -36,16 +36,9 @@ type JWT struct {
 
 func JWTAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		session, e := cookies.RS.Get(c.Request, "session")
+		session := cookies.GetSession(c)
 		if session.Options.MaxAge < 0 {
 			response.FailWithMessage("session已过期, 请重新登录.", c)
-			c.Abort()
-			return
-		}
-		if e != nil {
-			response.Result(http.StatusExpectationFailed, gin.H{
-				"reload": true,
-			}, "授权已过期1", 2, false, c)
 			c.Abort()
 			return
 		}
@@ -53,24 +46,24 @@ func JWTAuth() gin.HandlerFunc {
 		if !ok {
 			response.Result(http.StatusExpectationFailed, gin.H{
 				"reload": true,
-			}, "授权已过期2", 2, false, c)
+			}, "未登录或token已过期", 2, false, c)
 			c.Abort()
 			return
 		}
-		if token == "" {
-			response.Result(http.StatusNonAuthoritativeInfo, gin.H{
-				"reload": true,
-			}, "未登录或非法访问", 2, false, c)
-			c.Abort()
-			return
-		}
+		//if token == "" {
+		//	response.Result(http.StatusNonAuthoritativeInfo, gin.H{
+		//		"reload": true,
+		//	}, "未登录或非法访问", 2, false, c)
+		//	c.Abort()
+		//	return
+		//}
 		j := NewJWT()
 		claims, err := j.ParseToken(token)
 		if err != nil {
 			if err == TokenExpired {
 				response.Result(http.StatusExpectationFailed, gin.H{
 					"reload": true,
-				}, "授权已过期3", 2, false, c)
+				}, "授权已过期", 2, false, c)
 				c.Abort()
 				return
 			}

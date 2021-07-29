@@ -20,7 +20,8 @@ func Casbin() *casbin.SyncedEnforcer {
 	once.Do(func() {
 		a, _ := gormadapter.NewAdapterByDB(orm.DB)
 		syncedEnforcer, _ = casbin.NewSyncedEnforcer(config.AdminConfig.Casbin.ModelPath, a)
-		syncedEnforcer.AddFunction("ParamsMatch", ParamsMatchFunc)
+		//syncedEnforcer.AddFunction("ParamsMatch", ParamsMatchFunc)
+		//syncedEnforcer.AddFunction("AdminMatch", AdminMatchFunc)
 	})
 	_ = syncedEnforcer.LoadPolicy()
 	return syncedEnforcer
@@ -38,6 +39,20 @@ func ParamsMatchFunc(args ...interface{}) (interface{}, error) {
 	name2 := args[1].(string)
 	return ParamsMatch(name1, name2), nil
 }
+
+// AdminMatch 设置系统默认管理员组, 在v1(path), v2(method)是*时, 即拥有系统的所有权
+//func AdminMatch(r, p string) bool {
+//	if p == "*" {
+//		return true
+//	}
+//	return r == p
+//}
+//
+//func AdminMatchFunc(args ...interface{}) (interface{}, error) {
+//	path1 := args[0].(string)
+//	path2 := args[1].(string)
+//	return AdminMatch(path1, path2), nil
+//}
 
 func AddRolesForUser(user, role string) bool {
 	e := Casbin()
