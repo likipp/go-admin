@@ -20,22 +20,14 @@ func CasbinHandler() gin.HandlerFunc {
 		act := context.Request.Method
 		e := service.Casbin()
 		// 先查看用户是否拥有权限, 如果已经拥有了权限, 则不查看所属是否拥有权限
-		sub := waitUse.Username
-		ok, err := e.Enforce(sub, obj, act)
-		if err != nil {
-			response.FailWithMessage("权限认证失败", context)
-			context.Abort()
-			return
-		}
-		if ok {
-			context.Next()
-			return
-		}
-		// 再循环用户所拥有的角色是否拥有权限, 如果用户属于管理员组，则默认拥有所有权
-		for _, v := range waitUse.Roles {
-			sub := v.RoleName
-			ok, _ = e.Enforce(sub, obj, act)
-		}
+		sub := waitUse.UUID
+		ok, _ = e.Enforce(sub, obj, act)
+		//if err != nil {
+		//	response.FailWithMessage("权限不足", context)
+		//	context.Abort()
+		//	return
+		//}
+		//context.Next()
 		if ok {
 			context.Next()
 		} else {
@@ -43,5 +35,25 @@ func CasbinHandler() gin.HandlerFunc {
 			context.Abort()
 			return
 		}
+		//service.AddRolesForUser(sub, "default")
+		//if ok {
+		//	context.Next()
+		//	//return
+		//}
+		// 再循环用户所拥有的角色是否拥有权限, 如果用户属于管理员组，则默认拥有所有权
+		//for _, v := range waitUse.Roles {
+		//	sub := v.RoleName
+		//	ok, _ = e.Enforce(sub, obj, act)
+		//}
+		//if ok {
+		//	context.Next()
+		//} else {
+		//	response.FailWithMessage("权限不足", context)
+		//	context.Abort()
+		//	return
+		//}
+		//response.FailWithMessage("权限不足", context)
+		//context.Abort()
+		//return
 	}
 }

@@ -43,13 +43,17 @@ func JWTAuth() gin.HandlerFunc {
 			return
 		}
 		if e != nil {
-			response.FailWithMessage("获取用户信息失败, 请检查session是否存在.", c)
+			response.Result(http.StatusExpectationFailed, gin.H{
+				"reload": true,
+			}, "授权已过期1", 2, false, c)
 			c.Abort()
 			return
 		}
 		token, ok := session.Values["token"].(string)
 		if !ok {
-			response.FailWithMessage("获取用户token失败, 请检查登录状态或session是否存在", c)
+			response.Result(http.StatusExpectationFailed, gin.H{
+				"reload": true,
+			}, "授权已过期2", 2, false, c)
 			c.Abort()
 			return
 		}
@@ -66,7 +70,7 @@ func JWTAuth() gin.HandlerFunc {
 			if err == TokenExpired {
 				response.Result(http.StatusExpectationFailed, gin.H{
 					"reload": true,
-				}, "授权已过期", 2, false, c)
+				}, "授权已过期3", 2, false, c)
 				c.Abort()
 				return
 			}
