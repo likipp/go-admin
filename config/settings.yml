@@ -1,14 +1,14 @@
 mysqladmin:
   username: "xiaom"
-#  password: "Server@1234.com"
 #  path: "127.0.0.1:3306"
-  password: "123456"
+  password: "Server@1234.com"
   path: "nas.xiaom.work:3306"
   dbname: "qmPlus"
   config: "charset=utf8&parseTime=True&loc=Local"
 
 redisadmin:
   path: "nas.xiaom.work:6379"
+  password: "Server@1234.com"
 
 jwt:
   JwtKey: eva0209

@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"errors"
+	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"go-admin/config"
@@ -42,6 +43,7 @@ func JWTAuth() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
+		fmt.Println(session)
 		token, ok := session.Values["token"].(string)
 		if !ok {
 			response.Result(http.StatusExpectationFailed, gin.H{

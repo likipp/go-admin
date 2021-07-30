@@ -11,11 +11,15 @@ import (
 var RS *redistore.RediStore
 
 func InitSession(admin config.Redis) {
-	store, err := redistore.NewRediStore(10, "tcp", admin.Path, "", []byte("secret-key"))
+	store, err := redistore.NewRediStore(10, "tcp", admin.Path, admin.Password, []byte("secret-key"))
 	if err != nil {
 		panic("Redis启动异常")
 	}
-	store.SetMaxAge(10 * 24 * 3600)
+	//store.SetMaxAge(10 * 24 * 3600)
+
+	//store.Pool.IdleTimeout = 60*60*24*7
+	//store.Options.MaxAge = 60*60*24*7
+	store.SetMaxAge(60 * 60 * 24 * 7)
 	store.Options.Secure = true
 	store.Options.HttpOnly = true
 	RS = store
