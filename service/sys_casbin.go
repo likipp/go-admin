@@ -63,3 +63,9 @@ func AddRolesForUser(user, role string) bool {
 	ok, _ = e.AddRoleForUser(user, role)
 	return ok
 }
+
+func HasPermissions(user, permission string) bool {
+	e := Casbin()
+	ok := e.HasPermissionForUser(user, permission, "POST")
+	return ok
+}

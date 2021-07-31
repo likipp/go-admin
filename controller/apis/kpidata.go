@@ -1,9 +1,11 @@
 package apis
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"go-admin/internal/gins"
 	"go-admin/models"
+	"go-admin/service"
 	"go-admin/utils/response"
 	"net/http"
 )
@@ -15,7 +17,17 @@ func CreateKPIData(c *gin.Context) {
 		response.FailWithMessage("获取前端KPI数据失败", c)
 		return
 	}
+	fmt.Println(KD, "未获取值前")
 	KD.CreateBy = getUserUUID(c)
+	fmt.Println(KD.CreateBy, KD.GroupKPI, "前端数据")
+	ok := service.HasPermissions(KD.CreateBy, KD.GroupKPI)
+	if ok {
+		fmt.Println(ok, "是否有权限")
+	} else {
+		c.Abort()
+		return
+	}
+
 	err, kpiData := KD.CreateKpiData()
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
