@@ -19,6 +19,7 @@ func CasbinHandler() gin.HandlerFunc {
 		obj := context.Request.URL.RequestURI()
 		act := context.Request.Method
 		e := service.Casbin()
+		service.HasPermissions("359681968171909121", "324851701305573377")
 		// 先查看用户是否拥有权限, 如果已经拥有了权限, 则不查看所属是否拥有权限
 		sub := waitUse.UUID
 		ok, _ = e.Enforce(sub, obj, act)

@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"github.com/casbin/casbin/v2"
 	"github.com/casbin/casbin/v2/util"
 	gormadapter "github.com/casbin/gorm-adapter/v3"
@@ -66,6 +67,7 @@ func AddRolesForUser(user, role string) bool {
 
 func HasPermissions(user, permission string) bool {
 	e := Casbin()
-	ok := e.HasPermissionForUser(user, permission, "POST")
+	fmt.Println(user, permission, "路径")
+	ok := e.HasPermissionForUser(user, permission, "GET")
 	return ok
 }
