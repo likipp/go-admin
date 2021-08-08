@@ -8,6 +8,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"go-admin/config"
 	orm "go-admin/init/database"
+	"log"
 	"strings"
 	"sync"
 )
@@ -15,17 +16,30 @@ import (
 var (
 	syncedEnforcer *casbin.SyncedEnforcer
 	once           sync.Once
+	err            error
 )
 
-func Casbin() *casbin.SyncedEnforcer {
+func Casbin() (*casbin.SyncedEnforcer, error) {
 	once.Do(func() {
-		a, _ := gormadapter.NewAdapterByDB(orm.DB)
-		syncedEnforcer, _ = casbin.NewSyncedEnforcer(config.AdminConfig.Casbin.ModelPath, a)
+		a, err := gormadapter.NewAdapterByDB(orm.DB)
+		fmt.Println(a, "a的值")
+		if err != nil {
+			log.Fatalf("error: adapter: %s", err)
+		}
+		fmt.Println(syncedEnforcer, "syncedEnforcer")
+		syncedEnforcer, err = casbin.NewSyncedEnforcer(config.AdminConfig.Casbin.ModelPath, a)
+		fmt.Println(syncedEnforcer, "syncedEnforcer", "取值后")
+		if err != nil {
+			log.Fatalf("error: adapter: %s", err)
+		}
 		//syncedEnforcer.AddFunction("ParamsMatch", ParamsMatchFunc)
 		//syncedEnforcer.AddFunction("AdminMatch", AdminMatchFunc)
 	})
-	_ = syncedEnforcer.LoadPolicy()
-	return syncedEnforcer
+	err = syncedEnforcer.LoadPolicy()
+	if err != nil {
+		log.Fatalf("error: adapter: %s", err)
+	}
+	return syncedEnforcer, err
 }
 
 func ParamsMatch(fullNameKey1 string, key2 string) bool {
@@ -56,7 +70,7 @@ func ParamsMatchFunc(args ...interface{}) (interface{}, error) {
 //}
 
 func AddRolesForUser(user, role string) bool {
-	e := Casbin()
+	e, _ := Casbin()
 	ok, _ := e.HasRoleForUser(user, role)
 	if ok {
 		return ok
@@ -66,7 +80,7 @@ func AddRolesForUser(user, role string) bool {
 }
 
 func HasPermissions(user, permission string) bool {
-	e := Casbin()
+	e, _ := Casbin()
 	fmt.Println(user, permission, "路径")
 	ok := e.HasPermissionForUser(user, permission, "GET")
 	return ok

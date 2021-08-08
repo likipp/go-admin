@@ -3,16 +3,16 @@ module go-admin
 go 1.14
 
 require (
-	github.com/casbin/casbin/v2 v2.31.5
-	github.com/casbin/gorm-adapter/v3 v3.3.0
+	github.com/casbin/casbin/v2 v2.35.0
+	github.com/casbin/gorm-adapter/v3 v3.3.3
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/garyburd/redigo v1.6.2 // indirect
-	github.com/gin-gonic/gin v1.6.3
+	github.com/gin-gonic/gin v1.7.3
 	github.com/go-openapi/spec v0.19.9 // indirect
 	github.com/go-openapi/swag v0.19.9 // indirect
 	github.com/go-playground/validator/v10 v10.6.1 // indirect
-	github.com/go-sql-driver/mysql v1.5.0
+	github.com/go-sql-driver/mysql v1.6.0
 	github.com/gofrs/uuid v4.0.0+incompatible // indirect
 	github.com/golang/protobuf v1.4.2 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
@@ -51,6 +51,6 @@ require (
 	gopkg.in/ini.v1 v1.55.0 // indirect
 	gopkg.in/yaml.v2 v2.3.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
-	gorm.io/driver/mysql v1.0.4
+	gorm.io/driver/mysql v1.1.1
 	gorm.io/gorm v1.21.9
 )

@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"go-admin/models"
 	"go-admin/service"
@@ -8,21 +9,26 @@ import (
 )
 
 func CasbinHandler() gin.HandlerFunc {
-	return func(context *gin.Context) {
-		claims, _ := context.Get("claims")
+	return func(c *gin.Context) {
+		claims, _ := c.Get("claims")
 		waitUse, ok := claims.(*models.CustomClaims)
 		if !ok {
-			response.FailWithMessage("获取用户失败", context)
-			context.Abort()
+			response.FailWithMessage("获取用户失败", c)
+			c.Abort()
 			return
 		}
-		obj := context.Request.URL.RequestURI()
-		act := context.Request.Method
-		e := service.Casbin()
-		service.HasPermissions("359681968171909121", "324851701305573377")
+		//obj := context.Request.URL.RequestURI()
+		//act := context.Request.Method
+		e, err := service.Casbin()
+		if err != nil {
+			c.Abort()
+			response.FailWithMessage("Casbin失败", c)
+		}
+		//service.HasPermissions("359681968171909121", "324851701305573377")
 		// 先查看用户是否拥有权限, 如果已经拥有了权限, 则不查看所属是否拥有权限
 		sub := waitUse.UUID
-		ok, _ = e.Enforce(sub, obj, act)
+		fmt.Println(e, sub)
+		//ok, _ = e.Enforce(sub, obj, act)
 		//if err != nil {
 		//	response.FailWithMessage("权限不足", context)
 		//	context.Abort()
@@ -30,10 +36,10 @@ func CasbinHandler() gin.HandlerFunc {
 		//}
 		//context.Next()
 		if ok {
-			context.Next()
+			c.Next()
 		} else {
-			response.FailWithMessage("权限不足", context)
-			context.Abort()
+			response.FailWithMessage("权限不足", c)
+			c.Abort()
 			return
 		}
 		//service.AddRolesForUser(sub, "default")
