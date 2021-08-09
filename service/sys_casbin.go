@@ -22,23 +22,21 @@ var (
 func Casbin() (*casbin.SyncedEnforcer, error) {
 	once.Do(func() {
 		a, err := gormadapter.NewAdapterByDB(orm.DB)
-		fmt.Println(a, "a的值")
 		if err != nil {
 			log.Fatalf("error: adapter: %s", err)
 		}
-		fmt.Println(syncedEnforcer, "syncedEnforcer")
 		syncedEnforcer, err = casbin.NewSyncedEnforcer(config.AdminConfig.Casbin.ModelPath, a)
-		fmt.Println(syncedEnforcer, "syncedEnforcer", "取值后")
 		if err != nil {
-			log.Fatalf("error: adapter: %s", err)
+			log.Fatalf("error: syncedEnforcer: %s", err)
 		}
+
 		//syncedEnforcer.AddFunction("ParamsMatch", ParamsMatchFunc)
 		//syncedEnforcer.AddFunction("AdminMatch", AdminMatchFunc)
 	})
-	err = syncedEnforcer.LoadPolicy()
-	if err != nil {
-		log.Fatalf("error: adapter: %s", err)
-	}
+	//err = syncedEnforcer.LoadPolicy()
+	//if err != nil {
+	//	log.Fatalf("error: adapter: %s", err)
+	//}
 	return syncedEnforcer, err
 }
 
@@ -79,9 +77,9 @@ func AddRolesForUser(user, role string) bool {
 	return ok
 }
 
-func HasPermissions(user, permission string) bool {
+func HasPermissions(user, permission, method string) bool {
 	e, _ := Casbin()
-	fmt.Println(user, permission, "路径")
-	ok := e.HasPermissionForUser(user, permission, "GET")
+	ok := e.HasPermissionForUser(user, permission, method)
+	fmt.Println("是否有权限:", ok)
 	return ok
 }

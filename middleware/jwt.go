@@ -36,7 +36,11 @@ type JWT struct {
 
 func JWTAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		session := cookies.GetSession(c)
+		session, err := cookies.GetSession(c)
+		if err != nil {
+			c.Abort()
+			return
+		}
 		if session.Options.MaxAge < 0 {
 			response.FailWithMessage("session已过期, 请重新登录.", c)
 			c.Abort()

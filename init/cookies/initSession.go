@@ -25,14 +25,14 @@ func InitSession(admin config.Redis) {
 	RS = store
 }
 
-func GetSession(c *gin.Context) *sessions.Session {
+func GetSession(c *gin.Context) (*sessions.Session, error) {
 	session, err := RS.Get(c.Request, "session")
 	if err != nil {
 		response.FailWithMessage("获取session失败", c)
 		c.Abort()
-		return nil
+		return nil, err
 	}
-	return session
+	return session, nil
 }
 
 func SaveSession(c *gin.Context) {
@@ -43,7 +43,12 @@ func SaveSession(c *gin.Context) {
 }
 
 func DeleteSession(c *gin.Context) {
-	session := GetSession(c)
+	session, err := GetSession(c)
+	if err != nil {
+		response.FailWithMessage("获取session失败.", c)
+		c.Abort()
+		return
+	}
 	session.Options.MaxAge = -1
 	if err := sessions.Save(c.Request, c.Writer); err != nil {
 		response.FailWithMessage("清除session失败.", c)

@@ -58,7 +58,7 @@ func Fail(c *gin.Context) {
 }
 
 func FailWithMessage(message string, c *gin.Context) {
-	Result(http.StatusBadRequest, map[string]interface{}{}, message, 1, false, c)
+	Result(http.StatusInternalServerError, map[string]interface{}{}, message, 1, false, c)
 }
 
 func FailWithDetailed(data interface{}, message string, c *gin.Context) {

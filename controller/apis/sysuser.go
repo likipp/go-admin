@@ -152,7 +152,7 @@ func Login(c *gin.Context) {
 	if err, user := models.UserLogin(&L); err != nil {
 		response.FailWithMessage(fmt.Sprintf("%v", err), c)
 	} else {
-		session := cookies.GetSession(c)
+		session, _ := cookies.GetSession(c)
 		token := GetToken(c, *user)
 		session.Values["nickname"] = user.Username
 		session.Values["name"] = user.NickName
@@ -169,7 +169,7 @@ func Login(c *gin.Context) {
 // GetCurrentUser 获取当前登录用户信息
 func GetCurrentUser(c *gin.Context) {
 	var user models.CurrentUser
-	session := cookies.GetSession(c)
+	session, _ := cookies.GetSession(c)
 	user.Avatar = session.Values["avatar"].(string)
 	user.UUID = session.Values["uuid"].(string)
 	user.Nickname = session.Values["nickname"].(string)
@@ -213,6 +213,6 @@ func GetToken(c *gin.Context, user models.SysUser) (token string) {
 }
 
 func getUserUUID(c *gin.Context) string {
-	session := cookies.GetSession(c)
+	session, _ := cookies.GetSession(c)
 	return session.Values["uuid"].(string)
 }
