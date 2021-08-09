@@ -1,7 +1,6 @@
 package service
 
 import (
-	"fmt"
 	"github.com/casbin/casbin/v2"
 	"github.com/casbin/casbin/v2/util"
 	gormadapter "github.com/casbin/gorm-adapter/v3"
@@ -33,10 +32,10 @@ func Casbin() (*casbin.SyncedEnforcer, error) {
 		//syncedEnforcer.AddFunction("ParamsMatch", ParamsMatchFunc)
 		//syncedEnforcer.AddFunction("AdminMatch", AdminMatchFunc)
 	})
-	//err = syncedEnforcer.LoadPolicy()
-	//if err != nil {
-	//	log.Fatalf("error: adapter: %s", err)
-	//}
+	err = syncedEnforcer.LoadPolicy()
+	if err != nil {
+		log.Fatalf("error: adapter: %s", err)
+	}
 	return syncedEnforcer, err
 }
 
@@ -80,6 +79,5 @@ func AddRolesForUser(user, role string) bool {
 func HasPermissions(user, permission, method string) bool {
 	e, _ := Casbin()
 	ok := e.HasPermissionForUser(user, permission, method)
-	fmt.Println("是否有权限:", ok)
 	return ok
 }

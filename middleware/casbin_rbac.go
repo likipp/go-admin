@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"go-admin/models"
 	"go-admin/service"
@@ -34,15 +33,13 @@ func CasbinHandler() gin.HandlerFunc {
 				return
 			}
 		}
-		//service.HasPermissions("359681968171909121", "324851701305573377")
-		fmt.Println("开始校验用户权限")
 		// 先查看用户是否拥有权限, 如果已经拥有了权限, 则不查看所属是否拥有权限
 		sub := waitUse.UUID
 		ok, err = e.Enforce(sub, obj, act)
 		if ok {
 			c.Next()
+			return
 		}
-		//service.AddRolesForUser(sub, "default")
 		response.FailWithMessage("权限不足", c)
 		c.Abort()
 		return
