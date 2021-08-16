@@ -20,7 +20,8 @@ type SysDept struct {
 	Status   string    `gorm:"column:status" json:"status"`
 	Children []SysDept `gorm:"foreignKey:DeptID" json:"children"`
 	//Users    []SysUser `gorm:"foreignkey:DeptID;association_foreignkey:DeptID"`
-	Users []SysUser `gorm:"foreignKey:DeptID;references:DeptID"`
+	Users []SysUser `gorm:"foreignKey:DeptID" json:"users"`
+	//`gorm:"foreignKey:DeptID;references:DeptID"`
 }
 
 type SysDeptInfo struct {
