@@ -42,7 +42,7 @@ func GetRoleList(c *gin.Context) {
 func GetRoleByQuery(c *gin.Context) {
 	var r models.SysRole
 	var rq models.RoleQuery
-	r.ID = utils.StringConvInt(c.Param("id"))
+	r.ID = utils.StringConvUint(c.Param("id"))
 	_ = c.BindQuery(&rq)
 	err, result, total := r.GetRoleByQuery(rq)
 	if err != nil {

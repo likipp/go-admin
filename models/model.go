@@ -12,5 +12,5 @@ type BaseModel struct {
 	UpdateBy  string         `gorm:"update_by"  json:"updateBy"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleteAt"`
 	DeleteBy  string         `gorm:"delete_by" json:"deleteBy"`
-	ID        int            `gorm:"primaryKey;autoIncrement" json:"id"`
+	ID        uint           `gorm:"primaryKey;autoIncrement" json:"id"`
 }
