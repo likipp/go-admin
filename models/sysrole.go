@@ -16,7 +16,7 @@ type SysRole struct {
 	ParentId string `json:"parentId"`
 	//DataRoleId []SysRole `json:"dataRoleId" gorm:"many2many:sys_data_role_id;association_jointable_foreignkey:data_id"`
 	//Children []SysRole  `json:"children" gorm:"foreignKey:RoleId"`
-	Users []*SysUser `gorm:"many2many:user_role;"`
+	//Users []*SysUser `gorm:"many2many:users_roles;"`
 	//UserID []string
 }
 
@@ -36,7 +36,7 @@ type RoleQuery struct {
 }
 
 func (SysRole) TableName() string {
-	return "sys_role"
+	return "roles"
 }
 
 func (r *SysRole) CreateRole() (role *SysRole, err error) {
@@ -61,7 +61,7 @@ func (r *SysRole) GetList(info page.InfoPage) (err error, list interface{}, tota
 		if err != nil {
 			return err, nil, 0
 		}
-		role.Members = len(v.Users)
+		//role.Members = len(v.Users)
 		roleList = append(roleList, role)
 	}
 	return err, roleList, total

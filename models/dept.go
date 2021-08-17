@@ -11,7 +11,7 @@ import (
 
 type SysDept struct {
 	BaseModel
-	DeptID   string    `gorm:"column:dept_id;index" json:"deptID"`
+	DeptID   string    `gorm:"column:dept_id; index" json:"deptID"`
 	ParentId string    `gorm:"column:parent_id" json:"parent_id"`
 	DeptName string    `gorm:"column:dept_name" json:"deptName"`
 	DeptPath string    `gorm:"column:dept_path" json:"deptPath"`
@@ -19,9 +19,7 @@ type SysDept struct {
 	Leader   int       `gorm:"column:leader" json:"leader"`
 	Status   string    `gorm:"column:status" json:"status"`
 	Children []SysDept `gorm:"foreignKey:DeptID" json:"children"`
-	//Users    []SysUser `gorm:"foreignkey:DeptID;association_foreignkey:DeptID"`
-	Users []SysUser `gorm:"foreignKey:DeptID" json:"users"`
-	//`gorm:"foreignKey:DeptID;references:DeptID"`
+	Users    []SysUser `gorm:"foreignKey:DeptID" json:"users"`
 }
 
 type SysDeptInfo struct {

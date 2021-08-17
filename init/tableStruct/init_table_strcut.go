@@ -8,13 +8,13 @@ import (
 
 func InitTableStruct(db *gorm.DB) {
 	err := db.AutoMigrate(
+		models.SysDept{},
 		models.BaseMenu{},
 		models.SysRole{},
 		models.GroupKPI{},
 		models.KpiData{},
 		models.KPI{},
-		models.SysUser{},
-		models.SysDept{})
+		models.SysUser{})
 	if err != nil {
 		log.Printf("AutoMigrate数据库失败%v", err)
 	}

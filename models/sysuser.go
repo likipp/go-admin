@@ -18,7 +18,7 @@ type SysUser struct {
 	Password string    `json:"-"`
 	NickName string    `json:"nickname" gorm:"default:'匿名用户'"`
 	Avatar   string    `json:"avatar" gorm:"default:'/favicon.ico'"`
-	Roles    []SysRole `json:"roles" gorm:"many2many:user_role;"`
+	Roles    []SysRole `json:"roles" gorm:"many2many:users_roles;"`
 	DeptID   string    `json:"deptID"`
 	PostID   int       `json:"postID"`
 	Sex      int       `json:"sex"`
