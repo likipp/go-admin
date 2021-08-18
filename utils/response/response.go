@@ -6,21 +6,6 @@ import (
 	"time"
 )
 
-//const (
-//	ERROR   = 7
-//	SUCCESS = 0
-//)
-
-type Response struct {
-	ErrorCode    int         `json:"errorCode"`
-	Success      bool        `json:"success"`
-	ErrorMessage string      `json:"errorMessage"`
-	Timestamp    int64       `json:"timestamp"`
-	ShowType     int         `json:"showType"`
-	Data         interface{} `json:"data"`
-	Host         string      `json:"host"`
-}
-
 func (r *Response) Error() string {
 	return r.ErrorMessage
 }
@@ -37,6 +22,23 @@ func Result(code int, data interface{}, msg string, showType int, success bool, 
 	})
 }
 
+func ResultWithPageInfo(code int, data interface{}, msg string, showType int, success bool, total int64, page, size int, c *gin.Context) {
+	c.JSON(code, &PageInfo{
+		Response: Response{
+			ErrorCode:    code,
+			Success:      success,
+			ErrorMessage: msg,
+			ShowType:     showType,
+			Timestamp:    time.Now().Unix(),
+			Data:         data,
+			Host:         c.ClientIP(),
+		},
+		Total:    total,
+		Page:     page,
+		PageSize: size,
+	})
+}
+
 func Ok(c *gin.Context) {
 	Result(http.StatusOK, map[string]interface{}{}, "操作成功", 0, true, c)
 }
@@ -47,6 +49,10 @@ func OkWithMessage(message string, c *gin.Context) {
 
 func OkWithData(data interface{}, c *gin.Context) {
 	Result(http.StatusOK, data, "操作成功", 0, true, c)
+}
+
+func OKWithPageInfo(data interface{}, total int64, page, size int, c *gin.Context) {
+	ResultWithPageInfo(http.StatusOK, data, "操作成功", 0, true, total, page, size, c)
 }
 
 func OkDetailed(data interface{}, message string, c *gin.Context) {

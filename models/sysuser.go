@@ -18,7 +18,7 @@ type SysUser struct {
 	NickName string    `json:"nickname" gorm:"default:'匿名用户'"`
 	Avatar   string    `json:"avatar" gorm:"default:'/favicon.ico'"`
 	Roles    []SysRole `json:"roles" gorm:"many2many:users_roles;"`
-	DeptID   string    `json:"deptID"`
+	DeptID   uint      `json:"deptID"`
 	PostID   int       `json:"postID"`
 	Sex      int       `json:"sex"`
 	LeaderId string
@@ -37,7 +37,7 @@ type LoginResponse struct {
 	ExpiresAt int64   `json:"expiresAt"`
 }
 
-type UserFilter struct {
+type UserQuery struct {
 	Page     int    `form:"current"`
 	PageSize int    `form:"pageSize"`
 	Status   int    `form:"status"`
@@ -45,7 +45,6 @@ type UserFilter struct {
 	NickName string `form:"nickname"`
 	Sex      int    `form:"sex"`
 	DeptID   string `form:"deptID"`
-	//Filter map[string][]interface{} `form:"filter"`
 }
 
 type UserFilterNoPage struct {
@@ -68,16 +67,16 @@ func (SysUser) TableName() string {
 	return "sys_user"
 }
 
-func Paging(filter UserFilter, model interface{}) (err error, db *gorm.DB, total int64) {
-	limit := filter.PageSize
-	offset := filter.PageSize * (filter.Page - 1)
+func Paging(query UserQuery, model interface{}) (err error, db *gorm.DB, total int64) {
+	limit := query.PageSize
+	offset := query.PageSize * (query.Page - 1)
 	var user SysUser
-	if filter.Status == 3 {
-		err = copier.Copy(&user, &filter)
+	if query.Status == 3 {
+		err = copier.Copy(&user, &query)
 		user.Status = 0
 		db = orm.DB.Where(&user).Find(model).Count(&total).Limit(limit).Offset(offset).Order("id desc")
 	} else {
-		err = copier.Copy(&user, &filter)
+		err = copier.Copy(&user, &query)
 		db = orm.DB.Where(&user).Find(model).Count(&total).Limit(limit).Offset(offset).Order("id desc")
 		db = db.Where(&user, "Status").Find(model).Count(&total).Limit(limit).Offset(offset).Order("id desc")
 	}
@@ -134,12 +133,12 @@ func (u *SysUser) GetUserByUUID() (userInfo UserInfo, err error) {
 	return userInfo, nil
 }
 
-func (u *SysUser) GetList(filters UserFilter) (err error, list interface{}, total int64) {
+func (u *SysUser) GetList(query UserQuery) (err error, list interface{}, total int64) {
 	var userList []SysUser
 	// 获取用户关联的部门与角色
 	var userInfoList []UserInfo
 	var userInfo UserInfo
-	err, db, total := Paging(filters, &userList)
+	err, db, total := Paging(query, &userList)
 	if err != nil {
 		return
 	} else {

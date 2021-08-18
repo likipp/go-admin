@@ -24,17 +24,20 @@ func CreateRole(c *gin.Context) {
 func GetRoleList(c *gin.Context) {
 	var pageInfo page.InfoPage
 	_ = c.BindQuery(&pageInfo)
+	fmt.Println(pageInfo, "pageInfo")
 	err, list, total := new(models.SysRole).GetList(pageInfo)
+	fmt.Println(list, "list")
 	if err != nil {
 		response.FailWithMessage(fmt.Sprintf("获取角色数据失败, %v", err), c)
 	} else {
-		c.JSON(http.StatusOK, gin.H{
-			"code":     200,
-			"data":     list,
-			"total":    total,
-			"page":     pageInfo.Page,
-			"pageSize": pageInfo.PageSize,
-		})
+		//c.JSON(http.StatusOK, gin.H{
+		//	"code":     200,
+		//	"data":     list,
+		//	"total":    total,
+		//	"page":     pageInfo.Page,
+		//	"pageSize": pageInfo.PageSize,
+		//})
+		response.OKWithPageInfo(list, total, pageInfo.Page, pageInfo.PageSize, c)
 	}
 	//response.FailWithMessage(fmt.Sprintf("获取角色数据失败, %v", "eeee"), c)
 }

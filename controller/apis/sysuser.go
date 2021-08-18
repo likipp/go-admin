@@ -18,8 +18,9 @@ import (
 
 func CreateUser(c *gin.Context) {
 	var U models.SysUser
-	var _ = c.ShouldBind(&U)
+	//var _ = c.ShouldBind(&U)
 	err := c.ShouldBindBodyWith(&U, binding.JSON)
+	fmt.Println(&U, "用户信息")
 	if err != nil {
 		response.FailWithMessage("获取前段数据失败", c)
 		return
@@ -51,7 +52,7 @@ func GetUserByUUID(c *gin.Context) {
 
 func GetUserList(c *gin.Context) {
 	//var pageInfo page.InfoPage
-	var userFilter models.UserFilter
+	var userQuery models.UserQuery
 	// 使用Query方法
 	//pageInfo.PageSize, _ = strconv.Atoi(c.Query("pageSize"))
 	//pageInfo.Page, _ = strconv.Atoi(c.Query("page"))
@@ -62,31 +63,27 @@ func GetUserList(c *gin.Context) {
 	// 结构体中需要定义form Tag
 	status := c.PostForm("status")
 	if status == "" {
-		userFilter.Status = 3
+		userQuery.Status = 3
 	} else {
-		userFilter.Status = utils.StringConvInt(status)
+		userQuery.Status = utils.StringConvInt(status)
 	}
 
-	_ = c.BindQuery(&userFilter)
+	_ = c.BindQuery(&userQuery)
+	fmt.Println(userQuery, "用户条件")
 	//_ = c.ShouldBindJSON(&pageInfo)
-	err, list, total := new(models.SysUser).GetList(userFilter)
+	err, list, total := new(models.SysUser).GetList(userQuery)
 	if err != nil {
 		//c.JSON(http.StatusBadRequest, gin.H{"code": 400, "data": err.Error()})
 		response.FailWithMessage(fmt.Sprintf("获取用户数据失败, %v", err), c)
 	} else {
-		c.JSON(http.StatusOK, gin.H{
-			"code":     200,
-			"data":     list,
-			"total":    total,
-			"page":     userFilter.Page,
-			"pageSize": userFilter.PageSize,
-		})
-		//response.OkWithData(response.PageResult{
-		//	Data:     list,
-		//	Total:    total,
-		//	Page:     userFilter.Page,
-		//	PageSize: userFilter.PageSize,
-		//}, c)
+		//c.JSON(http.StatusOK, gin.H{
+		//	"code":     200,
+		//	"data":     list,
+		//	"total":    total,
+		//	"page":     userQuery.Page,
+		//	"pageSize": userQuery.PageSize,
+		//})
+		response.OKWithPageInfo(list, total, userQuery.Page, userQuery.PageSize, c)
 	}
 }
 

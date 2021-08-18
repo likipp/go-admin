@@ -2,7 +2,6 @@ package models
 
 import (
 	"errors"
-	"fmt"
 	"github.com/jinzhu/copier"
 	"go-admin/controller/server"
 	orm "go-admin/init/database"
@@ -16,7 +15,7 @@ type SysRole struct {
 	//ParentId string `json:"parentId"`
 	//DataRoleId []SysRole `json:"dataRoleId" gorm:"many2many:sys_data_role_id;association_jointable_foreignkey:data_id"`
 	Children []*SysRole `json:"children" gorm:"many2many:roles_children"`
-	//Users []*SysUser `gorm:"many2many:users_roles;"`
+	Users    []*SysUser `gorm:"many2many:users_roles;"`
 	//UserID []string
 }
 
@@ -52,8 +51,8 @@ func (r *SysRole) GetList(info page.InfoPage) (err error, list interface{}, tota
 	if err != nil {
 		return
 	}
-	//err = db.Preload("Users").Find(&roles).Error
-	err = db.Find(&roles).Error
+	err = db.Preload("Users").Find(&roles).Error
+	//err = db.Find(&roles).Error
 	if err != nil {
 		return
 	}
@@ -62,7 +61,7 @@ func (r *SysRole) GetList(info page.InfoPage) (err error, list interface{}, tota
 		if err != nil {
 			return err, nil, 0
 		}
-		//role.Members = len(v.Users)
+		role.Members = len(v.Users)
 		roleList = append(roleList, role)
 	}
 	return err, roleList, total
@@ -72,7 +71,6 @@ func (r *SysRole) GetRoleByQuery(rq RoleQuery) (err error, result interface{}, t
 	var role SysRole
 	var users []SysUser
 	var allUsers []SysUser
-	fmt.Println(rq, "rq数据")
 	//var db *gorm.DB
 	if err := orm.DB.Where("id = ?", r.ID).Find(&role).Error; err != nil {
 		return errors.New("找不到该角色"), nil, 0
