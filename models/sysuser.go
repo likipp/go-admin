@@ -11,7 +11,6 @@ import (
 )
 
 type SysUser struct {
-	//UUID      uuid.UUID `json:"uuid"`
 	BaseModel
 	UUID     string    `json:"uuid"`
 	Username string    `json:"username"`

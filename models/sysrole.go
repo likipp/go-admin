@@ -11,11 +11,11 @@ import (
 
 type SysRole struct {
 	BaseModel
-	RoleId   string `json:"roleId" gorm:"not null;unique"`
+	//RoleId   string `json:"roleId" gorm:"not null;unique"`
 	RoleName string `json:"roleName"`
-	ParentId string `json:"parentId"`
+	//ParentId string `json:"parentId"`
 	//DataRoleId []SysRole `json:"dataRoleId" gorm:"many2many:sys_data_role_id;association_jointable_foreignkey:data_id"`
-	//Children []SysRole  `json:"children" gorm:"foreignKey:RoleId"`
+	Children []*SysRole `json:"children" gorm:"many2many:roles_children"`
 	//Users []*SysUser `gorm:"many2many:users_roles;"`
 	//UserID []string
 }
@@ -52,7 +52,8 @@ func (r *SysRole) GetList(info page.InfoPage) (err error, list interface{}, tota
 	if err != nil {
 		return
 	}
-	err = db.Preload("Users").Find(&roles).Error
+	//err = db.Preload("Users").Find(&roles).Error
+	err = db.Find(&roles).Error
 	if err != nil {
 		return
 	}

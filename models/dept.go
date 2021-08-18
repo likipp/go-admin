@@ -11,20 +11,23 @@ import (
 
 type SysDept struct {
 	BaseModel
-	DeptID   string    `gorm:"column:dept_id; index" json:"deptID"`
-	ParentId string    `gorm:"column:parent_id" json:"parent_id"`
-	DeptName string    `gorm:"column:dept_name" json:"deptName"`
-	DeptPath string    `gorm:"column:dept_path" json:"deptPath"`
-	Sort     int       `gorm:"column:sort" json:"sort"`
-	Leader   int       `gorm:"column:leader" json:"leader"`
-	Status   string    `gorm:"column:status" json:"status"`
-	Children []SysDept `gorm:"foreignKey:DeptID" json:"children"`
-	Users    []SysUser `gorm:"foreignKey:DeptID" json:"users"`
+	DeptID string `gorm:"column:dept_id" json:"deptID"`
+	// 自引用时, 必须是指针, 否则创建数据会失败
+	//ManageID *uint
+	ParentId uint   `gorm:"column:parent_id" json:"parent_id"`
+	DeptName string `gorm:"column:dept_name" json:"deptName"`
+	//DeptPath string    `gorm:"column:dept_path" json:"deptPath"`
+	Sort   int    `gorm:"column:sort" json:"sort"`
+	Leader int    `gorm:"column:leader" json:"leader"`
+	Status string `gorm:"column:status" json:"status"`
+	//Children []SysDept `gorm:"foreignKey:ParentId" json:"children"`
+	//Children []SysDept `json:"children"`
+	Users []SysUser `gorm:"foreignKey:DeptID" json:"users"`
 }
 
 type SysDeptInfo struct {
-	DeptID   string        `json:"key"`
-	ParentId string        `json:"parent_id"`
+	ID       uint          `json:"key"`
+	ParentId uint          `json:"parent_id"`
 	DeptName string        `json:"title"`
 	DeptPath string        `json:"deptPath"`
 	Sort     int           `json:"sort"`
@@ -56,13 +59,13 @@ func (d *SysDept) Create() (*SysDept, error) {
 	} else {
 		d.DeptID, _ = initID.NewID()
 	}
-	if d.DeptID != "" {
-		var ParDept SysDept
-		orm.DB.Where("dept_id = ?", d.ParentId).First(&ParDept)
-		d.DeptPath = ParDept.DeptPath + d.DeptPath
-	} else {
-		d.DeptPath = "/" + d.DeptName
-	}
+	//if d.ParentId != "" {
+	//	var ParDept SysDept
+	//	orm.DB.Where("dept_id = ?", d.ParentId).First(&ParDept)
+	//	d.DeptPath = ParDept.DeptPath + d.DeptName
+	//} else {
+	//	d.DeptPath = "/" + d.DeptName
+	//}
 	err := orm.DB.Create(&d).Error
 	return d, err
 }
@@ -94,7 +97,7 @@ func (d *SysDept) DeptTree() ([]SysDeptInfo, error) {
 	err := orm.DB.Order("sort").Find(&list).Error
 	m := make([]SysDeptInfo, 0)
 	for i := 0; i < len(list); i++ {
-		if list[i].ParentId != "" {
+		if list[i].ParentId != 0 {
 			continue
 		}
 		info := DeptOrder(&list, list[i])
@@ -122,7 +125,7 @@ func DeptCompare(deptList []SysDeptInfo) []SysDeptInfo {
 	for i := 0; i < len(deptList); i++ {
 		repeat := false
 		for j := 0; j < len(deptList); j++ {
-			if deptList[i].ParentId == deptList[j].DeptID {
+			if deptList[i].ParentId == deptList[j].ID {
 				repeat = true
 			}
 		}
@@ -140,25 +143,14 @@ func DeptOrder(deptList *[]SysDept, dept SysDept) SysDeptInfo {
 	deptInfo := SysDeptInfo{}
 	// copier可以拷贝相同类型的结构
 	err := copier.Copy(&deptInfo, &dept)
+	//deptInfo.ID = dept.ID
 	if err != nil {
 		return SysDeptInfo{}
 	}
 	deptInfo.EnableUsersCount = int(orm.DB.Model(dept).Where("status = ?", 1).Association("Users").Count())
 	deptInfo.DisableUsersCount = int(orm.DB.Model(dept).Where("status = ?", 2).Association("Users").Count())
-	//deptInfo := SysDeptInfo{
-	//	DeptID:            dept.DeptID,
-	//	ParentId:          dept.ParentId,
-	//	DeptName:          dept.DeptName,
-	//	DeptPath:          dept.DeptPath,
-	//	Sort:              dept.Sort,
-	//	Leader:            dept.Leader,
-	//	Status:            dept.Status,
-	//	Children:          nil,
-	//	EnableUsersCount:  orm.DB.Model(dept).Where("status = ?", 1).Association("Users").Count(),
-	//	DisableUsersCount: orm.DB.Model(dept).Where("status = ?", 2).Association("Users").Count(),
-	//}
 	for i := 0; i < len(list); i++ {
-		if dept.DeptID != list[i].ParentId {
+		if dept.ID != list[i].ParentId {
 			continue
 		}
 		mi := SysDeptInfo{}
@@ -167,7 +159,7 @@ func DeptOrder(deptList *[]SysDept, dept SysDept) SysDeptInfo {
 		mi.Sort = list[i].Sort
 		mi.Leader = list[i].Leader
 		mi.Status = list[i].Status
-		mi.DeptID = list[i].DeptID
+		mi.ID = list[i].ID
 		mi.DisableUsersCount = int(orm.DB.Model(list[i]).Where("status = ?", 1).Association("Users").Count())
 		mi.EnableUsersCount = int(orm.DB.Model(list[i]).Where("status = ?", 2).Association("Users").Count())
 		mi.Children = []SysDeptInfo{}
