@@ -2,10 +2,12 @@ package models
 
 import (
 	"errors"
+	"fmt"
 	"github.com/jinzhu/copier"
 	orm "go-admin/init/database"
 	"go-admin/internal/entity"
 	"go-admin/internal/schema"
+	"go-admin/service"
 	"go-admin/utils"
 	"gorm.io/gorm"
 	"strconv"
@@ -86,6 +88,12 @@ func KpdDataPagingServer(pageParams KpiDataQueryParam, db *gorm.DB) {
 }
 
 func (k *KpiData) GetKpiData(params KpiDataQueryParam) (err error, kd []map[string]interface{}) {
+	//namedGroupingPolicy := ccasbin.Enforcer.GetFilteredNamedGroupingPolicy("g", 0, "业务组")
+	//e, err := ccasbin.InitCasBin()
+	//allObjects := e.GetAllObjects()
+	//fmt.Println(allObjects, "namedGroupingPolicy")
+	ss := service.SyncedEnforcer.GetFilteredNamedGroupingPolicy("g", 0, "业务组")
+	fmt.Println(ss, "ss")
 	// 获取当前服务器时间, 推算前11个月，用于数据库Between使用
 	var nowMonth = time.Now().Format("2006-01")
 	var beforeMonth = time.Now().AddDate(0, -12, 0).Format("2006-01")
@@ -233,7 +241,6 @@ func GroupByLine(result []ResultLine, date time.Time) []ResultLine {
 		for _, i := range monthStringList {
 			b.InTime = i.InTime
 			b.Name = v
-
 			b.LLimit = i.LLimit
 			b.TLimit = i.TLimit
 			b.Unit = i.Unit

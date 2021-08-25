@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"github.com/casbin/casbin/v2"
 	"github.com/casbin/casbin/v2/util"
 	gormadapter "github.com/casbin/gorm-adapter/v3"
@@ -13,30 +14,31 @@ import (
 )
 
 var (
-	syncedEnforcer *casbin.SyncedEnforcer
+	SyncedEnforcer *casbin.SyncedEnforcer
 	once           sync.Once
 	err            error
 )
 
 func Casbin() (*casbin.SyncedEnforcer, error) {
 	once.Do(func() {
-		a, err := gormadapter.NewAdapterByDB(orm.DB)
-		if err != nil {
-			log.Fatalf("error: adapter: %s", err)
-		}
-		syncedEnforcer, err = casbin.NewSyncedEnforcer(config.AdminConfig.Casbin.ModelPath, a)
-		if err != nil {
-			log.Fatalf("error: syncedEnforcer: %s", err)
-		}
 
 		//syncedEnforcer.AddFunction("ParamsMatch", ParamsMatchFunc)
 		//syncedEnforcer.AddFunction("AdminMatch", AdminMatchFunc)
 	})
-	err = syncedEnforcer.LoadPolicy()
+	a, err := gormadapter.NewAdapterByDB(orm.DB)
 	if err != nil {
 		log.Fatalf("error: adapter: %s", err)
 	}
-	return syncedEnforcer, err
+	fmt.Println("Model路径:", config.AdminConfig.Casbin.ModelPath, a)
+	SyncedEnforcer, err = casbin.NewSyncedEnforcer(config.AdminConfig.Casbin.ModelPath, a)
+	if err != nil {
+		log.Fatalf("error: syncedEnforcer: %s", err)
+	}
+	err = SyncedEnforcer.LoadPolicy()
+	if err != nil {
+		log.Fatalf("error: adapter: %s", err)
+	}
+	return SyncedEnforcer, err
 }
 
 func ParamsMatch(fullNameKey1 string, key2 string) bool {

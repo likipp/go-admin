@@ -6,6 +6,7 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"github.com/swaggo/gin-swagger/swaggerFiles"
 	"go-admin/controller/apis"
+	"go-admin/middleware"
 	"log"
 	"os"
 	"os/signal"
@@ -22,7 +23,8 @@ func InitRouter() {
 	//r.POST("/login", auth.Authenticator)
 	//r.Use(middleware.JWTAuth())
 	r.POST("/api/v1/base/login", apis.Login)
-	//r.Use(middleware.JWTAuth()).Use(middleware.CasbinHandler())
+	r.Use(middleware.JWTAuth()).Use(middleware.CasbinHandler())
+	//.Use(middleware.JWTAuth()) .Use(middleware.CasbinHandler())
 	//baseRouter := r.Group("/api/v1/base").Use(middleware.JWTAuth())
 	baseRouter := r.Group("/api/v1/base")
 	//.Use(middleware.JWTAuth())

@@ -19,6 +19,5 @@ func InitMySQL(admin config.MySQL) *gorm.DB {
 		sqlDb.SetMaxIdleConns(10)
 		sqlDb.SetMaxOpenConns(100)
 	}
-	log.Println(DB, "DB")
 	return DB
 }
