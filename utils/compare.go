@@ -3,6 +3,7 @@ package utils
 import (
 	"golang.org/x/crypto/bcrypt"
 	"log"
+	"reflect"
 	"strings"
 	"time"
 )
@@ -47,4 +48,43 @@ func CompareByMonth(date time.Time) map[string]interface{} {
 		monthStringList = append(monthStringList, i.Format("2006/01"))
 	}
 	return monthMap
+}
+
+func RemoveDuplicate(list *[]string) []string {
+	var x []string = []string{}
+	for _, i := range *list {
+		if len(x) == 0 {
+			x = append(x, i)
+		} else {
+			for k, v := range x {
+				if i == v {
+					break
+				}
+				if k == len(x)-1 {
+					x = append(x, i)
+				}
+			}
+		}
+	}
+	return x
+}
+func RemoveDuplicatesAndEmpty(a []string) (ret []string) {
+	a_len := len(a)
+	for i := 0; i < a_len; i++ {
+		if (i > 0 && a[i-1] == a[i]) || len(a[i]) == 0 {
+			continue
+		}
+		ret = append(ret, a[i])
+	}
+	return
+}
+func Duplicate(a interface{}) (ret []interface{}) {
+	va := reflect.ValueOf(a)
+	for i := 0; i < va.Len(); i++ {
+		if i > 0 && reflect.DeepEqual(va.Index(i-1).Interface(), va.Index(i).Interface()) {
+			continue
+		}
+		ret = append(ret, va.Index(i).Interface())
+	}
+	return ret
 }
