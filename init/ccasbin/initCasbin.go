@@ -6,28 +6,26 @@ import (
 	"go-admin/config"
 	orm "go-admin/init/database"
 	"log"
-	"sync"
 )
 
-var (
-	syncedEnforcer *casbin.SyncedEnforcer
-	once           sync.Once
-	err            error
-)
+var SyncedEnforcer *casbin.SyncedEnforcer
 
 func InitCasBin() (*casbin.SyncedEnforcer, error) {
-	_, err := gormadapter.NewAdapterByDB(orm.DB)
+	//a, err := gormadapter.NewAdapterByDBWithCustomTable(orm.DB, &CasbinRule{})
+	//a, err := gormadapter.NewAdapter("mysql", "xiaom:Server@1234.com@tcp(nas.xiaom.work:3306)/qmPlus", true)
+	a, err := gormadapter.NewAdapterByDB(orm.DB)
 	if err != nil {
 		log.Fatalf("error: adapter: %s", err)
 	}
-	syncedEnforcer, err = casbin.NewSyncedEnforcer(config.AdminConfig.Casbin.ModelPath)
+	SyncedEnforcer, err = casbin.NewSyncedEnforcer(config.AdminConfig.Casbin.ModelPath, a)
 	if err != nil {
 		log.Fatalf("error: syncedEnforcer: %s", err)
+		return nil, err
 	}
-	//fmt.Println(err)
-	//err = syncedEnforcer.InitWithModelAndAdapter(syncedEnforcer.GetModel(), a)
-	//if err != nil {
-	//	log.Fatalf("error: InitWithModelAndAdapter: %s", err)
-	//}
-	return syncedEnforcer, err
+	err = SyncedEnforcer.LoadPolicy()
+	if err != nil {
+		log.Fatalf("error: adapter: %s", err)
+		return nil, err
+	}
+	return SyncedEnforcer, err
 }

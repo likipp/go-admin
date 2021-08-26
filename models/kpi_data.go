@@ -4,10 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"github.com/jinzhu/copier"
+	"go-admin/init/ccasbin"
 	orm "go-admin/init/database"
 	"go-admin/internal/entity"
 	"go-admin/internal/schema"
-	"go-admin/service"
 	"go-admin/utils"
 	"gorm.io/gorm"
 	"strconv"
@@ -88,19 +88,17 @@ func KpdDataPagingServer(pageParams KpiDataQueryParam, db *gorm.DB) {
 }
 
 func (k *KpiData) GetKpiData(params KpiDataQueryParam) (err error, kd []map[string]interface{}) {
-	//namedGroupingPolicy := ccasbin.Enforcer.GetFilteredNamedGroupingPolicy("g", 0, "业务组")
-	//e, err := ccasbin.InitCasBin()
-	//allObjects := e.GetAllObjects()
-	//fmt.Println(allObjects, "namedGroupingPolicy")
-	ss := service.SyncedEnforcer.GetFilteredNamedGroupingPolicy("g", 0, "业务组")
-	fmt.Println(ss, "ss")
+	//allObjects := ccasbin.SyncedEnforcer.GetFilteredNamedPolicy("p", 0, "业务组")
+	allObjects := ccasbin.SyncedEnforcer.GetAllObjects()
+	//allObjects, _ := ccasbin.SyncedEnforcer.GetImplicitPermissionsForUser("ly")
+	fmt.Println(allObjects, "ss")
 	// 获取当前服务器时间, 推算前11个月，用于数据库Between使用
 	var nowMonth = time.Now().Format("2006-01")
 	var beforeMonth = time.Now().AddDate(0, -12, 0).Format("2006-01")
 	var selectData = "kpi_data.id, group_kpi.dept, group_kpi.kpi, kpi.name, group_kpi.l_limit, group_kpi.t_limit, group_kpi.u_limit, kpi_data.r_value, kpi.unit, kpi_data.user, kpi_data.in_time, kpi.unit"
 	var joinData = "join group_kpi on kpi_data.group_kpi = group_kpi.uuid join kpi on group_kpi.kpi = kpi.uuid"
 	var orderData = "group_kpi.kpi desc, group_kpi.dept, kpi_data.in_time"
-	db := GetKpiDataDB(orm.DB).Select(selectData).Joins(joinData).Where("kpi_data.in_time BETWEEN ? AND ?", beforeMonth, nowMonth).Order(orderData)
+	db := GetKpiDataDB(orm.DB).Select(selectData).Joins(joinData).Where("group_kpi in (?) AND kpi_data.in_time BETWEEN ? AND ?", allObjects, beforeMonth, nowMonth).Order(orderData)
 	var result []Result
 	if v := params.User; v != "" {
 		db = db.Where("kpi_data.user = ?", v).Scan(&result)
