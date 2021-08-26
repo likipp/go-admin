@@ -97,7 +97,7 @@ func (k *KpiData) GetKpiData(params KpiDataQueryParam) (err error, kd []map[stri
 		fmt.Println(v[1])
 		ss = append(ss, v[1])
 	}
-	sss := utils.RemoveDuplicate(&ss)
+	sss := utils.RemoveDuplicateByMap(ss)
 	// 获取当前服务器时间, 推算前11个月，用于数据库Between使用
 	var nowMonth = time.Now().Format("2006-01")
 	var beforeMonth = time.Now().AddDate(0, -12, 0).Format("2006-01")

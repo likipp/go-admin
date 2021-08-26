@@ -50,6 +50,18 @@ func CompareByMonth(date time.Time) map[string]interface{} {
 	return monthMap
 }
 
+func RemoveDuplicateByMap(list []string) []string {
+	strMap := make(map[string]string)
+	for _, v := range list {
+		strMap[v] = v
+	}
+	var cs []string
+	for _, v := range strMap {
+		cs = append(cs, v)
+	}
+	return cs
+}
+
 func RemoveDuplicate(list *[]string) []string {
 	var x []string = []string{}
 	for _, i := range *list {
