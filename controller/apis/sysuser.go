@@ -157,6 +157,10 @@ func Login(c *gin.Context) {
 		session.Values["uuid"] = user.UUID
 		session.Values["access"] = "admin"
 		session.Values["token"] = token
+		//global.GUser.Username = user.Username
+		//fmt.Println(user.Username, "&user.Username")
+		//global.GUser.NickName = user.NickName
+		//global.GUser.DeptID = &string(user.DeptID)
 		cookies.SaveSession(c)
 		response.OkWithData(user, c)
 	}

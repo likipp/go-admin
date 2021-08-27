@@ -4,10 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"github.com/jinzhu/copier"
-	"go-admin/init/ccasbin"
+	"go-admin/global"
 	orm "go-admin/init/database"
 	"go-admin/internal/entity"
 	"go-admin/internal/schema"
+	"go-admin/service"
 	"go-admin/utils"
 	"gorm.io/gorm"
 	"strconv"
@@ -76,7 +77,6 @@ func (k *KpiData) CreateKpiData() (err error, kd *KpiData) {
 		return errors.New("创建KPI数据失败"), kd
 	}
 	return nil, k
-
 }
 
 func KpdDataPagingServer(pageParams KpiDataQueryParam, db *gorm.DB) {
@@ -90,14 +90,9 @@ func KpdDataPagingServer(pageParams KpiDataQueryParam, db *gorm.DB) {
 func (k *KpiData) GetKpiData(params KpiDataQueryParam) (err error, kd []map[string]interface{}) {
 	//allObjects := ccasbin.SyncedEnforcer.GetFilteredNamedPolicy("p", 0, "业务组")
 	//allObjects := ccasbin.SyncedEnforcer.GetAllObjects()
-	allObjects, _ := ccasbin.SyncedEnforcer.GetImplicitPermissionsForUser("ly")
-	//fmt.Println(allObjects, "ss")
-	var ss []string
-	for _, v := range allObjects {
-		fmt.Println(v[1])
-		ss = append(ss, v[1])
-	}
-	sss := utils.RemoveDuplicateByMap(ss)
+	//allObjects, _ := ccasbin.SyncedEnforcer.GetImplicitPermissionsForUser("ly")
+	fmt.Println(global.GUser, "全局用户信息")
+	sss := service.HasPermissionList("ly", "group_kpi")
 	// 获取当前服务器时间, 推算前11个月，用于数据库Between使用
 	var nowMonth = time.Now().Format("2006-01")
 	var beforeMonth = time.Now().AddDate(0, -12, 0).Format("2006-01")
@@ -252,7 +247,7 @@ func GroupByLine(result []ResultLine, date time.Time) []ResultLine {
 			bList = append(bList, b)
 		}
 	}
-	for i, _ := range bList {
+	for i := range bList {
 		for _, v := range result {
 			if bList[i].Name == v.Name && bList[i].InTime == v.InTime {
 				_ = copier.Copy(&bList[i], &v)

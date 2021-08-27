@@ -2,43 +2,28 @@ package ccasbin
 
 import (
 	"github.com/casbin/casbin/v2"
-	gormadapter "github.com/casbin/gorm-adapter/v3"
+	gormAdapter "github.com/casbin/gorm-adapter/v3"
 	"go-admin/config"
+	"go-admin/global"
 	orm "go-admin/init/database"
 	"log"
 )
 
-var SyncedEnforcer *casbin.SyncedEnforcer
+var syncedEnforcer *casbin.SyncedEnforcer
 
-//type CasbinRule struct {
-//	ID    uint   `gorm:"primaryKey;autoIncrement"`
-//	Ptype string `gorm:"size:100;uniqueIndex:unique_index"`
-//	Module    string `gorm:"size:100;uniqueIndex:unique_index"`
-//	V0    string `gorm:"size:100;uniqueIndex:unique_index"`
-//	V1    string `gorm:"size:100;uniqueIndex:unique_index"`
-//	V2    string `gorm:"size:100;uniqueIndex:unique_index"`
-//	V3    string `gorm:"size:100;uniqueIndex:unique_index"`
-//	V4    string `gorm:"size:100;uniqueIndex:unique_index"`
-//	V5    string `gorm:"size:100;uniqueIndex:unique_index"`
-//}
-
-func InitCasBin() (*casbin.SyncedEnforcer, error) {
-	//a, err := gormadapter.NewAdapterByDBWithCustomTable(orm.DB, &CasbinRule{})
-	//a, err := gormadapter.NewAdapter("mysql", "xiaom:Server@1234.com@tcp(nas.xiaom.work:3306)/qmPlus", true)
-	a, err := gormadapter.NewAdapterByDB(orm.DB)
-	//a, err := gormadapter.NewAdapterByDBWithCustomTable(orm.DB, &CasbinRule{})
+func InitCasBin() {
+	//a, err := gormAdapter.NewAdapter("mysql", "xiaom:Server@1234.com@tcp(nas.xiaom.work:3306)/qmPlus", true)
+	a, err := gormAdapter.NewAdapterByDB(orm.DB)
 	if err != nil {
-		log.Fatalf("error: adapter: %s", err)
+		log.Printf("创建Casbin适配器失败:%v", err)
 	}
-	SyncedEnforcer, err = casbin.NewSyncedEnforcer(config.AdminConfig.Casbin.ModelPath, a)
+	syncedEnforcer, err = casbin.NewSyncedEnforcer(config.AdminConfig.Casbin.ModelPath, a)
 	if err != nil {
-		log.Fatalf("error: syncedEnforcer: %s", err)
-		return nil, err
+		log.Printf("创建Casbin调度器失败:%v", err)
 	}
-	err = SyncedEnforcer.LoadPolicy()
+	global.GSyncedEnforcer = syncedEnforcer
+	err = global.GSyncedEnforcer.LoadPolicy()
 	if err != nil {
-		log.Fatalf("error: adapter: %s", err)
-		return nil, err
+		log.Printf("加载Casbin策略失败:%v", err)
 	}
-	return SyncedEnforcer, err
 }
