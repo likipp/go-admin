@@ -38,9 +38,7 @@ func CasbinHandler() gin.HandlerFunc {
 		}
 		// 先查看用户是否拥有权限, 如果已经拥有了权限, 则不查看所属是否拥有权限
 		//sub := waitUse.UUID
-		fmt.Println(obj, act)
 		sub := waitUse.Username
-
 		ok, _ = global.GSyncedEnforcer.Enforce(sub, obj, act)
 		fmt.Println(ok, "是否有权限")
 		if !ok {
