@@ -20,19 +20,18 @@ func CreateUser(c *gin.Context) {
 	var U models.SysUser
 	//var _ = c.ShouldBind(&U)
 	err := c.ShouldBindBodyWith(&U, binding.JSON)
-	fmt.Println(&U, "用户信息")
 	if err != nil {
-		response.FailWithMessage("获取前段数据失败", c)
+		response.Result(http.StatusBadRequest, nil, "获取前段数据失败", 0, false, c)
 		return
 	}
 
 	U.Password = "123456"
 	err, user := U.CreateUser()
 	if err != nil {
-		response.FailWithMessage("用户创建失败", c)
+		response.Result(http.StatusBadRequest, nil, "用户创建失败", 1, false, c)
 		return
 	} else {
-		response.OkWithData(user, c)
+		response.Result(http.StatusOK, user, "用户创建成功", 1, true, c)
 	}
 }
 
@@ -43,10 +42,10 @@ func GetUserByUUID(c *gin.Context) {
 	U.UUID = uid
 	user, err := U.GetUserByUUID()
 	if err != nil {
-		response.FailWithMessage("用户查询失败", c)
+		response.Result(http.StatusBadRequest, nil, "用户查询失败", 1, false, c)
 		return
 	} else {
-		response.OkWithData(user, c)
+		response.Result(http.StatusOK, user, "查询用户成功", 0, true, c)
 	}
 }
 
@@ -74,9 +73,9 @@ func GetUserList(c *gin.Context) {
 	err, list, total := new(models.SysUser).GetList(userQuery)
 	if err != nil {
 		//c.JSON(http.StatusBadRequest, gin.H{"code": 400, "data": err.Error()})
-		response.FailWithMessage(fmt.Sprintf("获取用户数据失败, %v", err), c)
+		response.Result(http.StatusBadRequest, nil, "获取用户数据失败", 0, false, c)
 	} else {
-		response.OKWithPageInfo(list, total, userQuery.Page, userQuery.PageSize, c)
+		response.ResultWithPageInfo(http.StatusOK, list, "获取数据成功", 0, true, total, userQuery.Page, userQuery.PageSize, c)
 	}
 }
 
@@ -91,9 +90,9 @@ func UpdateUser(c *gin.Context) {
 	U.UUID = uid
 	err := U.UpdateUser(N)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "更新失败", "data": err.Error()})
+		response.Result(http.StatusBadRequest, nil, "更新失败", 0, false, c)
 	} else {
-		c.JSON(http.StatusOK, gin.H{"code": 200, "msg": "更新成功"})
+		response.Result(http.StatusOK, nil, "更新成功", 0, true, c)
 	}
 }
 
@@ -103,9 +102,9 @@ func DeleteUser(c *gin.Context) {
 	U.UUID = uid
 	err := U.DeleteUser()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "删除失败", "data": err.Error()})
+		response.Result(http.StatusBadRequest, nil, "删除失败", 0, false, c)
 	} else {
-		c.JSON(http.StatusOK, gin.H{"code": 200, "msg": "删除成功"})
+		response.Result(http.StatusOK, nil, "删除成功", 0, true, c)
 	}
 }
 
@@ -118,20 +117,20 @@ func EnableOrDisableUser(c *gin.Context) {
 
 	if status == 1 {
 		if err != nil {
-			response.FailWithMessage("启用失败", c)
+			response.Result(http.StatusBadRequest, nil, "启用失败", 0, false, c)
 			return
 		} else {
-			response.OkWithMessage("启用成功", c)
+			response.Result(http.StatusOK, nil, "启用成功", 0, true, c)
 		}
 	} else if status == 0 {
 		if err != nil {
-			response.FailWithMessage("禁用失败", c)
+			response.Result(http.StatusBadRequest, nil, "禁用失败", 0, false, c)
 			return
 		} else {
-			response.OkWithMessage("禁用成功", c)
+			response.Result(http.StatusOK, nil, "禁用成功", 0, true, c)
 		}
 	} else {
-		response.FailWithMessage("未知状态", c)
+		response.Result(http.StatusBadRequest, nil, "未知状态", 0, false, c)
 	}
 }
 
@@ -140,7 +139,7 @@ func Login(c *gin.Context) {
 	var L models.Login
 	_ = c.ShouldBindJSON(&L)
 	if err, user := models.UserLogin(&L); err != nil {
-		response.FailWithMessage(fmt.Sprintf("%v", err), c)
+		response.Result(http.StatusBadRequest, nil, err.Error(), 0, false, c)
 	} else {
 		session, _ := cookies.GetSession(c)
 		token := GetToken(c, *user)
@@ -155,7 +154,7 @@ func Login(c *gin.Context) {
 		//global.GUser.NickName = user.NickName
 		//global.GUser.DeptID = &string(user.DeptID)
 		cookies.SaveSession(c)
-		response.OkWithData(user, c)
+		response.Result(http.StatusOK, user, "保存数据成功", 0, true, c)
 	}
 
 }
@@ -195,15 +194,10 @@ func GetToken(c *gin.Context, user models.SysUser) (token string) {
 	}
 	token, err := j.CreateToken(clams)
 	if err != nil {
-		response.FailWithMessage("获取Token失败", c)
+		response.Result(http.StatusBadRequest, nil, "获取Token失败", 0, false, c)
 		return
 	}
 	return token
-	//response.OkWithData(models.LoginResponse{
-	//	User:      user,
-	//	Token:     token,
-	//	ExpiresAt: clams.StandardClaims.ExpiresAt * 1000,
-	//}, c)
 }
 
 func getUserUUID(c *gin.Context) string {

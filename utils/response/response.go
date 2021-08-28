@@ -2,7 +2,6 @@ package response
 
 import (
 	"github.com/gin-gonic/gin"
-	"net/http"
 	"time"
 )
 
@@ -39,34 +38,34 @@ func ResultWithPageInfo(code int, data interface{}, msg string, showType int, su
 	})
 }
 
-func Ok(c *gin.Context) {
-	Result(http.StatusOK, map[string]interface{}{}, "操作成功", 0, true, c)
-}
-
-func OkWithMessage(message string, c *gin.Context) {
-	Result(http.StatusOK, map[string]interface{}{}, message, 0, true, c)
-}
-
-func OkWithData(data interface{}, c *gin.Context) {
-	Result(http.StatusOK, data, "操作成功", 0, true, c)
-}
-
-func OKWithPageInfo(data interface{}, total int64, page, size int, c *gin.Context) {
-	ResultWithPageInfo(http.StatusOK, data, "操作成功", 0, true, total, page, size, c)
-}
-
-func OkDetailed(data interface{}, message string, c *gin.Context) {
-	Result(http.StatusOK, data, message, 0, true, c)
-}
-
-func Fail(c *gin.Context) {
-	Result(http.StatusBadRequest, map[string]interface{}{}, "操作失败", 2, false, c)
-}
-
-func FailWithMessage(message string, c *gin.Context) {
-	Result(http.StatusInternalServerError, map[string]interface{}{}, message, 1, false, c)
-}
-
-func FailWithDetailed(data interface{}, message string, c *gin.Context) {
-	Result(http.StatusBadRequest, data, message, 2, false, c)
-}
+//func Ok() {
+//	Result(http.StatusOK, map[string]interface{}{}, "操作成功", 0, true)
+//}
+//
+//func OkWithMessage(message string) {
+//	Result(http.StatusOK, map[string]interface{}{}, message, 0, true)
+//}
+//
+//func OkWithData(data interface{}) {
+//	Result(http.StatusOK, data, "操作成功", 0, true)
+//}
+//
+//func OKWithPageInfo(data interface{}, total int64, page, size int) {
+//	ResultWithPageInfo(http.StatusOK, data, "操作成功", 0, true, total, page, size)
+//}
+//
+//func OkDetailed(data interface{}, message string) {
+//	Result(http.StatusOK, data, message, 0, true)
+//}
+//
+//func Fail() {
+//	Result(http.StatusBadRequest, map[string]interface{}{}, "操作失败", 2, false)
+//}
+//
+//func FailWithMessage(message string) {
+//	Result(http.StatusInternalServerError, map[string]interface{}{}, message, 1, false)
+//}
+//
+//func FailWithDetailed(data interface{}, message string) {
+//	Result(http.StatusBadRequest, data, message, 2, false)
+//}

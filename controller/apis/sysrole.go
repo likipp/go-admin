@@ -15,9 +15,9 @@ func CreateRole(c *gin.Context) {
 	_ = c.ShouldBindJSON(&R)
 	role, err := R.CreateRole()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "创建失败", "data": err.Error()})
+		response.Result(http.StatusBadRequest, nil, "创建用户失败", 0, false, c)
 	} else {
-		c.JSON(http.StatusOK, gin.H{"code": 200, "msg": "创建成功", "data": role})
+		response.Result(http.StatusOK, role, "创建用户成功", 0, true, c)
 	}
 }
 
@@ -28,16 +28,9 @@ func GetRoleList(c *gin.Context) {
 	err, list, total := new(models.SysRole).GetList(pageInfo)
 	fmt.Println(list, "list")
 	if err != nil {
-		response.FailWithMessage(fmt.Sprintf("获取角色数据失败, %v", err), c)
+		response.Result(http.StatusBadRequest, nil, "获取角色数据失败", 0, false, c)
 	} else {
-		//c.JSON(http.StatusOK, gin.H{
-		//	"code":     200,
-		//	"data":     list,
-		//	"total":    total,
-		//	"page":     pageInfo.Page,
-		//	"pageSize": pageInfo.PageSize,
-		//})
-		response.OKWithPageInfo(list, total, pageInfo.Page, pageInfo.PageSize, c)
+		response.ResultWithPageInfo(http.StatusOK, list, "获取数据成功", 0, true, total, pageInfo.Page, pageInfo.PageSize, c)
 	}
 	//response.FailWithMessage(fmt.Sprintf("获取角色数据失败, %v", "eeee"), c)
 }
@@ -49,14 +42,8 @@ func GetRoleByQuery(c *gin.Context) {
 	_ = c.BindQuery(&rq)
 	err, result, total := r.GetRoleByQuery(rq)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "查询失败", "data": err.Error()})
+		response.Result(http.StatusBadRequest, nil, "获取角色数据失败", 0, false, c)
 	} else {
-		c.JSON(http.StatusOK, gin.H{
-			"code":     200,
-			"data":     result,
-			"total":    total,
-			"page":     rq.Page,
-			"pageSize": rq.PageSize,
-		})
+		response.ResultWithPageInfo(http.StatusOK, result, "获取数据成功", 0, true, total, rq.Page, rq.PageSize, c)
 	}
 }

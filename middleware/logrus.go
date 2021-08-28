@@ -63,15 +63,6 @@ func LoggerToFile() gin.HandlerFunc {
 		clientIP := c.ClientIP()
 
 		// 日志格式
-		//logger.Infof("| %3d | %13v | %15s | %s | %s |",
-		//	statusCode,
-		//	latencyTime,
-		//	clientIP,
-		//	reqMethod,
-		//	reqUri,
-		//)
-
-		// 日志格式
 		logger.WithFields(logrus.Fields{
 			"status_code":  statusCode,
 			"latency_time": latencyTime,

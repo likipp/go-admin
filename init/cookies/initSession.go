@@ -6,6 +6,7 @@ import (
 	"go-admin/config"
 	"go-admin/utils/response"
 	"gopkg.in/boj/redistore.v1"
+	"net/http"
 )
 
 var RS *redistore.RediStore
@@ -28,7 +29,7 @@ func InitSession(admin config.Redis) {
 func GetSession(c *gin.Context) (*sessions.Session, error) {
 	session, err := RS.Get(c.Request, "session")
 	if err != nil {
-		response.FailWithMessage("获取session失败", c)
+		response.Result(http.StatusBadRequest, nil, "获取session失败", 0, false, c)
 		c.Abort()
 		return nil, err
 	}
@@ -38,22 +39,22 @@ func GetSession(c *gin.Context) (*sessions.Session, error) {
 func SaveSession(c *gin.Context) {
 	err := sessions.Save(c.Request, c.Writer)
 	if err = sessions.Save(c.Request, c.Writer); err != nil {
-		response.FailWithMessage("保存session失败!", c)
+		response.Result(http.StatusBadRequest, nil, "保存session失败", 0, false, c)
 	}
 }
 
 func DeleteSession(c *gin.Context) {
 	session, err := GetSession(c)
 	if err != nil {
-		response.FailWithMessage("获取session失败.", c)
+		response.Result(http.StatusBadRequest, nil, "获取session失败", 0, false, c)
 		c.Abort()
 		return
 	}
 	session.Options.MaxAge = -1
 	if err := sessions.Save(c.Request, c.Writer); err != nil {
-		response.FailWithMessage("清除session失败.", c)
+		response.Result(http.StatusBadRequest, nil, "清除session失败", 0, false, c)
 		c.Abort()
 		return
 	}
-	response.OkWithMessage("退出成功", c)
+	response.Result(http.StatusOK, nil, "退出成功", 0, true, c)
 }

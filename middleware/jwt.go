@@ -42,7 +42,7 @@ func JWTAuth() gin.HandlerFunc {
 			return
 		}
 		if session.Options.MaxAge < 0 {
-			response.FailWithMessage("session已过期, 请重新登录.", c)
+			response.Result(http.StatusBadRequest, nil, "session已过期, 请重新登录.", 0, false, c)
 			c.Abort()
 			return
 		}

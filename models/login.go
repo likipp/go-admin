@@ -2,7 +2,7 @@ package models
 
 import (
 	"errors"
-	orm "go-admin/init/database"
+	"go-admin/global"
 	"go-admin/utils"
 )
 
@@ -12,7 +12,7 @@ type Login struct {
 }
 
 func (l *Login) GetUser() (user SysUser, role SysRole, err error) {
-	err = orm.DB.Table("sys_user").Where("username = ?", l.Username).Find(&user).Error
+	err = global.GDB.Table("sys_user").Where("username = ?", l.Username).Find(&user).Error
 	if err != nil {
 		return user, role, errors.New("查找用户失败")
 	}
@@ -24,14 +24,14 @@ func (l *Login) GetUser() (user SysUser, role SysRole, err error) {
 
 func UserLogin(l *Login) (err error, userInter *SysUser) {
 	var user SysUser
-	err = orm.DB.Table("sys_user").Where("username = ?", l.Username).Find(&user).Error
+	err = global.GDB.Table("sys_user").Where("username = ?", l.Username).Find(&user).Error
 	if err != nil {
 		return errors.New("用户不存在"), &user
 	}
 	if utils.PasswordVerify(user.Password, l.Password) != true {
 		return errors.New("密码不正确"), &user
 	}
-	err = orm.DB.Model(&user).Association("Roles").Find(&user.Roles)
+	err = global.GDB.Model(&user).Association("Roles").Find(&user.Roles)
 	if err != nil {
 		return errors.New("查找关联角色失败"), nil
 	}

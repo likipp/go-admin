@@ -5,6 +5,7 @@ import (
 	"go-admin/internal/gins"
 	"go-admin/models"
 	"go-admin/utils/response"
+	"net/http"
 )
 
 func CreateGroupKPI(c *gin.Context) {
@@ -12,20 +13,21 @@ func CreateGroupKPI(c *gin.Context) {
 	var _ = c.ShouldBind(&G)
 	err, kpi := G.CreateGroupKPI()
 	if err != nil {
-		response.FailWithMessage("GroupKPI创建失败", c)
+		response.Result(http.StatusBadRequest, nil, "GroupKPI创建失败", 0, false, c)
+
 		return
 	} else {
-		response.OkWithData(kpi, c)
+		response.Result(http.StatusOK, kpi, "创建成功", 0, true, c)
 	}
 }
 
 func GetGroupKPI(c *gin.Context) {
 	err, results := new(models.GroupKPI).GetGroupKPI()
 	if err != nil {
-		response.FailWithMessage("获取列表成功", c)
+		response.Result(http.StatusBadRequest, nil, "获取列表失败", 0, false, c)
 		return
 	} else {
-		response.OkWithData(results, c)
+		response.Result(http.StatusBadRequest, results, "获取列表成功", 0, true, c)
 	}
 }
 
@@ -34,9 +36,9 @@ func GetGroupKPIDept(c *gin.Context) {
 	gins.ParseQuery(c, &params)
 	err, results := new(models.GroupKPI).GetGroupKPIDept(params)
 	if err != nil {
-		response.FailWithMessage("获取列表失败", c)
+		response.Result(http.StatusBadRequest, nil, "获取列表失败", 0, false, c)
 		return
 	} else {
-		response.OkWithData(results, c)
+		response.Result(http.StatusBadRequest, results, "获取列表失败", 0, false, c)
 	}
 }

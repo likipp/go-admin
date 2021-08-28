@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin/binding"
 	"go-admin/models"
 	"go-admin/utils/response"
+	"net/http"
 )
 
 func CreateBaseMenu(c *gin.Context) {
@@ -16,14 +17,14 @@ func CreateBaseMenu(c *gin.Context) {
 	err := c.ShouldBindBodyWith(&M, binding.JSON)
 	M.CreateBy = getUserUUID(c)
 	if err != nil {
-		response.FailWithMessage(err.Error(), c)
+		response.Result(http.StatusBadRequest, nil, "获取数据失败", 0, false, c)
 		return
 	}
 	err, menu := M.CreateBaseMenu()
 	if err != nil {
-		response.FailWithMessage("创建菜单失败", c)
+		response.Result(http.StatusBadRequest, nil, "创建菜单失败", 0, false, c)
 	} else {
-		response.OkWithData(menu, c)
+		response.Result(http.StatusOK, menu, "创建菜单成功", 0, true, c)
 	}
 }
 
@@ -33,5 +34,5 @@ func GetMenusTree(c *gin.Context) {
 	if err != nil {
 		return
 	}
-	response.OkWithData(m, c)
+	response.Result(http.StatusOK, m, "获取列表成功", 0, true, c)
 }

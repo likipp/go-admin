@@ -1,3 +1,6 @@
 time="2021-08-28T11:59:59+08:00" level=info msg="| 200 |     23.6746ms |       127.0.0.1 | GET | /api/v1/base/kpi |"
 time="2021-08-28 12:29:52" level=info msg="| 200 |      40.385ms |       127.0.0.1 | GET | /api/v1/base/kpi |"
 time="2021-08-28 12:31:24" level=info client_ip=127.0.0.1 latency_time=25.4157ms req_method=GET req_uri=/api/v1/base/kpi status_code=200
+time="2021-08-28 14:08:50" level=info client_ip=127.0.0.1 latency_time=26.1873ms req_method=GET req_uri=/api/v1/base/kpi status_code=200
+time="2021-08-28 15:03:28" level=info client_ip=127.0.0.1 latency_time=0s req_method=GET req_uri=/api/v1/base/dept-tree status_code=417
+time="2021-08-28 15:12:34" level=info client_ip=127.0.0.1 latency_time=23.4936ms req_method=GET req_uri=/api/v1/base/kpi status_code=200

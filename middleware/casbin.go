@@ -6,6 +6,7 @@ import (
 	"go-admin/global"
 	"go-admin/models"
 	"go-admin/utils/response"
+	"net/http"
 )
 
 func CasbinHandler() gin.HandlerFunc {
@@ -13,7 +14,7 @@ func CasbinHandler() gin.HandlerFunc {
 		claims, _ := c.Get("claims")
 		waitUse, ok := claims.(*models.CustomClaims)
 		if !ok {
-			response.FailWithMessage("获取用户失败", c)
+			response.Result(http.StatusBadRequest, nil, "获取用户失败", 0, false, c)
 			c.Abort()
 			//return
 		}
@@ -42,7 +43,7 @@ func CasbinHandler() gin.HandlerFunc {
 		ok, _ = global.GSyncedEnforcer.Enforce(sub, obj, act)
 		fmt.Println(ok, "是否有权限")
 		if !ok {
-			response.FailWithMessage("权限不足", c)
+			response.Result(http.StatusBadRequest, nil, "权限不足", 0, false, c)
 			c.Abort()
 			return
 		}
