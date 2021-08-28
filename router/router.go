@@ -23,11 +23,10 @@ func InitRouter() {
 	//r.POST("/login", auth.Authenticator)
 	//r.Use(middleware.JWTAuth())
 	r.POST("/api/v1/base/login", apis.Login)
-	r.Use(middleware.JWTAuth()).Use(middleware.CasbinHandler())
+	r.Use(middleware.LoggerToFile()).Use(middleware.JWTAuth()).Use(middleware.CasbinHandler())
 	//.Use(middleware.JWTAuth()) .Use(middleware.CasbinHandler())
 	//baseRouter := r.Group("/api/v1/base").Use(middleware.JWTAuth())
 	baseRouter := r.Group("/api/v1/base")
-	//.Use(middleware.JWTAuth())
 	{
 		// 用户登录
 		//baseRouter.POST("login", apis.Login)
@@ -91,13 +90,11 @@ func InitRouter() {
 	quit := make(chan os.Signal)
 	signal.Notify(quit, os.Interrupt)
 	<-quit
-	log.Println("Shutdown Server ...")
-
+	log.Println("服务关闭中...")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
 		log.Fatal("Server Shutdown:", err)
 	}
-	log.Println("Server exiting")
-	//return r
+	log.Println("服务关闭完成")
 }

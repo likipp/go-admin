@@ -119,7 +119,6 @@ func (k *KpiData) GetKpiData(params KpiDataQueryParam) (err error, kd []map[stri
 		db = db.Scan(&result)
 	}
 	// 根据月份进行排序
-	params.Pagination = true
 	kd = GroupBy(result, time.Now())
 	return nil, kd
 }
@@ -188,7 +187,6 @@ func (k *KpiData) GetKPIDataForLine(params KpiDataQueryParam) (err error, r []Re
 		db = db.Where("kpi.uuid = ?", v).Scan(&result)
 	}
 	// 根据月份进行排序
-	params.Pagination = true
 	for i := 0; i < len(result); i++ {
 		result[i].InTime = utils.ChangeDate(result[i].InTime)
 	}

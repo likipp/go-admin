@@ -18,3 +18,7 @@ sessions:
 
 casbin:
   modelPath: "./resource/rbac_model.conf"
+
+logs:
+  path: "./logs"
+  name: "test.txt"

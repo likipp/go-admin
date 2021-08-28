@@ -1,7 +1,6 @@
 package gins
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"go-admin/utils/response"
@@ -11,13 +10,16 @@ const (
 	UserIDKey = "/user-id"
 )
 
+func Parse(c *gin.Context, obj interface{}) {
+	if err := c.ShouldBind(&obj); err != nil {
+		response.FailWithMessage("解析请求参数发生错误", c)
+	}
+}
+
 func ParseJSON(c *gin.Context, obj interface{}) {
 	if err := c.ShouldBindJSON(obj); err != nil {
 		response.FailWithMessage("解析请求参数发生错误", c)
-		return
 	}
-	fmt.Println(obj, "前端数据")
-	//response.OkWithMessage("获取数据成功", c)
 }
 
 func ParseQuery(c *gin.Context, obj interface{}) {

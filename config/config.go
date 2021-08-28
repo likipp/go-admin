@@ -10,6 +10,7 @@ type Config struct {
 	RedisAdmin Redis  `json:"redisAdmin"`
 	JWT        JWT    `json:"jwt"`
 	Casbin     Casbin `json:"casbin"`
+	Logs       Logs   `json:"logs"`
 }
 
 type MySQL struct {
@@ -31,6 +32,11 @@ type JWT struct {
 
 type Casbin struct {
 	ModelPath string `json:"modelPath"`
+}
+
+type Logs struct {
+	Path string `json:"path"`
+	Name string `json:"name"`
 }
 
 var AdminConfig Config

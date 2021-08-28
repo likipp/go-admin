@@ -76,13 +76,6 @@ func GetUserList(c *gin.Context) {
 		//c.JSON(http.StatusBadRequest, gin.H{"code": 400, "data": err.Error()})
 		response.FailWithMessage(fmt.Sprintf("获取用户数据失败, %v", err), c)
 	} else {
-		//c.JSON(http.StatusOK, gin.H{
-		//	"code":     200,
-		//	"data":     list,
-		//	"total":    total,
-		//	"page":     userQuery.Page,
-		//	"pageSize": userQuery.PageSize,
-		//})
 		response.OKWithPageInfo(list, total, userQuery.Page, userQuery.PageSize, c)
 	}
 }

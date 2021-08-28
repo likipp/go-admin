@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"go-admin/global"
 	orm "go-admin/init/database"
 	initID "go-admin/init/globalID"
 	"go-admin/internal/entity"
@@ -95,7 +96,7 @@ func (g *GroupKPI) CreateGroupKPI() (err error, gK *GroupKPI) {
 func (g *GroupKPI) GetGroupKPI() (err error, gk []GroupKPIWithName) {
 	var results []GroupKPI
 	var resultsWithName []GroupKPIWithName
-	db := GetGroupKpiDB(orm.DB)
+	db := GetGroupKpiDB(global.GDB)
 	db.Find(&results)
 	for _, v := range results {
 		var dept SysDept

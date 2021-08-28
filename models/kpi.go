@@ -3,6 +3,7 @@ package models
 import (
 	"fmt"
 	"github.com/pkg/errors"
+	"go-admin/global"
 	orm "go-admin/init/database"
 	"go-admin/init/globalID"
 	"go-admin/internal/entity"
@@ -29,7 +30,7 @@ func (KPI) TableName() string {
 }
 
 func (k *KPI) CreateKPI() (err error, KPI *KPI) {
-	hasKPI := orm.DB.Where("name = ?", k.Name).Error
+	hasKPI := global.GDB.Where("name = ?", k.Name).Error
 	hasKPIResult := errors.Is(hasKPI, gorm.ErrRecordNotFound)
 	if hasKPIResult {
 		return errors.New("KPI名称重复,请检查"), nil
@@ -43,20 +44,12 @@ func (k *KPI) CreateKPI() (err error, KPI *KPI) {
 	return err, k
 }
 
-func PagingServer(pageParams KPIQueryParam, db *gorm.DB) {
-	var total int64
-	limit := pageParams.PageSize
-	offset := pageParams.PageSize * (pageParams.Current - 1)
-	_ = db.Count(&total).Error
-	db.Limit(int(limit)).Offset(int(offset)).Order("id desc")
-}
-
 func GetKpiDB(db *gorm.DB) *gorm.DB {
 	return entity.GetDBWithModel(db, new(KPI))
 }
 
-func (k *KPI) GetKPIList(params KPIQueryParam) (err error, KPIList []KPI) {
-	db := GetKpiDB(orm.DB)
+func (k *KPI) GetKPIList(params KPIQueryParam) (err error, KPIList []KPI, total int64) {
+	db := GetKpiDB(global.GDB)
 	if v := params.Name; v != "" {
 		db = db.Where("name = ?", v).Find(&KPIList)
 	}
@@ -66,9 +59,11 @@ func (k *KPI) GetKPIList(params KPIQueryParam) (err error, KPIList []KPI) {
 	if params.Status <= 0 && params.Name == "" {
 		db = db.Find(&KPIList)
 	}
-	params.Pagination = true
-	PagingServer(params, db)
-	return err, KPIList
+	err = schema.QueryPaging(params.PaginationParam)
+	if err != nil {
+		return err, nil, 0
+	}
+	return err, KPIList, int64(len(KPIList))
 }
 
 func (k *KPI) GetKPIByUUID() (KPI KPI, err error) {
@@ -98,7 +93,7 @@ func (k *KPI) GetKPIByUUID() (KPI KPI, err error) {
 //}
 
 func (k *KPI) UpdateKPIByUUID() (KR KPI, err error) {
-	db := GetKpiDB(orm.DB)
+	db := GetKpiDB(global.GDB)
 	fmt.Println(k, "k")
 	err = db.Where("uuid", k.UUID).Model(&KPI{}).Updates(k).Error
 	if err != nil {

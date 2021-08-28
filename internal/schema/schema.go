@@ -1,24 +1,24 @@
 package schema
 
 import (
-	orm "go-admin/init/database"
-	"gorm.io/gorm"
+	"go-admin/global"
 )
 
 type PaginationParam struct {
-	Pagination bool `form:"-"`                                     // 是否使用分页查询
-	OnlyCount  bool `form:"-"`                                     // 是否仅查询count
-	Current    uint `form:"current,default=1"`                     // 当前页
-	PageSize   uint `form:"pageSize,default=10" binding:"max=100"` // 页大小
+	//Pagination        bool      `form:"-"`                                     // 是否使用分页查询
+	//OnlyCount         bool      `form:"-"`                                     // 是否仅查询count
+	//HasCondition      bool      `form:"-"`
+	Current  int `form:"current,default=1"`                     // 当前页
+	PageSize int `form:"pageSize,default=10" binding:"max=100"` // 页大小
 }
 
-// 获取当前页
-func (p PaginationParam) GetCurrent() uint {
+// GetCurrent 获取当前页
+func (p PaginationParam) GetCurrent() int {
 	return p.Current
 }
 
-// 获取每页大小
-func (p PaginationParam) GetPageSize() uint {
+// GetPageSize 获取每页大小
+func (p PaginationParam) GetPageSize() int {
 	pageSize := p.PageSize
 	if p.PageSize == 0 {
 		pageSize = 100
@@ -36,19 +36,11 @@ const (
 	OrderByDESC OrderDirection = 2
 )
 
-func QueryPaging(pp PaginationParam, model interface{}, db *gorm.DB) (err error, total int64) {
-	if pp.OnlyCount {
-		err = orm.DB.Count(&total).Error
-	} else if pp.Pagination {
-		//
-	} else {
-		limit := pp.PageSize
-		offset := pp.PageSize * (pp.Current - 1)
-		err = orm.DB.Model(model).Count(&total).Error
-		db = orm.DB.Limit(int(limit)).Offset(int(offset)).Order("id desc")
-	}
-
-	return err, total
+func QueryPaging(pp PaginationParam) error {
+	limit := pp.PageSize
+	offset := pp.PageSize * (pp.Current - 1)
+	err := global.GDB.Limit(limit).Offset(offset).Order("id desc").Error
+	return err
 }
 
 // NewOrderFieldWithKeys 创建排序字段(默认升序排序)，可指定不同key的排序规则
