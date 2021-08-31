@@ -2,6 +2,7 @@ package response
 
 import (
 	"github.com/gin-gonic/gin"
+	"net/http"
 	"time"
 )
 
@@ -21,10 +22,10 @@ func Result(code int, data interface{}, msg string, showType int, success bool, 
 	})
 }
 
-func ResultWithPageInfo(code int, data interface{}, msg string, showType int, success bool, total int64, page, size int, c *gin.Context) {
-	c.JSON(code, &PageInfo{
+func ResultWithPageInfo(data interface{}, msg string, showType int, success bool, total int64, page, size int, c *gin.Context) {
+	c.JSON(http.StatusOK, &PageInfo{
 		Response: Response{
-			ErrorCode:    code,
+			ErrorCode:    http.StatusOK,
 			Success:      success,
 			ErrorMessage: msg,
 			ShowType:     showType,

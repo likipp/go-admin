@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/jinzhu/copier"
 	"go-admin/global"
-	orm "go-admin/init/database"
 	"go-admin/internal/entity"
 	"go-admin/internal/schema"
 	"go-admin/service"
@@ -66,13 +65,13 @@ func GetKpiDataDB(db *gorm.DB) *gorm.DB {
 
 func (k *KpiData) CreateKpiData() (err error, kd *KpiData) {
 	var result KpiData
-	db := GetKpiDataDB(orm.DB)
+	db := GetKpiDataDB(global.GDB)
 	hasKpiData := db.Where("group_kpi = ? AND in_time = ?", k.GroupKPI, k.InTime).First(&result).Error
 	hasKpiDataResult := errors.Is(hasKpiData, gorm.ErrRecordNotFound)
 	if !hasKpiDataResult {
 		return errors.New("当月KPI数据已经录入, 请检查"), kd
 	}
-	err = orm.DB.Create(&k).Error
+	err = global.GDB.Create(&k).Error
 	if err != nil {
 		return errors.New("创建KPI数据失败"), kd
 	}
@@ -99,7 +98,7 @@ func (k *KpiData) GetKpiData(params KpiDataQueryParam) (err error, kd []map[stri
 	var selectData = "kpi_data.id, group_kpi.dept, group_kpi.kpi, kpi.name, group_kpi.l_limit, group_kpi.t_limit, group_kpi.u_limit, kpi_data.r_value, kpi.unit, kpi_data.user, kpi_data.in_time, kpi.unit"
 	var joinData = "join group_kpi on kpi_data.group_kpi = group_kpi.uuid join kpi on group_kpi.kpi = kpi.uuid"
 	var orderData = "group_kpi.kpi desc, group_kpi.dept, kpi_data.in_time"
-	db := GetKpiDataDB(orm.DB).Select(selectData).Joins(joinData).Where("group_kpi in (?) AND kpi_data.in_time BETWEEN ? AND ?", sss, beforeMonth, nowMonth).Order(orderData)
+	db := GetKpiDataDB(global.GDB).Select(selectData).Joins(joinData).Where("group_kpi in (?) AND kpi_data.in_time BETWEEN ? AND ?", sss, beforeMonth, nowMonth).Order(orderData)
 	var result []Result
 	if v := params.User; v != "" {
 		db = db.Where("kpi_data.user = ?", v).Scan(&result)
@@ -171,7 +170,7 @@ func (k *KpiData) GetKPIDataForLine(params KpiDataQueryParam) (err error, r []Re
 	var selectData = "kpi_data.id, group_kpi.dept, group_kpi.kpi, kpi.name, group_kpi.l_limit, group_kpi.t_limit, group_kpi.u_limit, kpi_data.r_value, kpi.unit, kpi_data.user, kpi_data.in_time"
 	var joinData = "join group_kpi on kpi_data.group_kpi = group_kpi.uuid join kpi on group_kpi.kpi = kpi.uuid"
 	var orderData = "group_kpi.kpi, kpi_data.in_time asc"
-	db := GetKpiDataDB(orm.DB).Select(selectData).Joins(joinData).Where("kpi_data.in_time BETWEEN ? AND ?", beforeMonth, nowMonth).Order(orderData)
+	db := GetKpiDataDB(global.GDB).Select(selectData).Joins(joinData).Where("kpi_data.in_time BETWEEN ? AND ?", beforeMonth, nowMonth).Order(orderData)
 	var result []ResultLine
 	if v := params.User; v != "" {
 		db = db.Where("kpi_data.user = ?", v).Scan(&result)

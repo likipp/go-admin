@@ -29,7 +29,7 @@ func GetKPIList(c *gin.Context) {
 	if err != nil {
 		response.Result(http.StatusBadRequest, nil, "KPI查询失败", 1, false, c)
 	} else {
-		response.ResultWithPageInfo(http.StatusOK, kpiList, "获取列表成功", 1, true, total, params.Current, params.PageSize, c)
+		response.ResultWithPageInfo(kpiList, "获取列表成功", 1, true, total, params.Current, params.PageSize, c)
 	}
 }
 

@@ -30,7 +30,7 @@ func GetRoleList(c *gin.Context) {
 	if err != nil {
 		response.Result(http.StatusBadRequest, nil, "获取角色数据失败", 0, false, c)
 	} else {
-		response.ResultWithPageInfo(http.StatusOK, list, "获取数据成功", 0, true, total, pageInfo.Page, pageInfo.PageSize, c)
+		response.ResultWithPageInfo(list, "获取数据成功", 0, true, total, pageInfo.Page, pageInfo.PageSize, c)
 	}
 	//response.FailWithMessage(fmt.Sprintf("获取角色数据失败, %v", "eeee"), c)
 }
@@ -44,6 +44,6 @@ func GetRoleByQuery(c *gin.Context) {
 	if err != nil {
 		response.Result(http.StatusBadRequest, nil, "获取角色数据失败", 0, false, c)
 	} else {
-		response.ResultWithPageInfo(http.StatusOK, result, "获取数据成功", 0, true, total, rq.Page, rq.PageSize, c)
+		response.ResultWithPageInfo(result, "获取数据成功", 0, true, total, rq.Page, rq.PageSize, c)
 	}
 }

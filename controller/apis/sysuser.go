@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"go-admin/config"
+	"go-admin/global"
 	"go-admin/init/cookies"
 	"go-admin/middleware"
 	"go-admin/models"
@@ -75,7 +76,7 @@ func GetUserList(c *gin.Context) {
 		//c.JSON(http.StatusBadRequest, gin.H{"code": 400, "data": err.Error()})
 		response.Result(http.StatusBadRequest, nil, "获取用户数据失败", 0, false, c)
 	} else {
-		response.ResultWithPageInfo(http.StatusOK, list, "获取数据成功", 0, true, total, userQuery.Page, userQuery.PageSize, c)
+		response.ResultWithPageInfo(list, "获取数据成功", 0, true, total, userQuery.Page, userQuery.PageSize, c)
 	}
 }
 
@@ -138,31 +139,34 @@ func EnableOrDisableUser(c *gin.Context) {
 func Login(c *gin.Context) {
 	var L models.Login
 	_ = c.ShouldBindJSON(&L)
-	if err, user := models.UserLogin(&L); err != nil {
+	err, user := models.UserLogin(&L)
+	if err != nil {
 		response.Result(http.StatusBadRequest, nil, err.Error(), 0, false, c)
-	} else {
-		session, _ := cookies.GetSession(c)
-		token := GetToken(c, *user)
-		session.Values["nickname"] = user.Username
-		session.Values["name"] = user.NickName
-		session.Values["avatar"] = "https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png"
-		session.Values["uuid"] = user.UUID
-		session.Values["access"] = "admin"
-		session.Values["token"] = token
-		//global.GUser.Username = user.Username
-		//fmt.Println(user.Username, "&user.Username")
-		//global.GUser.NickName = user.NickName
-		//global.GUser.DeptID = &string(user.DeptID)
-		cookies.SaveSession(c)
-		response.Result(http.StatusOK, user, "保存数据成功", 0, true, c)
 	}
+	//token := GetToken(c, *user)
+	//session, _ := cookies.GetSession(c)
+	//session.Values["nickname"] = user.Username
+	//session.Values["name"] = user.NickName
+	//session.Values["avatar"] = "https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png"
+	//session.Values["uuid"] = user.UUID
+	//session.Values["access"] = "admin"
+	//session.Values["token"] = token
+	//global.GUser.Username = user.Username
+	////fmt.Println(user.Username, "&user.Username")
+	//global.GUser.NickName = user.NickName
+	////global.GUser.DeptID = &string(user.DeptID)
+	//cookies.SaveSession(c)
+	GetTokenAndSession(c, *user)
+	response.Result(http.StatusOK, user, "保存数据成功", 0, true, c)
 
 }
 
 // GetCurrentUser 获取当前登录用户信息
 func GetCurrentUser(c *gin.Context) {
 	var user models.CurrentUser
-	session, _ := cookies.GetSession(c)
+	fmt.Println("进入获取用户信息页面")
+	session, err := cookies.GetSession(c)
+	fmt.Println(err, "页面错误")
 	user.Avatar = session.Values["avatar"].(string)
 	user.UUID = session.Values["uuid"].(string)
 	user.Nickname = session.Values["nickname"].(string)
@@ -175,7 +179,7 @@ func Logout(c *gin.Context) {
 	cookies.DeleteSession(c)
 }
 
-func GetToken(c *gin.Context, user models.SysUser) (token string) {
+func GetTokenAndSession(c *gin.Context, user models.SysUser) {
 	j := &middleware.JWT{
 		SigningKey: []byte(config.AdminConfig.JWT.SigningKey),
 	}
@@ -197,8 +201,34 @@ func GetToken(c *gin.Context, user models.SysUser) (token string) {
 		response.Result(http.StatusBadRequest, nil, "获取Token失败", 0, false, c)
 		return
 	}
-	return token
+	session, _ := cookies.GetSession(c)
+	session.Values["nickname"] = user.Username
+	session.Values["name"] = user.NickName
+	session.Values["avatar"] = "https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png"
+	session.Values["uuid"] = user.UUID
+	session.Values["access"] = "admin"
+	session.Values["token"] = token
+	global.GUser.Username = user.Username
+	global.GUser.NickName = user.NickName
+	//global.GUser.DeptID = &string(user.DeptID)
+	cookies.SaveSession(c)
+	//return token
 }
+
+//func Sessions(c *gin.Context, user *models.SysUser) () {
+//	token := GetToken(c, *user)
+//	session, _ := cookies.GetSession(c)
+//	session.Values["nickname"] = user.Username
+//	session.Values["name"] = user.NickName
+//	session.Values["avatar"] = "https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png"
+//	session.Values["uuid"] = user.UUID
+//	session.Values["access"] = "admin"
+//	session.Values["token"] = token
+//	global.GUser.Username = user.Username
+//	global.GUser.NickName = user.NickName
+//	//global.GUser.DeptID = &string(user.DeptID)
+//	cookies.SaveSession(c)
+//}
 
 func getUserUUID(c *gin.Context) string {
 	session, _ := cookies.GetSession(c)

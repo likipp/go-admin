@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"go-admin/global"
 	"go-admin/models"
@@ -41,7 +40,6 @@ func CasbinHandler() gin.HandlerFunc {
 		//sub := waitUse.UUID
 		sub := waitUse.Username
 		ok, _ = global.GSyncedEnforcer.Enforce(sub, obj, act)
-		fmt.Println(ok, "是否有权限")
 		if !ok {
 			response.Result(http.StatusBadRequest, nil, "权限不足", 0, false, c)
 			c.Abort()

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"github.com/jinzhu/copier"
 	"go-admin/controller/server"
-	orm "go-admin/init/database"
+	"go-admin/global"
 	initID "go-admin/init/globalID"
 	"go-admin/models/page"
 )
@@ -52,7 +52,7 @@ type DeptLabel struct {
 // Create 创建部门
 func (d *SysDept) Create() (*SysDept, error) {
 	var dept SysDept
-	result := orm.DB.Where("dept_name = ?", d.DeptName).First(&dept).Error
+	result := global.GDB.Where("dept_name = ?", d.DeptName).First(&dept).Error
 	if result == nil {
 		err := errors.New("部门已存在")
 		return d, err
@@ -66,7 +66,7 @@ func (d *SysDept) Create() (*SysDept, error) {
 	//} else {
 	//	d.DeptPath = "/" + d.DeptName
 	//}
-	err := orm.DB.Create(&d).Error
+	err := global.GDB.Create(&d).Error
 	return d, err
 }
 
@@ -84,7 +84,7 @@ func (d *SysDept) GetList(info page.InfoPage) (err error, list interface{}, tota
 }
 
 func (d *SysDept) GetByUUID() (D SysDept, err error) {
-	err = orm.DB.Where("dept_id = ?", d.DeptID).First(&D).Error
+	err = global.GDB.Where("dept_id = ?", d.DeptID).First(&D).Error
 	if err != nil {
 		return D, errors.New("未找到该部门")
 	}
@@ -94,7 +94,7 @@ func (d *SysDept) GetByUUID() (D SysDept, err error) {
 // DeptTree 获取部门的组织架构
 func (d *SysDept) DeptTree() ([]SysDeptInfo, error) {
 	var list []SysDept
-	err := orm.DB.Order("sort").Find(&list).Error
+	err := global.GDB.Order("sort").Find(&list).Error
 	m := make([]SysDeptInfo, 0)
 	for i := 0; i < len(list); i++ {
 		if list[i].ParentId != 0 {
@@ -109,7 +109,7 @@ func (d *SysDept) DeptTree() ([]SysDeptInfo, error) {
 func (d *SysDept) DeptTreeByName() ([]SysDeptInfo, error) {
 	var list []SysDept
 	//var childList []SysDept
-	err := orm.DB.Where("dept_name LIKE ?", "%"+d.DeptName+"%").Order("sort").Find(&list).Error
+	err := global.GDB.Where("dept_name LIKE ?", "%"+d.DeptName+"%").Order("sort").Find(&list).Error
 	m := make([]SysDeptInfo, 0)
 	for i := 0; i < len(list); i++ {
 		info := DeptOrder(&list, list[i])
@@ -147,21 +147,25 @@ func DeptOrder(deptList *[]SysDept, dept SysDept) SysDeptInfo {
 	if err != nil {
 		return SysDeptInfo{}
 	}
-	deptInfo.EnableUsersCount = int(orm.DB.Model(dept).Where("status = ?", 1).Association("Users").Count())
-	deptInfo.DisableUsersCount = int(orm.DB.Model(dept).Where("status = ?", 2).Association("Users").Count())
+	deptInfo.EnableUsersCount = int(global.GDB.Model(dept).Where("status = ?", 1).Association("Users").Count())
+	deptInfo.DisableUsersCount = int(global.GDB.Model(dept).Where("status = ?", 2).Association("Users").Count())
 	for i := 0; i < len(list); i++ {
 		if dept.ID != list[i].ParentId {
 			continue
 		}
 		mi := SysDeptInfo{}
-		mi.ParentId = list[i].ParentId
-		mi.DeptName = list[i].DeptName
-		mi.Sort = list[i].Sort
-		mi.Leader = list[i].Leader
-		mi.Status = list[i].Status
-		mi.ID = list[i].ID
-		mi.DisableUsersCount = int(orm.DB.Model(list[i]).Where("status = ?", 1).Association("Users").Count())
-		mi.EnableUsersCount = int(orm.DB.Model(list[i]).Where("status = ?", 2).Association("Users").Count())
+		err = copier.Copy(&mi, &list[i])
+		if err != nil {
+			return SysDeptInfo{}
+		}
+		//mi.ParentId = list[i].ParentId
+		//mi.DeptName = list[i].DeptName
+		//mi.Sort = list[i].Sort
+		//mi.Leader = list[i].Leader
+		//mi.Status = list[i].Status
+		//mi.ID = list[i].ID
+		mi.DisableUsersCount = int(global.GDB.Model(list[i]).Where("status = ?", 1).Association("Users").Count())
+		mi.EnableUsersCount = int(global.GDB.Model(list[i]).Where("status = ?", 2).Association("Users").Count())
 		mi.Children = []SysDeptInfo{}
 		ms := DeptOrder(deptList, list[i])
 		min = append(min, ms)

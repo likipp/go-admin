@@ -1,15 +1,17 @@
 package cookies
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/sessions"
 	"go-admin/config"
+	"go-admin/global"
 	"go-admin/utils/response"
 	"gopkg.in/boj/redistore.v1"
 	"net/http"
 )
 
-var RS *redistore.RediStore
+//var RS *redistore.RediStore
 
 func InitSession(admin config.Redis) {
 	store, err := redistore.NewRediStore(10, "tcp", admin.Path, admin.Password, []byte("secret-key"))
@@ -23,14 +25,16 @@ func InitSession(admin config.Redis) {
 	store.SetMaxAge(60 * 60 * 24 * 7)
 	store.Options.Secure = true
 	store.Options.HttpOnly = true
-	RS = store
+	global.GRedis = store
 }
 
 func GetSession(c *gin.Context) (*sessions.Session, error) {
-	session, err := RS.Get(c.Request, "session")
+	session, err := global.GRedis.Get(c.Request, "session")
+	fmt.Println("进入GetSession中", session)
+	fmt.Println("错误信息:", err)
 	if err != nil {
-		response.Result(http.StatusBadRequest, nil, "获取session失败", 0, false, c)
-		c.Abort()
+		//response.Result(http.StatusBadRequest, nil, "获取session失败", 0, false, c)
+		//c.Abort()
 		return nil, err
 	}
 	return session, nil

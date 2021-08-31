@@ -2,6 +2,7 @@ package global
 
 import (
 	"github.com/casbin/casbin/v2"
+	"gopkg.in/boj/redistore.v1"
 	"gorm.io/gorm"
 )
 
@@ -15,4 +16,5 @@ var (
 	GDB             *gorm.DB
 	GUser           user
 	GSyncedEnforcer *casbin.SyncedEnforcer
+	GRedis          *redistore.RediStore
 )

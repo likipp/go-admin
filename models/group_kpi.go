@@ -76,7 +76,7 @@ func GetGroupKpiDB(db *gorm.DB) *gorm.DB {
 
 func (g *GroupKPI) CreateGroupKPI() (err error, gK *GroupKPI) {
 	var result GroupKPI
-	db := GetGroupKpiDB(orm.DB)
+	db := GetGroupKpiDB(global.GDB)
 	hasGroupKpi := db.Where("dept = ? AND kpi = ?", g.Dept, g.KPI).First(&result).Error
 	hasGroupKpiResult := errors.Is(hasGroupKpi, gorm.ErrRecordNotFound)
 	if !hasGroupKpiResult {
@@ -101,8 +101,8 @@ func (g *GroupKPI) GetGroupKPI() (err error, gk []GroupKPIWithName) {
 	for _, v := range results {
 		var dept SysDept
 		var kpi KPI
-		orm.DB.Where("dept_id  = ?", v.Dept).First(&dept)
-		orm.DB.Where("uuid = ?", v.KPI).First(&kpi)
+		db.Where("dept_id  = ?", v.Dept).First(&dept)
+		db.Where("uuid = ?", v.KPI).First(&kpi)
 		resultWithName := GroupKPIWithName{
 			UUID:     v.UUID,
 			Dept:     v.Dept,

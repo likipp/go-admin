@@ -36,7 +36,7 @@ func GetKpiDataList(c *gin.Context) {
 		response.Result(http.StatusBadRequest, nil, "获取KPI数据失败", 1, false, c)
 		return
 	} else {
-		response.ResultWithPageInfo(http.StatusOK, kpiDataList, "获取数据成功", 0, true, int64(len(kpiDataList)), params.Current, params.PageSize, c)
+		response.ResultWithPageInfo(kpiDataList, "获取数据成功", 0, true, int64(len(kpiDataList)), params.Current, params.PageSize, c)
 	}
 }
 
@@ -48,6 +48,6 @@ func GetKpiDateLine(c *gin.Context) {
 		response.Result(http.StatusBadRequest, nil, "获取KPI Line数据失败", 0, false, c)
 		return
 	} else {
-		response.ResultWithPageInfo(http.StatusOK, kpiDataList, "获取数据成功", 0, true, int64(len(kpiDataList)), params.Current, params.PageSize, c)
+		response.ResultWithPageInfo(kpiDataList, "获取数据成功", 0, true, int64(len(kpiDataList)), params.Current, params.PageSize, c)
 	}
 }
